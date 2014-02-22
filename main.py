@@ -22,7 +22,7 @@ def runGame():
 	my.resources = {'wood': 5, 'iron': 2, 'cheese': 250}
 
 	testBuilding = building.Building('hut', 'hut.png', 2, 2)
-	testButton = ui.Button('Click me', 0, (5, 20), 1, 0, 0, 'This is a tooltip')
+	testButton = ui.Button('Click me', 0, (5, my.WINDOWHEIGHT - 60), 1, 0, 0, 'This is a tooltip that spans multiple lines.')
 
 	while True:
 		my.input.get()
