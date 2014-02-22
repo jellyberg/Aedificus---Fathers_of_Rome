@@ -1,4 +1,4 @@
-import my, pygame, random
+import my, pygame, random, math
 from pygame.locals import *
 pygame.init()
 
@@ -24,9 +24,9 @@ class Map:
 		for x in range(my.MAPXCELLS):
 			row = []
 			for y in range(my.MAPYCELLS):
-				tile = ' '
+				tile = ''
 				if random.randint(0, my.TREEFREQUENCY) == 0:
-					tile = 'T'
+					tile = 'tree'
 				row.append(tile)
 			self.map.append(row)
 
@@ -36,13 +36,33 @@ class Map:
 		for x in range(my.MAPXCELLS):
 			for y in range(my.MAPYCELLS):
 				building = 'grass'
-				if self.map[x][y] == 'H':
-					building = 'hut'
-				if self.map[x][y] == 'T':
-					building = 'tree'
-				if building:
-					surf.blit(Map.IMGS[building], (x * my.CELLSIZE, y * my.CELLSIZE))
+				if self.map[x][y] != '': building = self.map[x][y]
+				surf.blit(Map.IMGS[building], (x * my.CELLSIZE, y * my.CELLSIZE))
 		return surf
+
+
+	def pixelsToCell(self, pixels):
+		"""Given a tuple of game surf coords, returns the occupied cell's (x, y)"""
+		x, y = pixels
+		return int(math.floor(x / my.CELLSIZE)), int(math.floor(y / my.CELLSIZE))
+
+
+	def screenToCellCoords(self, pixels):
+		"""Given a tuple of screen surf coords, returns the occupied cell's (x, y)"""
+		gamex, gamey = my.camera.screenToGamePix(pixels)
+		return self.pixelstoCells((gamex, gamey))
+
+
+	def screenToCellType(self, pixels):
+		"""Given a tuple of screen surf coords, returns the occupied cell's type"""
+		coords = self.screenToCellCoords(pixels)
+		return self.cellType(coords)
+
+
+	def cellType(self, coords):
+		"""Given a tuple of map coords, returns the cell's type"""
+		x, y = coords
+		return self.map[x][y]
 
 
 
@@ -60,11 +80,11 @@ class Camera:
 		"""Updates camera pos and shake, and blits the to my.screen"""
 		x, y = self.focus
 		# ACELLERATE X
-		if K_RIGHT in my.input.pressedKeys:
+		if K_RIGHT in my.input.pressedKeys or K_d in my.input.pressedKeys:
 			if self.xVel < 0: self.xVel = 0
 			self.xVel += my.SCROLLACCEL
 			if self.xVel > my.MAXSCROLLSPEED: xVel = my.MAXSCROLLSPEED
-		elif K_LEFT in my.input.pressedKeys:
+		elif K_LEFT in my.input.pressedKeys or K_a in my.input.pressedKeys:
 			if self.xVel > 0: self.xVel = 0
 			self.xVel -= my.SCROLLACCEL
 			if self.xVel < -my.MAXSCROLLSPEED: xVel = -my.MAXSCROLLSPEED
@@ -77,11 +97,11 @@ class Camera:
 			self.xVel += my.SCROLLDRAG
 		x += self.xVel
 		# ACELLERATE Y
-		if K_DOWN in my.input.pressedKeys:
+		if K_DOWN in my.input.pressedKeys or K_s in my.input.pressedKeys:
 			if self.yVel < 0: self.yVel = 0
 			self.yVel += my.SCROLLACCEL
 			if self.yVel > my.MAXSCROLLSPEED: yVel = my.MAXSCROLLSPEED
-		elif K_UP in my.input.pressedKeys:
+		elif K_UP in my.input.pressedKeys or K_w in my.input.pressedKeys:
 			if self.yVel > 0: self.yVel = 0
 			self.yVel -= my.SCROLLACCEL
 			if self.yVel < -my.MAXSCROLLSPEED: yVel = -my.MAXSCROLLSPEED
@@ -111,3 +131,12 @@ class Camera:
 		my.screen.blit(my.map.surf, (0,0), self.viewArea)
 
 
+	def shake(self, intensity):
+		pass
+
+
+	def screenToGamePix(self, pixels):
+		"""Given a tuple of screen pixel coords, returns corresponding game surf coords"""
+		x, y = pixels
+		rectx, recty = self.viewArea.topleft
+		return (x + rectx, y + recty)

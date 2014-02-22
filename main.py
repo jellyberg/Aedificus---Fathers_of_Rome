@@ -1,4 +1,4 @@
-import pygame, my, map, input
+import pygame, my, input, ui, map, building
 from pygame.locals import *
 
 pygame.init()
@@ -17,10 +17,19 @@ def runGame():
 	my.input = input.Input()
 	my.camera = map.Camera()
 	my.camera.update()
+	my.hud = ui.Hud()
+
+	my.resources = {'wood': 5, 'iron': 2, 'cheese': 250}
+
+	testBuilding = building.Building('hut', 'hut.png', 2, 2)
+	testButton = ui.Button('Click me', 0, (5, 20), 1, 0, 0, 'This is a tooltip')
 
 	while True:
 		my.input.get()
+		testBuilding.blit()
 		my.camera.update()
+		my.hud.update()
+		testButton.simulate(my.input)
 		pygame.display.update()
 		my.FPSCLOCK.tick(my.FPS)
 		my.input.checkForQuit()
