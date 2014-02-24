@@ -3,8 +3,8 @@ from pygame.locals import *
 pygame.init()
 
 
-def loadBuildingImgs(buildingNames):
-	"""Load building .png's from assets/buildings/ when given a ist of names"""
+def loadTerrainImgs(buildingNames):
+	"""Load terrain .png's from assets/buildings/ when given a ist of names"""
 	imgs = {}
 	for name in buildingNames:
 		imgs[name] = (pygame.image.load('assets/buildings/' + name + '.png').convert_alpha())
@@ -12,8 +12,8 @@ def loadBuildingImgs(buildingNames):
 
 
 class Map:
-	IMGS = loadBuildingImgs(['hut', 'tree', 'grass'])
-
+	TERRAIN = ['tree', 'grass']
+	IMGS = loadTerrainImgs(TERRAIN)
 	def __init__(self):
 		self.genBlankStructure()
 		self.surf = self.genSurf()
@@ -24,7 +24,7 @@ class Map:
 		for x in range(my.MAPXCELLS):
 			row = []
 			for y in range(my.MAPYCELLS):
-				tile = ''
+				tile = 'grass'
 				if random.randint(0, my.TREEFREQUENCY) == 0:
 					tile = 'tree'
 				row.append(tile)
@@ -35,9 +35,11 @@ class Map:
 		surf = pygame.Surface((my.MAPWIDTH, my.MAPHEIGHT))
 		for x in range(my.MAPXCELLS):
 			for y in range(my.MAPYCELLS):
-				building = 'grass'
-				if self.map[x][y] != '': building = self.map[x][y]
-				surf.blit(Map.IMGS[building], (x * my.CELLSIZE, y * my.CELLSIZE))
+				tile = self.map[x][y]
+				if tile not in Map.TERRAIN:
+					tile = 'grass'
+				surf.blit(Map.IMGS[tile], (x * my.CELLSIZE, y * my.CELLSIZE))
+		my.updateSurf = True
 		return surf
 
 
@@ -47,10 +49,16 @@ class Map:
 		return int(math.floor(x / my.CELLSIZE)), int(math.floor(y / my.CELLSIZE))
 
 
+	def cellsToPixels(self, coords):
+		"""Given a tuple of my.map.map coords, returns the pixel coords of the cell's topleft"""
+		x, y = coords
+		return (x * my.CELLSIZE, y * my.CELLSIZE)
+
+
 	def screenToCellCoords(self, pixels):
 		"""Given a tuple of screen surf coords, returns the occupied cell's (x, y)"""
 		gamex, gamey = my.camera.screenToGamePix(pixels)
-		return self.pixelstoCells((gamex, gamey))
+		return self.pixelsToCell((gamex, gamey))
 
 
 	def screenToCellType(self, pixels):
@@ -63,6 +71,36 @@ class Map:
 		"""Given a tuple of map coords, returns the cell's type"""
 		x, y = coords
 		return self.map[x][y]
+
+
+	def distanceTo(self, start, end):
+		"""Distance from cell A to cell B. Look at me, using PYTHAGORUS like a real man."""
+		startx, starty = start
+		endx, endy =  end
+		return math.sqrt(math.pow(math.fabs(endx - startx), 2)
+						 + math.pow(math.fabs(endy - starty), 2))
+
+
+	def findNearestBuildings(self, coords, buildingGroup):
+		"""Returns a list of buildings specified, in ascending order of distance"""
+		if len(buildingGroup.sprites()) == 0:
+			return None
+		buildings = []
+		distances = []
+		for building in buildingGroup.sprites():
+			distance = self.distanceTo(coords, building.coords)
+			for i in range(len(buildings)):
+				if distances[i] < distance:
+					if i == len(buildings):
+						buildings.append(building)
+						distances.append(distance)
+				elif distances[i] >= distance:
+					buildings.insert(i, building)
+					distances.insert(i, distance)
+			if len(buildings) == 0:
+				buildings.append(building)
+				distances.append(distance)
+		return buildings
 
 
 
@@ -128,7 +166,7 @@ class Camera:
 		elif self.viewArea.right > my.map.surf.get_width():
 			self.viewArea.right = my.map.surf.get_width()
 			self.xVel = -my.MAPEDGEBOUNCE
-		my.screen.blit(my.map.surf, (0,0), self.viewArea)
+		my.screen.blit(my.surf, (0,0), self.viewArea)
 
 
 	def shake(self, intensity):

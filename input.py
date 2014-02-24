@@ -1,4 +1,4 @@
-import pygame, sys
+import pygame, sys, my
 pygame.init()
 from pygame.locals import *
 
@@ -9,12 +9,14 @@ class Input:
         self.mousePressed = False
         self.mouseUnpressed = False
         self.mousePos = (0, 0)
+        self.hoveredCell = (0, 0)
         
 
     def get(self):
-        """Update variables - mouse position and click state, and pressed keys"""
+        """Update variables - mouse position, occupied cell and click state, and pressed keys"""
         self.checkForQuit()
         self.mouseUnpressed = False
+        self.lastCell = self.hoveredCell
         for event in pygame.event.get():
             if event.type == QUIT or (event.type == KEYUP and event.key == K_ESCAPE):
                 pygame.event.post(event)
@@ -32,6 +34,8 @@ class Input:
             elif event.type == MOUSEBUTTONUP:
                 self.mousePressed = False
                 self.mouseUnpressed = True
+        self.hoveredCell = my.map.screenToCellCoords(self.mousePos)
+        self.hoveredCellType = my.map.cellType(self.hoveredCell)
 
 
     def checkForQuit(self):

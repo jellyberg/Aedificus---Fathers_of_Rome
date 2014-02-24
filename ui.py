@@ -1,4 +1,4 @@
-import pygame, my, input, math
+import pygame, my, math
 pygame.init()
 
 BASICFONT = pygame.font.Font('freesansbold.ttf', 12)
@@ -30,7 +30,7 @@ def resourceText(text, topLeftPos):
 	"""Generates and blits resource amount indicators"""
 	x, y = topLeftPos
 	textSurf, textRect = genText(text, (GAP, GAP), my.WHITE, 0, 0, 0)
-	bgRect = pygame.Rect((x, y), (x + textRect.width + GAP, y + textRect.height + GAP))
+	bgRect = pygame.Rect((x, y), (textRect.width + GAP * 2, textRect.height + GAP * 2))
 	bgSurf = pygame.Surface((bgRect.width, bgRect.height))
 	bgSurf.fill(my.BROWN)
 	bgSurf.blit(textSurf, textRect)
@@ -39,19 +39,37 @@ def resourceText(text, topLeftPos):
 
 
 
+
 class Hud:
 	"""Handles resource amounts, buttons and tooltips"""
 	def __init__(self):
 		self.buttons = []
 		self.tooltips = []
+		self.HIGHLIGHTS = {}
+		for colour in Highlight.IMGS.keys():
+			self.HIGHLIGHTS[colour] = Highlight(colour)
+		my.surf = pygame.Surface(my.map.surf.get_size())
 
 	def update(self):
+		my.surf.blit(my.map.surf, (0, 0))
 		# RESOURCE AMOUNTS
 		i = 0
 		currentWidth = 0
 		for key in my.resources.keys():
-			currentWidth += resourceText(str(key) + ': ' + str(my.resources[key]), (GAP * (i + 1) + currentWidth, GAP))
+			currentWidth += resourceText('%s: %s/%s' % (key, my.resources[key], my.maxResources[key]), 
+						      (GAP * (i + 1) + currentWidth, GAP))
 			i += 1
+		# HIGHLIGHT
+		if my.mode != 'build':
+			if my.mode == 'look':
+				currentHighlight = self.HIGHLIGHTS['blue']
+			currentHighlight.update(my.input.hoveredCell)
+
+
+	def genSurf(self):
+		"""Regenerates my.surf"""
+		my.surf = pygame.Surface(my.map.surf.get_size())
+		my.hud.update()
 
 
 
@@ -65,10 +83,10 @@ class Button:
 		else:
 			self.textSurf = BASICFONT.render(self.text, 1, my.WHITE)
 		# CREATE BASIC SURF
-		self.padding = 6 # will be controlled by 'style' eventually
+		self.padding = 10 # will be controlled by 'style' eventually
 		self.buttonSurf = pygame.Surface((self.textSurf.get_width() + self.padding,
 										  self.textSurf.get_height() + self.padding))
-		self.buttonSurf.fill(my.BLUE)
+		self.buttonSurf.fill(my.BROWN)
 		self.buttonSurf.blit(self.textSurf, (int(self.padding /2), int(self.padding /2)))
 		self.currentSurf = self.buttonSurf
 		self.rect = pygame.Rect(self.screenPos, self.buttonSurf.get_size())
@@ -76,11 +94,11 @@ class Button:
 		if isClickable:
 			# MOUSE HOVER
 			self.hoverSurf = pygame.Surface(self.buttonSurf.get_size())
-			self.hoverSurf.fill(my.RED)
+			self.hoverSurf.fill(my.DARKBROWN)
 			self.hoverSurf.blit(self.textSurf, (int(self.padding /2), int(self.padding /2)))
 			# MOUSE CLICK
 			self.clickSurf = pygame.Surface(self.buttonSurf.get_size())
-			self.clickSurf.fill(my.DARKRED)
+			self.clickSurf.fill(my.BROWNBLACK)
 			self.clickSurf.blit(self.textSurf, (int(self.padding /2), int(self.padding /2)))
 			self.isClicked = False
 		self.hasTooltip = False
@@ -113,7 +131,6 @@ class Button:
 			self.currentSurf = self.buttonSurf
 		if userInput.mouseUnpressed == True and self.rect.collidepoint(userInput.mousePos):
 			self.isClicked = True
-
 
 
 class Tooltip:
@@ -177,3 +194,35 @@ class Tooltip:
 			if textObjs[i][1].width > longestLineWidth:
 				longestLineWidth = textObjs[i][1].width
 		return longestLineWidth
+
+
+class Highlight:
+	"""Highlight the cell the mouse is hovering over"""
+	IMGS = {}
+	colours = ['red', 'yellow', 'blue']
+	for colour in colours:
+		IMGS[colour] = []
+		for i in range(1, len(colours) + 1):
+			IMGS[colour].append(pygame.image.load('assets/ui/highlights/highlight '
+												   + colour + str(i) + '.png'))
+
+	def __init__(self, colour):
+		"""Execute once for each colour, then just update its cell when need be"""
+		self.animNum = 0
+		self.numChange = 1
+		self.imgs = Highlight.IMGS[colour]
+		self.numImgs = len(self.imgs) - 1
+		self.frames = 0
+
+	def update(self, cell):
+		#if my.updateSurf or my.input.hoveredCell != my.input.lastCell:
+		self.frames += 1
+		cellx, celly = cell
+		x, y = cellx * my.CELLSIZE, celly * my.CELLSIZE
+		my.surf.blit(self.imgs[self.animNum], (x, y))
+		if self.frames % 5 == 0:
+			if self.animNum == self.numImgs: self.numChange = -1
+			elif self.animNum == 0: self.numChange = 1
+			self.animNum += self.numChange
+		my.updateSurf = True
+
