@@ -24,10 +24,15 @@ MAXSCROLLSPEED = 4
 
 
 TREEFREQUENCY = 15   # 1/xth of tiles are trees
-STARTRESOURCES    = {'wood': 100, 'iron': 10, 'cheese': 250}
-STARTMAXRESOURCES = {'wood': 150, 'iron': 40, 'cheese': 250}
+STARTRESOURCES    = {'wood': 1000, 'iron': 10, 'cheese': 250}
+STARTMAXRESOURCES = {'wood': 1000, 'iron': 40, 'cheese': 250}
 HUMANMOVESPEED = 2
 CONSTRUCTIONSPEED = 3 # progress towards completion added per tick
+STARTINGHAPPINESS = 20
+STARTINGHUNGER = 1000
+HUNGERWARNING = 500
+HUNGERURGENT = 100
+BUBBLEMARGIN = 3
 
 
 # Colours     R    G    B  ALPHA

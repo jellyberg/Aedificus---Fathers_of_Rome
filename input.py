@@ -34,6 +34,7 @@ class Input:
             elif event.type == MOUSEBUTTONUP:
                 self.mousePressed = False
                 self.mouseUnpressed = True
+        self.hoveredPixel = my.map.screenToGamePix(self.mousePos)
         self.hoveredCell = my.map.screenToCellCoords(self.mousePos)
         self.hoveredCellType = my.map.cellType(self.hoveredCell)
 

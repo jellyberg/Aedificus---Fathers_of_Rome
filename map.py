@@ -43,6 +43,13 @@ class Map:
 		return surf
 
 
+	def screenToGamePix(self, pixels):
+		"""Given a tuple of screen pixel coords, returns corresponding game surf coords"""
+		x, y = pixels
+		rectx, recty = my.camera.viewArea.topleft
+		return (x + rectx, y + recty)
+
+
 	def pixelsToCell(self, pixels):
 		"""Given a tuple of game surf coords, returns the occupied cell's (x, y)"""
 		x, y = pixels
@@ -57,7 +64,7 @@ class Map:
 
 	def screenToCellCoords(self, pixels):
 		"""Given a tuple of screen surf coords, returns the occupied cell's (x, y)"""
-		gamex, gamey = my.camera.screenToGamePix(pixels)
+		gamex, gamey = self.screenToGamePix(pixels)
 		return self.pixelsToCell((gamex, gamey))
 
 
@@ -172,9 +179,3 @@ class Camera:
 	def shake(self, intensity):
 		pass
 
-
-	def screenToGamePix(self, pixels):
-		"""Given a tuple of screen pixel coords, returns corresponding game surf coords"""
-		x, y = pixels
-		rectx, recty = self.viewArea.topleft
-		return (x + rectx, y + recty)

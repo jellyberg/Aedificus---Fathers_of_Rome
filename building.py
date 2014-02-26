@@ -100,12 +100,12 @@ class Building(pygame.sprite.Sprite):
 			row = []
 			for y in range(self.ysize):
 				row.append((0, 0))
-			self.buildersPositions.append(row)
-		print(str(self.buildersPositionsCoords))
+			self.buildersPositionsCoords.append(row)
 		myx, myy = self.coords
 		for x in range(self.xsize):
 			for y in range(self.ysize):
 				self.buildersPositionsCoords[x][y] = (myx + x, myy + y)
+
 
 		self.onPlace()
 		my.mode = 'look'
@@ -143,7 +143,6 @@ class Building(pygame.sprite.Sprite):
 				self.image.blit(self.buildingImage, progressRect.topleft, progressRect)
 
 
-
 	def blit(self):
 		if my.buildingsUnderConstruction.has(self):
 			destinationSurf = my.surf
@@ -157,7 +156,7 @@ class Building(pygame.sprite.Sprite):
 class Hut(Building):
 	"""Currently just a placeholder"""
 	def __init__(self):
-		Building.__init__(self, 'hut', 2, 2, {'wood': 5}, 300)
+		Building.__init__(self, 'hut', 2, 2, {'wood': 5}, 500)
 		self.add(my.huts)
 
 

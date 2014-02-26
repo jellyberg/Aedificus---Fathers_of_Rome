@@ -21,7 +21,7 @@ class Handler:
 		my.gameRunning = True
 
 		self.testBuilders = []
-		for i in range(5):
+		for i in range(10):
 			self.testBuilders.append(mob.Builder((random.randint(0, 20), random.randint(0, 20))))
 
 	def update(self):
@@ -32,7 +32,7 @@ class Handler:
 		my.camera.update()
 		my.hud.update()
 		my.ticks += 1
-		for i in range(0, 20):
+		for i in range(0, 19):
 			if my.ticks % (my.FPS + i):
 				my.tick[i] = True
 			else:
