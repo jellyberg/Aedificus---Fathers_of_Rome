@@ -5,10 +5,10 @@ my.allMobs = pygame.sprite.Group()
 my.corpses = pygame.sprite.Group()
 
 def updateMobs():
-	for mob in my.allMobs.sprites:
+	for mob in my.allMobs.sprites():
 		mob.update()
-	for body in my.corpses:
-		body.update()
+	for corpse in my.corpses.sprites():
+		corpse.update()
 
 
 
@@ -16,6 +16,7 @@ class Mob(pygame.sprite.Sprite):
 	"""Base class for all mobs"""
 	def __init__(self, baseMoveSpeed, img, coords, size):
 		pygame.sprite.Sprite.__init__(self)
+		self.isDead = False
 		self.add(my.allMobs)
 		self.animFrame = 0
 		if type(img) == list:
@@ -33,10 +34,11 @@ class Mob(pygame.sprite.Sprite):
 
 
 	def baseUpdate(self):
-		self.coords =  my.map.pixelsToCell(self.rect.center)
-		self.updateMove()
-		self.handleImage()
-		self.blit()
+		if not self.isDead:
+			self.coords =  my.map.pixelsToCell(self.rect.center)
+			self.updateMove()
+			self.handleImage()
+			self.blit()
 
 
 	def updateMove(self):
@@ -72,6 +74,8 @@ class Mob(pygame.sprite.Sprite):
 	def die(self):
 		"""Pretty self explanatory really"""
 		self.kill()
+		self.isDead = True
+		Corpse(self.rect.midbottom, pygame.image.load('assets/mobs/dude.png'))
 
 
 	def blit(self):
@@ -119,8 +123,9 @@ class Human(Mob):
 
 
 	def updateHuman(self):
-		self.baseUpdate()
-		self.updateEmotions()
+		if not self.isDead:
+			self.baseUpdate()
+			self.updateEmotions()
 
 
 	def initEmotions(self):
@@ -160,16 +165,17 @@ class Builder(Human):
 
 
 	def update(self):
-		if self.building == None and my.tick[self.tick]:
-			self.findDestination()
-		self.updateHuman()
-		self.build()
-		if self.destinationSite or self.building:
-			self.thought = 'working'
-		elif self.thought == 'working':
-			self.thought = None
-			self.thoughtIsUrgent = False
-
+		if not self.isDead:
+			if self.building == None and my.tick[self.tick]:
+				self.findDestination()
+			self.updateHuman()
+			self.build()
+			if self.destinationSite or self.building:
+				self.thought = 'working'
+			elif self.thought == 'working':
+				self.thought = None
+				self.thoughtIsUrgent = False
+	
 
 	def findDestination(self):
 		"""Find nearest free cell in a site and set as destination"""
@@ -263,12 +269,19 @@ class ThoughtBubble:
 		my.surf.blit(self.image, self.rect)
 
 
-class Corpse(pygame.sprite.Sprite()):
-	image = pygame.image.load('assets/mobs/corpse.png')
+class Corpse(pygame.sprite.Sprite):
 	"""Eyecandy spawned when a human dies"""
-	def __init__(self, pos):
-		self.pos = pos
+	image = pygame.image.load('assets/mobs/corpse.png')
+	def __init__(self, pos, livingImage):
+		pygame.sprite.Sprite.__init__(self)
 		self.add(my.corpses)
+		self.pos = pos
+		self.animCount = 0 # count up to 90
+		self.livingImage = livingImage
 
 	def update(self):
-		my.surf.blit(Corpse.image, pos)
+		if self.animCount > -90:
+			self.img = pygame.transform.rotate(self.livingImage, self.animCount)
+			self.animCount -= 5
+		else: self.img = Corpse.image
+		my.surf.blit(self.img, self.pos)

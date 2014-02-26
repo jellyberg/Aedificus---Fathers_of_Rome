@@ -27,8 +27,7 @@ class Handler:
 	def update(self):
 		my.input.get()
 		building.updateBuildings()
-		for builder in self.testBuilders:
-			builder.update()
+		mob.updateMobs()
 		my.camera.update()
 		my.hud.update()
 		my.ticks += 1
