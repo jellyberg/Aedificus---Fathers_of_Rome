@@ -48,10 +48,13 @@ class Hud:
 		self.HIGHLIGHTS = {}
 		for colour in Highlight.IMGS.keys():
 			self.HIGHLIGHTS[colour] = Highlight(colour)
+		self.bottomBar = BottomBar()
 		my.surf = pygame.Surface(my.map.surf.get_size())
 
 	def update(self):
 		my.surf.blit(my.map.surf, (0, 0))
+		# BOTTOM BAR
+		self.bottomBar.update()
 		# RESOURCE AMOUNTS
 		i = 0
 		currentWidth = 0
@@ -76,6 +79,7 @@ class Hud:
 class Button:
 	"""A button, can be clickable, can have tooltip. When clicked, self.isClicked=True"""
 	def __init__(self, text, style, screenPos, isClickable=0, isTitle=0, screenPosIsTopRight=0, tooltip=None):
+		"""style is redundant atm, tooltip should be a string"""
 		self.text, self.style, self.screenPos, self.isClickable, self.posIsTopRight = \
 		(text, style, screenPos, isClickable, screenPosIsTopRight)
 		if isTitle:
@@ -83,7 +87,7 @@ class Button:
 		else:
 			self.textSurf = BASICFONT.render(self.text, 1, my.WHITE)
 		# CREATE BASIC SURF
-		self.padding = 10 # will be controlled by 'style' eventually
+		self.padding = 10 # might be controlled by 'style' eventually
 		self.buttonSurf = pygame.Surface((self.textSurf.get_width() + self.padding,
 										  self.textSurf.get_height() + self.padding))
 		self.buttonSurf.fill(my.BROWN)
@@ -133,14 +137,20 @@ class Button:
 			self.isClicked = True
 
 
+
 class Tooltip:
 	"""A multiline text box, displayed when isHovered=True"""
 	def __init__(self, text, pos):
-		self.pos = pos
+		self.pos, self.text = pos, text
 		self.x, self.y = pos
 		self.alpha = 0
+		self.newTooltip()
+		self.lastText = self.text
+
+
+	def newTooltip(self):
 		# GET TEXT OBJS
-		self.textObjs, self.textHeight = self.genTextObjs(text)
+		self.textObjs, self.textHeight = self.genTextObjs(self.text)
 		self.textWidth = self.getLongestTextLine(self.textObjs)
 		# CREATE SURF
 		self.surf = pygame.Surface((self.textWidth + GAP * 3, self.textHeight + GAP * 2))
@@ -149,16 +159,24 @@ class Tooltip:
 		for i in range(len(self.textObjs)):
 			self.surf.blit(self.textObjs[i][0], self.textObjs[i][1])
 		self.surf.set_colorkey(my.BLACK)
+		self.rect = self.surf.get_rect()
+		self.rect.topleft = self.pos
 		
 
-	def simulate(self, isHovered):
+	def simulate(self, isHovered, blitToLand=False):
+		if self.text != self.lastText:
+			self.newTooltip()
 		if isHovered:
-			if self.alpha < 255: self.alpha += 20
+			if self.alpha < 200: self.alpha += 20
 		elif self.alpha > 0:
 			self.alpha -= 20
 		if self.alpha > 0:
 			self.surf.set_alpha(self.alpha)
-			my.screen.blit(self.surf, self.pos)
+			if not blitToLand:
+				my.screen.blit(self.surf, self.rect)
+			if blitToLand:
+				my.surf.blit(self.surf, self.rect)
+		self.lastText = self.text
 
 
 	def genTextObjs(self, text):
@@ -196,6 +214,115 @@ class Tooltip:
 		return longestLineWidth
 
 
+
+class BottomBar:
+	"""A multi-tab menu at the bottom of the screen which allows contruction of buildings"""
+	height = 50
+	margin = 14 # at left hand side
+	cell   = 52 # width
+	def __init__(self):
+		self.bounds = pygame.Rect((0, my.WINDOWHEIGHT - BottomBar.height), (my.WINDOWWIDTH, BottomBar.height))
+		self.tab = 0
+		self.backgroundImg = pygame.image.load('assets/ui/bottomBar/background.png')
+		self.cellHighlight = pygame.image.load('assets/ui/bottomBar/cellHighlight.png')
+		self.cellClick     = pygame.image.load('assets/ui/bottomBar/cellClick.png')
+		self.clickedCell, self.hovered, self.lastClicked, self.lastHovered = None, None, None, None
+		self.surf = pygame.Surface(self.bounds.size)
+		self.surf.blit(self.backgroundImg, (0, 0))
+		self.surf.set_colorkey(my.BLACK)
+		self.genRects()
+		self.genTooltips()
+		stats = my.BUILDINGSTATS # synctactic sugar
+		self.SURFS = [self.genSurf([stats['hut']['img'], stats['shed']['img'],
+					  stats['orchard']['img'], stats['town hall']['img']])]
+		self.surf.blit(self.SURFS[self.tab], (0, 0))
+
+
+	def genRects(self):
+		"""Generates a list of twelve rects, to be used for collision detection with the mouse"""
+		self.localRects = []
+		self.globalRects = []
+		for i in range(12):
+			self.localRects.append(pygame.Rect((BottomBar.margin + i * BottomBar.cell, 0), 
+								   (BottomBar.cell, BottomBar.cell)))
+			self.globalRects.append(pygame.Rect((BottomBar.margin + i * BottomBar.cell, my.WINDOWHEIGHT - BottomBar.height), 
+									(BottomBar.cell, BottomBar.cell)))
+
+
+	def genSurf(self, imgs):
+		"""Generate a new surface with the imgs passed blitted onto it. These can be reused"""
+		surf = self.backgroundImg.copy()
+		assert len(imgs) <= 12, "Too many images for bottom bar!"
+		for i in range(len(imgs)):
+			# scale and blit preview image to BottomBar cell
+			width, height = imgs[i].get_rect().size
+			if width > height:
+				widthScale = 50
+				heightScale = int(height / width * 50)
+			else:
+				heightScale = 50
+				widthScale = int(width / height * 50)
+			img = pygame.transform.scale(imgs[i], (widthScale, heightScale))
+			imgRect = img.get_rect()
+			imgRect.center = self.localRects[i].center
+			surf.blit(img, imgRect)
+		return surf
+
+
+	def genTooltips(self):
+		self.tooltips = []
+		for i in range(len(my.BUILDINGSTATS)):
+			building = my.BUILDINGSTATS[my.BUILDINGNAMES[i]]
+			text = '%s Build time: %s, Build materials needed: %s' \
+					%(building['description'], building['buildTime'], building['buildMaterials'])
+			x = self.globalRects[i].right
+			x += GAP
+			tooltip = Tooltip(text, (x, 0))
+			tooltip.rect.bottom = my.WINDOWHEIGHT - GAP
+			self.tooltips.append(tooltip)
+
+
+	def update(self):
+		self.handleInput()
+		if self.clickedCell != None:
+			print('clicked cell number %s!' %(self.clickedCell))
+		my.screen.blit(self.surf, self.bounds)
+		i=0
+		for tooltip in self.tooltips:
+			if self.hovered == i: hovered = True
+			else: hovered = False
+			tooltip.simulate(hovered)
+			i += 1
+
+
+	def handleInput(self):
+		self.clickedCell = None
+		self.hovered = None
+		resetted = False
+		# update surf highlights and self.hovered and self.clickedCell
+		for i in range(len(self.globalRects)):
+			rect = self.globalRects[i]
+			if rect.collidepoint(my.input.mousePos):
+				self.hovered = i
+		if (self.hovered != self.lastHovered) or (self.clickedCell != self.lastClicked):
+			# reset surf if hover or click is finished
+			self.surf = self.SURFS[self.tab].copy()
+			resetted = True
+		for i in range(len(self.globalRects)):
+			rect = self.globalRects[i]
+			if rect.collidepoint(my.input.mousePos):
+				# hovered
+				if (self.lastHovered == None or resetted):
+					self.surf.blit(self.cellHighlight, self.localRects[i])
+				if my.input.mousePressed and (self.lastClicked == None or resetted): # clicked
+					self.surf.blit(self.cellClick, self.localRects[i])
+				if my.input.mouseUnpressed:
+					self.clickedCell = i
+		self.lastClicked, self.lastHovered = self.clickedCell, self.hovered
+
+
+
+
 class Highlight:
 	"""Highlight the cell the mouse is hovering over"""
 	IMGS = {}
@@ -213,6 +340,7 @@ class Highlight:
 		self.imgs = Highlight.IMGS[colour]
 		self.numImgs = len(self.imgs) - 1
 		self.frames = 0
+
 
 	def update(self, cell):
 		#if my.updateSurf or my.input.hoveredCell != my.input.lastCell:

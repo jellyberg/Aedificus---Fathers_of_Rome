@@ -20,22 +20,21 @@ class Handler:
 		my.updateSurf = True
 		my.gameRunning = True
 
-		self.testBuilders = []
 		for i in range(10):
-			self.testBuilders.append(mob.Builder((random.randint(0, 20), random.randint(0, 20))))
+			mob.Builder((random.randint(0, 20), random.randint(0, 20)))
 
 	def update(self):
+		my.ticks += 1
+		for i in range(1, 19):
+			if my.ticks % i == 0:
+				my.tick[i] = True
+			else:
+				my.tick[i] = False
 		my.input.get()
 		building.updateBuildings()
 		mob.updateMobs()
 		my.camera.update()
 		my.hud.update()
-		my.ticks += 1
-		for i in range(0, 19):
-			if my.ticks % (my.FPS + i):
-				my.tick[i] = True
-			else:
-				my.tick[i] = False
 
 		pygame.display.update()
 		my.FPSCLOCK.tick(my.FPS)

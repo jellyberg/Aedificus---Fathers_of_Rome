@@ -1,5 +1,6 @@
-import my, pygame, map, os, random, math
+import my, pygame, map, ui, os, random, math
 pygame.init()
+from pygame.locals import *
 
 my.allMobs = pygame.sprite.Group()
 my.corpses = pygame.sprite.Group()
@@ -11,12 +12,25 @@ def updateMobs():
 		corpse.update()
 
 
+def loadAnimationFiles(directory, file):
+	"""Load images from directory into a list of surfaces"""
+	animation = []
+	frames = len(os.listdir(directory))
+	for num in range(0, frames):
+		num = str(num)
+		num = num.zfill(4)
+		img = pygame.image.load(directory + '/' + file +  '.' + num + '.png').convert_alpha()
+		animation.append(img)
+	return animation
+
+
 
 class Mob(pygame.sprite.Sprite):
 	"""Base class for all mobs"""
 	def __init__(self, baseMoveSpeed, img, coords, size):
 		pygame.sprite.Sprite.__init__(self)
 		self.isDead = False
+		self.causeOfDeath = None
 		self.add(my.allMobs)
 		self.animFrame = 0
 		if type(img) == list:
@@ -25,12 +39,12 @@ class Mob(pygame.sprite.Sprite):
 		else:
 			self.image = img
 			self.animation = None
-		self.isBusy = False
 		self.rect = pygame.Rect(my.map.cellsToPixels(coords), size)
 		self.destination = None
 		self.baseMoveSpeed = baseMoveSpeed
 		self.coords =  my.map.pixelsToCell(self.rect.center)
-		self.tick = random.randint(0, 19)
+		self.tick = random.randint(1, 19)
+		self.initTooltip()
 
 
 	def baseUpdate(self):
@@ -39,6 +53,7 @@ class Mob(pygame.sprite.Sprite):
 			self.updateMove()
 			self.handleImage()
 			self.blit()
+		self.handleTooltip()
 
 
 	def updateMove(self):
@@ -72,27 +87,16 @@ class Mob(pygame.sprite.Sprite):
 
 
 	def die(self):
-		"""Pretty self explanatory really"""
+		"""Pretty self explanatory really. Kick the bucket."""
 		self.kill()
 		self.isDead = True
-		Corpse(self.rect.midbottom, pygame.image.load('assets/mobs/dude.png'))
+		Corpse((self.rect.centerx, self.rect.bottom + 5), pygame.image.load('assets/mobs/dude.png'),
+				 self.name, self.causeOfDeath)
 
 
 	def blit(self):
 		"""Blit to surf, which is overlayed onto my.map.map"""
 		my.surf.blit(self.image, self.rect)
-
-
-	def loadAnimationFiles(self, directory, file):
-		"""Load images from directory into a list of surfaces"""
-		animation = []
-		frames = len(os.listdir(directory))
-		for num in range(0, frames):
-			num = str(num)
-			num = num.zfill(4)
-			img = pygame.image.load(directory + '/' + file +  '.' + num + '.png').convert_alpha()
-			animation.append(img)
-		return animation
 
 
 	def handleImage(self):
@@ -105,12 +109,29 @@ class Mob(pygame.sprite.Sprite):
 				self.animFrame = 0
 
 
+	def initTooltip(self):
+		"""Initialises a tooltip that appears when the mob is hovered"""
+		tooltipPos = (self.rect.right + ui.GAP, self.rect.centery)
+		self.tooltip = ui.Tooltip('Blank tooltip', tooltipPos)
+
+
+	def handleTooltip(self):
+		"""Updates a tooltip that appears when the mob is hovered"""
+		self.tooltip.pos = (self.rect.right + ui.GAP, self.rect.centery)
+		if my.input.hoveredCell == self.coords:
+			isHovered = True
+		else:
+			isHovered = False
+		self.tooltip.simulate(isHovered, True)
+
+
+
 
 class Human(Mob):
 	"""Base class for humans"""
 	def __init__(self, coords, clothes):
 		if not hasattr(self, 'image'):
-			self.animation = self.loadAnimationFiles('assets/mobs/dude', 'dude')
+			self.animation = loadAnimationFiles('assets/mobs/dude', 'dude')
 			for frame in self.animation:
 				frame.blit(clothes, (0, 0))
 		if not hasattr(self, 'size'):
@@ -119,6 +140,8 @@ class Human(Mob):
 			self.baseMoveSpeed = my.HUMANMOVESPEED
 			self.moveSpeed = my.HUMANMOVESPEED
 		Mob.__init__(self, self.baseMoveSpeed, self.animation, coords, self.size)
+		self.name = random.choice(my.FIRSTNAMES) + ' ' + random.choice(my.LASTNAMES)
+		self.tooltip.text = self.name
 		self.initEmotions()
 
 
@@ -132,26 +155,61 @@ class Human(Mob):
 		"""Initialise the human's wants and needs"""
 		self.happiness = my.STARTINGHAPPINESS
 		self.hunger = my.STARTINGHUNGER
+		self.lastHunger = self.hunger
 		bubblePos = (self.rect.centerx, self.rect.top - my.BUBBLEMARGIN)
+		self.intention = None
 		self.thought = None
 		self.thoughtIsUrgent = False
 		self.bubble = ThoughtBubble(self.thought, bubblePos, self.thoughtIsUrgent)
 
 
 	def updateEmotions(self):
-		"""Update the human's wants and needs and kills it if need be!"""
+		"""Update the human's wants and needs, and kills it if need be!"""
+		# HUNGER
 		self.hunger -= 1
-		if self.hunger < my.HUNGERWARNING and self.thought == None:
-			self.thought = 'hungry'
-			self.thoughtIsUrgent = False
-		if self.hunger < my.HUNGERURGENT:
-			self.thought = 'hungry'
-			self.thoughtIsUrgent = True
-		if self.hunger < 1:
+		if self.hunger < my.HUNGERWARNING or (self.thought == 'eating' and self.hunger < my.MAXHUNGER - 50):
+			if not self.intention == 'find food': # ^ is hungry or eating?
+				self.goGetFood()
+				self.thoughtIsUrgent = False
+			if self.hunger < my.HUNGERURGENT:
+				self.thought = 'hungry'
+				self.thoughtIsUrgent = True
+		elif self.intention == 'find food': # reset values
+			self.intention = None
+			self.thought = None
+		if self.hunger > self.lastHunger and self.intention == 'find food': # is eating?
+			self.thought = 'eating'
+			if self.occupation == 'builder':
+				self.removeSiteReservation()
+				self.building, self.destination, self.destinationSite = None, None, None
+		if self.hunger < 1: # starved to death?
+			self.causeOfDeath = 'starved to death'
 			self.die()
-		bubblePos = (self.rect.centerx, self.rect.top - my.BUBBLEMARGIN)
-		print(str(self.thought))
+		self.lastHunger = self.hunger
+
+		# THOUGHTBUBBLE
+		bubblePos = (self.rect.right + my.BUBBLEMARGIN, self.rect.top - my.BUBBLEMARGIN)
 		self.bubble.update(self.thought, bubblePos, self.thoughtIsUrgent)
+		if self.intention == 'working':
+			self.thought = 'working'
+		if self.thought == None:
+			thoughtText = 'chillaxing'
+		else:
+			thoughtText = self.thought
+		if self.thoughtIsUrgent:
+			urgency = 'very '
+		else: urgency = ''
+		self.tooltip.text = self.name + ' is ' + urgency + thoughtText
+
+
+	def goGetFood(self):
+		"""Find the nearest food place and go and eat there"""
+		sites = my.map.findNearestBuildings(self.coords, my.foodBuildings)
+		if sites:
+			site = sites[0]
+			self.destination = random.choice(site.AOEcoords)
+			self.intention = 'find food'
+		self.thought = 'hungry'
 
 
 
@@ -162,27 +220,33 @@ class Builder(Human):
 		Human.__init__(self, coords, pygame.image.load('assets/mobs/builder.png'))
 		self.building = None
 		self.destinationSite = None
+		self.occupation = 'builder'
 
 
 	def update(self):
 		if not self.isDead:
+			#if my.tick[self.tick]:
+			#	print('name %s, thought %s, building %s, intention %s' %(self.name, self.thought, self.building, self.intention))
 			if self.building == None and my.tick[self.tick]:
-				self.findDestination()
-			self.updateHuman()
+				self.findConstructionSite()
 			self.build()
-			if self.destinationSite or self.building:
+			if (self.destinationSite and self.destination) or self.building:
 				self.thought = 'working'
-			elif self.thought == 'working':
+				self.intention = 'working'
+			elif self.thought == 'working': # just finished work
 				self.thought = None
 				self.thoughtIsUrgent = False
+			self.updateHuman()
+			if self.intention == 'working' and (not self.destination or not self.building):
+				self.intention == None
+			self.lastDestination = self.destination
 	
 
-	def findDestination(self):
+	def findConstructionSite(self):
 		"""Find nearest free cell in a site and set as destination"""
 		done = False
-		lastDestination = self.destination
 		sites = my.map.findNearestBuildings(self.coords, my.buildingsUnderConstruction)
-		if sites:
+		if sites and (self.intention == None or self.intention == 'working'):
 			for site in sites:
 				for x in range(len(site.buildersPositions)):
 					for y in range(len(site.buildersPositions[0])):
@@ -191,17 +255,21 @@ class Builder(Human):
 							# go to, and reserve a place at, the site
 							self.destination = site.buildersPositionsCoords[x][y]
 							site.buildersPositions[x][y] = self
-							if self.destination != lastDestination and lastDestination:
-								# remove reservation from last site
-								destx, desty = self.destination
-								if self.destinationSite:
-									self.destinationSite.buildersPositions[self.buildPosx][self.buildPosy] = None
+							if (self.destination != self.lastDestination) or (self.intention not in 'working'):
+								self.removeSiteReservation()
 							self.destinationSite = site
 							self.buildPosx, self.buildPosy = x, y
 							done = True
 						if done: break
 					if done: break
 				if done: break
+
+
+	def removeSiteReservation(self):
+		"""Removes the reserved spot at the lost construction site"""
+		if self.destinationSite:
+			self.destinationSite.buildersPositions[self.buildPosx][self.buildPosy] = None
+			self.building = None
 
 
 
@@ -214,16 +282,17 @@ class Builder(Human):
 					if done: break
 					if site.buildersPositionsCoords[x][y] == self.coords:
 						self.building = site
-						self.isBusy = True
 						self.destinationSite = None
+						self.building.buildProgress += my.CONSTRUCTIONSPEED
+						self.intention = 'working'
 						done = True
 					if done: break
 				if done: break
-		if self.building:
-			self.building.buildProgress += my.CONSTRUCTIONSPEED
-		if my.builtBuildings.has(self.building):
-			self.isBusy = False
+		if not done:
 			self.building = None
+		if my.builtBuildings.has(self.building):
+			self.building = None
+			self.intention = None
 
 
 
@@ -234,10 +303,15 @@ class ThoughtBubble:
 	icons = {}
 	for icon in ['None', 'happy', 'sad', 'hungry', 'working']:
 		icons[icon] = pygame.image.load('assets/mobs/thoughtBubble/' + icon + '.png')
+	animIcons = {}
+	for icon in ['eating']:
+		animIcons[icon] = loadAnimationFiles('assets/mobs/thoughtBubble/' + icon, icon)
+
 	def __init__(self, thought, pos, isUrgent=False):
 		self.alpha = 200
 		self.rect = pygame.Rect((0,0), (20, 20))
 		self.image = None
+		self.animCount = 0
 		self.thought = str(thought)
 		self.isUrgent = isUrgent
 		self.updateSurf()
@@ -245,9 +319,17 @@ class ThoughtBubble:
 
 
 	def updateSurf(self):
-		"""Called whenever a new thougth or urgency is needed"""
-		print(str(self.thought))
-		self.icon = ThoughtBubble.icons[str(self.thought)]
+		"""Called whenever a new thought or urgency is needed"""
+		if self.thought in ThoughtBubble.icons.keys():
+			self.animated = False
+			self.icon = ThoughtBubble.icons[self.thought]
+		elif self.thought in ThoughtBubble.animIcons.keys():
+			self.animated = True
+			if my.ticks % 5 ==0:
+				self.animCount += 1
+			if self.animCount == len(ThoughtBubble.animIcons[self.thought]):
+				self.animCount = 0
+			self.icon = ThoughtBubble.animIcons[self.thought][self.animCount]
 		if self.isUrgent:
 			self.image = ThoughtBubble.urgentBubble.copy()
 		else:
@@ -259,8 +341,8 @@ class ThoughtBubble:
 	def update(self, thought, pos, isUrgent=False):
 		if self.alpha > 0:
 			self.alpha -= 5
-		if str(thought) != self.thought or isUrgent != self.isUrgent:
-			print('new thought')
+		if str(thought) != self.thought or isUrgent != self.isUrgent or self.animated:
+			self.isUrgent = isUrgent
 			self.thought = str(thought)
 			self.alpha = 200
 			self.updateSurf()
@@ -269,15 +351,17 @@ class ThoughtBubble:
 		my.surf.blit(self.image, self.rect)
 
 
+
 class Corpse(pygame.sprite.Sprite):
 	"""Eyecandy spawned when a human dies"""
 	image = pygame.image.load('assets/mobs/corpse.png')
-	def __init__(self, pos, livingImage):
+	def __init__(self, pos, livingImage, name, causeOfDeath=None):
 		pygame.sprite.Sprite.__init__(self)
 		self.add(my.corpses)
-		self.pos = pos
+		self.pos, self.name, self.causeOfDeath = pos, name, causeOfDeath
 		self.animCount = 0 # count up to 90
 		self.livingImage = livingImage
+		self.initTooltip()
 
 	def update(self):
 		if self.animCount > -90:
@@ -285,3 +369,20 @@ class Corpse(pygame.sprite.Sprite):
 			self.animCount -= 5
 		else: self.img = Corpse.image
 		my.surf.blit(self.img, self.pos)
+		self.handleTooltip()
+
+
+	def initTooltip(self):
+		"""Initialises a tooltip that appears when the mob is hovered"""
+		x, y = self.pos
+		tooltipPos = (x + ui.GAP * 4, y)
+		self.tooltip = ui.Tooltip(self.name + ' ' + self.causeOfDeath, tooltipPos)
+
+
+	def handleTooltip(self):
+		"""Updates a tooltip that appears when the mob is hovered"""
+		if my.input.hoveredCell == my.map.pixelsToCell(self.pos):
+			isHovered = True
+		else:
+			isHovered = False
+		self.tooltip.simulate(isHovered, True)

@@ -88,14 +88,14 @@ class Map:
 						 + math.pow(math.fabs(endy - starty), 2))
 
 
-	def findNearestBuildings(self, coords, buildingGroup):
+	def findNearestBuildings(self, myCoords, buildingGroup):
 		"""Returns a list of buildings specified, in ascending order of distance"""
 		if len(buildingGroup.sprites()) == 0:
 			return None
 		buildings = []
 		distances = []
 		for building in buildingGroup.sprites():
-			distance = self.distanceTo(coords, building.coords)
+			distance = self.distanceTo(myCoords, building.coords)
 			for i in range(len(buildings)):
 				if distances[i] < distance:
 					if i == len(buildings):

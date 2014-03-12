@@ -1,4 +1,4 @@
-import pygame
+import pygame, random
 from pygame.locals import *
 
 pygame.init()
@@ -23,15 +23,16 @@ MAPEDGEBOUNCE = 10
 MAXSCROLLSPEED = 4
 
 
-TREEFREQUENCY = 15   # 1/xth of tiles are trees
+TREEFREQUENCY = random.randint(10, 20)   # 1/xth of tiles are trees
 STARTRESOURCES    = {'wood': 1000, 'iron': 10, 'cheese': 250}
 STARTMAXRESOURCES = {'wood': 1000, 'iron': 40, 'cheese': 250}
 HUMANMOVESPEED = 2
 CONSTRUCTIONSPEED = 3 # progress towards completion added per tick
 STARTINGHAPPINESS = 20
-STARTINGHUNGER = 100
-HUNGERWARNING = 500
-HUNGERURGENT = 100
+STARTINGHUNGER = 1500
+MAXHUNGER = 1500
+HUNGERWARNING = 800
+HUNGERURGENT = 300
 BUBBLEMARGIN = 3
 
 
@@ -50,6 +51,21 @@ DARKGREY  = ( 60,  60,  60, 255)
 LIGHTGREY = (180, 180, 180, 255)
 BROWN     = (139,  69,  19, 255)
 DARKBROWN = (100,  30,   0, 255)
-BROWNBLACK= ( 50,  0,  0, 255)
+BROWNBLACK= ( 50,  0,    0, 255)
 CREAM     = (255, 255, 204, 255)
 COLOURKEY = (  1,   2,   3, 255)
+BLUETRANS = (  0,   0, 255, 100)
+
+
+FIRSTNAMES = 'Robert Jenny Steve Jeff Alice Benjamin Yoric Fatima Reem Aya Suha Paul Becca Habiba \
+				Mariam Irene Salma Liam Jacob Mohammed Ethan Cohen Jake Landon Elizabeth James John\
+				Sophia Olivia Emma Brooklyn Ahmed Yusuf Chih-ming Chun-chieh Ji-hoon Abdullo Berat'.split()
+LASTNAMES  = 'Prifti Loshi Leka Hoxha Gruber Huber Bauer Steiner Moser Jacobs Simon Martin Dupont\
+				Dimitrov Trifonov Yanev Blagoev Hristov Yankov Novak Matic Hansen Magi Sepp Ilves\
+				Koppel Parn Ilves Ivanov Pertov Putin Johannesen Thomsen Binks Rider Lehtonen Laine\
+				David Garcia Morel Haynes Usher Martinez Francois Schmidt Schulz Wagner Hoffmann\
+				Papantiniou Papadikas Nagy Toth Varga Mrphy Murray Jakupi Hoxha Sejdiu Borg Olsen\
+				Berg Jacobsen Kozlov Kornilov Lenin Bogdanov Trotsky Nikolic Perez Reyes Armas Cruz\
+				Smith Jones Wood Jackson Clarke Hall Green Roberts White Thompson Spoon Hall Green\
+				Wright Robinson Wilson Taylor Khan Williams Roberts Lewis Cox Moore Kelly Rose Jenkins\
+				Rees Driscoll Thomas Davies Edwards Reid MacDonald Robertson Clark Morrison Sanders'.split()
