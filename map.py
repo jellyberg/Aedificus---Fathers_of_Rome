@@ -44,7 +44,7 @@ class Map:
 
 
 	def screenToGamePix(self, pixels):
-		"""Given a tuple of screen pixel coords, returns corresponding game surf coords"""
+		"""Given a tuple of screen pixel coords, returns corresponding game surf pixel coords"""
 		x, y = pixels
 		rectx, recty = my.camera.viewArea.topleft
 		return (x + rectx, y + recty)

@@ -42,7 +42,7 @@ class Mob(pygame.sprite.Sprite):
 		self.rect = pygame.Rect(my.map.cellsToPixels(coords), size)
 		self.destination = None
 		self.baseMoveSpeed = baseMoveSpeed
-		self.coords =  my.map.pixelsToCell(self.rect.center)
+		self.coords =  coords
 		self.tick = random.randint(1, 19)
 		self.initTooltip()
 
@@ -118,12 +118,7 @@ class Mob(pygame.sprite.Sprite):
 	def handleTooltip(self):
 		"""Updates a tooltip that appears when the mob is hovered"""
 		self.tooltip.rect.topleft = (self.rect.right + ui.GAP, self.rect.centery)
-		#if my.input.hoveredCell == self.coords:
-		if self.rect.collidepoint(my.input.mousePos):
-			isHovered = True
-		else:
-			isHovered = False
-		self.tooltip.simulate(isHovered, True)
+		self.tooltip.simulate(self.rect.collidepoint(my.input.hoveredPixel), True)
 
 
 
@@ -134,7 +129,7 @@ class Human(Mob):
 		self.occupation = occupation
 		if self.occupation == None:
 			self.animation = loadAnimationFiles('assets/mobs/dude', 'dude')
-		self.size = (1 * my.CELLSIZE, 2 * my.CELLSIZE)
+		self.size = (10, 20)
 		self.baseMoveSpeed = my.HUMANMOVESPEED
 		self.moveSpeed = my.HUMANMOVESPEED
 		if self.occupation == 'builder':
@@ -151,8 +146,9 @@ class Human(Mob):
 			self.updateEmotions()
 			if self.occupation == 'builder':
 				self.updateBuilder()
-			if self.rect.collidepoint(my.input.mousePos):
-				print('yes')
+			if self.rect.collidepoint(my.input.hoveredPixel) and my.input.mousePressed == 2:
+				self.occupation = 'builder'
+				self.initBuilder()
 
 
 	def initEmotions(self):
@@ -228,6 +224,7 @@ class Human(Mob):
 		self.destination = None
 		self.building = None
 		self.destinationSite = None
+		self.lastDestination = None
 
 
 	def updateBuilder(self):

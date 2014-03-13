@@ -20,8 +20,11 @@ class Handler:
 		my.updateSurf = True
 		my.gameRunning = True
 
-		for i in range(10):
+		for i in range(5):
+			mob.Human((random.randint(0, 20), random.randint(0, 20)))
+		for i in range(5):
 			mob.Human((random.randint(0, 20), random.randint(0, 20)), 'builder')
+
 
 	def update(self):
 		my.ticks += 1

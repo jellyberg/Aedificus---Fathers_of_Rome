@@ -125,7 +125,7 @@ class Button:
 	def handleClicks(self, userInput=None):
 		self.isClicked = False
 		self.isHovered = False
-		if self.rect.collidepoint(userInput.mousePos):
+		if self.rect.collidepoint(my.input.mousePos):
 			if userInput.mousePressed == 1:
 				self.currentSurf = self.clickSurf
 			else:
@@ -133,7 +133,7 @@ class Button:
 				self.isHovered = True
 		else:
 			self.currentSurf = self.buttonSurf
-		if userInput.mouseUnpressed == True and self.rect.collidepoint(userInput.mousePos):
+		if userInput.mouseUnpressed == True and self.rect.collidepoint(my.input.mousePos):
 			self.isClicked = True
 
 
