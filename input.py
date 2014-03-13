@@ -29,7 +29,7 @@ class Input:
             elif event.type == MOUSEMOTION:
                 self.mousePos = event.pos
             elif event.type == MOUSEBUTTONDOWN:
-                self.mousePressed = True
+                self.mousePressed = event.button
                 self.mouseUnpressed = False
             elif event.type == MOUSEBUTTONUP:
                 self.mousePressed = False

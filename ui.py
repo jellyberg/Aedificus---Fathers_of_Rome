@@ -1,4 +1,4 @@
-import pygame, my, math
+import pygame, my, math, building
 pygame.init()
 
 BASICFONT = pygame.font.Font('freesansbold.ttf', 12)
@@ -126,7 +126,7 @@ class Button:
 		self.isClicked = False
 		self.isHovered = False
 		if self.rect.collidepoint(userInput.mousePos):
-			if userInput.mousePressed == True:
+			if userInput.mousePressed == 1:
 				self.currentSurf = self.clickSurf
 			else:
 				self.currentSurf = self.hoverSurf
@@ -285,7 +285,14 @@ class BottomBar:
 	def update(self):
 		self.handleInput()
 		if self.clickedCell != None:
-			print('clicked cell number %s!' %(self.clickedCell))
+			if self.clickedCell == 0:
+				building.Hut()
+			elif self.clickedCell == 1:
+				building.Shed()
+			elif self.clickedCell == 2:
+				building.Orchard()
+			elif self.clickedCell == 3:
+				building.TownHall()
 		my.screen.blit(self.surf, self.bounds)
 		i=0
 		for tooltip in self.tooltips:
@@ -296,10 +303,10 @@ class BottomBar:
 
 
 	def handleInput(self):
+		"""Update surf highlights and self.hovered and self.clickedCell"""
 		self.clickedCell = None
 		self.hovered = None
 		resetted = False
-		# update surf highlights and self.hovered and self.clickedCell
 		for i in range(len(self.globalRects)):
 			rect = self.globalRects[i]
 			if rect.collidepoint(my.input.mousePos):
@@ -314,7 +321,7 @@ class BottomBar:
 				# hovered
 				if (self.lastHovered == None or resetted):
 					self.surf.blit(self.cellHighlight, self.localRects[i])
-				if my.input.mousePressed and (self.lastClicked == None or resetted): # clicked
+				if my.input.mousePressed == 1 and (self.lastClicked == None or resetted): # clicked
 					self.surf.blit(self.cellClick, self.localRects[i])
 				if my.input.mouseUnpressed:
 					self.clickedCell = i

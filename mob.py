@@ -117,8 +117,9 @@ class Mob(pygame.sprite.Sprite):
 
 	def handleTooltip(self):
 		"""Updates a tooltip that appears when the mob is hovered"""
-		self.tooltip.pos = (self.rect.right + ui.GAP, self.rect.centery)
-		if my.input.hoveredCell == self.coords:
+		self.tooltip.rect.topleft = (self.rect.right + ui.GAP, self.rect.centery)
+		#if my.input.hoveredCell == self.coords:
+		if self.rect.collidepoint(my.input.mousePos):
 			isHovered = True
 		else:
 			isHovered = False
@@ -129,32 +130,35 @@ class Mob(pygame.sprite.Sprite):
 
 class Human(Mob):
 	"""Base class for humans"""
-	def __init__(self, coords, clothes):
-		if not hasattr(self, 'image'):
+	def __init__(self, coords, occupation=None):
+		self.occupation = occupation
+		if self.occupation == None:
 			self.animation = loadAnimationFiles('assets/mobs/dude', 'dude')
-			for frame in self.animation:
-				frame.blit(clothes, (0, 0))
-		if not hasattr(self, 'size'):
-			self.size = (1, 2)
-		if not hasattr(self, 'moveSpeed'):
-			self.baseMoveSpeed = my.HUMANMOVESPEED
-			self.moveSpeed = my.HUMANMOVESPEED
+		self.size = (1 * my.CELLSIZE, 2 * my.CELLSIZE)
+		self.baseMoveSpeed = my.HUMANMOVESPEED
+		self.moveSpeed = my.HUMANMOVESPEED
+		if self.occupation == 'builder':
+			self.initBuilder()
 		Mob.__init__(self, self.baseMoveSpeed, self.animation, coords, self.size)
 		self.name = random.choice(my.FIRSTNAMES) + ' ' + random.choice(my.LASTNAMES)
 		self.tooltip.text = self.name
 		self.initEmotions()
 
 
-	def updateHuman(self):
+	def update(self):
 		if not self.isDead:
 			self.baseUpdate()
 			self.updateEmotions()
+			if self.occupation == 'builder':
+				self.updateBuilder()
+			if self.rect.collidepoint(my.input.mousePos):
+				print('yes')
 
 
 	def initEmotions(self):
 		"""Initialise the human's wants and needs"""
 		self.happiness = my.STARTINGHAPPINESS
-		self.hunger = my.STARTINGHUNGER
+		self.hunger = my.STARTINGHUNGER + random.randint(-100, 100)
 		self.lastHunger = self.hunger
 		bubblePos = (self.rect.centerx, self.rect.top - my.BUBBLEMARGIN)
 		self.intention = None
@@ -179,6 +183,7 @@ class Human(Mob):
 			self.thought = None
 		if self.hunger > self.lastHunger and self.intention == 'find food': # is eating?
 			self.thought = 'eating'
+			self.thoughtIsUrgent = False
 			if self.occupation == 'builder':
 				self.removeSiteReservation()
 				self.building, self.destination, self.destinationSite = None, None, None
@@ -212,21 +217,21 @@ class Human(Mob):
 		self.thought = 'hungry'
 
 
+#	BUILDER
 
-
-class Builder(Human):
-	"""Human that goes to constructions sites and builds them"""
-	def __init__(self, coords):
-		Human.__init__(self, coords, pygame.image.load('assets/mobs/builder.png'))
+	def initBuilder(self):
+		"""To be called upon changing self.occupation to 'builder'."""
+		clothes = pygame.image.load('assets/mobs/builder.png')
+		self.animation = loadAnimationFiles('assets/mobs/dude', 'dude')
+		for frame in self.animation:
+			frame.blit(clothes, (0, 0))
+		self.destination = None
 		self.building = None
 		self.destinationSite = None
-		self.occupation = 'builder'
 
 
-	def update(self):
+	def updateBuilder(self):
 		if not self.isDead:
-			#if my.tick[self.tick]:
-			#	print('name %s, thought %s, building %s, intention %s' %(self.name, self.thought, self.building, self.intention))
 			if self.building == None and my.tick[self.tick]:
 				self.findConstructionSite()
 			self.build()
@@ -236,11 +241,10 @@ class Builder(Human):
 			elif self.thought == 'working': # just finished work
 				self.thought = None
 				self.thoughtIsUrgent = False
-			self.updateHuman()
 			if self.intention == 'working' and (not self.destination or not self.building):
 				self.intention == None
 			self.lastDestination = self.destination
-	
+
 
 	def findConstructionSite(self):
 		"""Find nearest free cell in a site and set as destination"""
@@ -272,7 +276,6 @@ class Builder(Human):
 			self.building = None
 
 
-
 	def build(self):
 		"""If at site, construct it. If site is done, look for a new one."""
 		done = False
@@ -293,6 +296,7 @@ class Builder(Human):
 		if my.builtBuildings.has(self.building):
 			self.building = None
 			self.intention = None
+
 
 
 

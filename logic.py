@@ -21,7 +21,7 @@ class Handler:
 		my.gameRunning = True
 
 		for i in range(10):
-			mob.Builder((random.randint(0, 20), random.randint(0, 20)))
+			mob.Human((random.randint(0, 20), random.randint(0, 20)), 'builder')
 
 	def update(self):
 		my.ticks += 1

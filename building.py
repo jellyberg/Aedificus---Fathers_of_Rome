@@ -40,20 +40,10 @@ unscaledConstructionImg = pygame.image.load('assets/buildings/underConstruction.
 
 def updateBuildings():
 	"""To keep logic.update() nice and tidy"""
+	if my.input.mousePressed == 3:
+		my.buildingBeingPlaced.empty()
 	my.buildingBeingPlaced.update()
 	my.allBuildings.update()
-	# TEMPORARY - to be replaced by graphical menu
-	if K_1 in my.input.pressedKeys:
-		my.buildingBeingPlaced.add(Hut())
-	elif K_2 in my.input.pressedKeys:
-		my.buildingBeingPlaced.add(Shed())
-	elif K_3 in my.input.pressedKeys:
-		my.buildingBeingPlaced.add(TownHall())
-	elif K_4 in my.input.pressedKeys:
-		my.buildingBeingPlaced.add(Orchard())
-	elif K_BACKSPACE in my.input.pressedKeys:
-		if my.buildingBeingPlaced:
-			my.buildingBeingPlaced.empty()
 
 
 
@@ -108,7 +98,7 @@ class Building(pygame.sprite.Sprite):
 		my.surf.blit(self.buildingImage, hoveredPixels)
 		if not self.canPlace(my.input.hoveredCell):
 			my.surf.blit(self.scaledCross, hoveredPixels)
-		if my.input.mousePressed and self.canPlace(my.input.hoveredCell):
+		if my.input.mousePressed == 1 and self.canPlace(my.input.hoveredCell):
 			self.place()
 
 
@@ -316,7 +306,7 @@ class TownHall(Building):
 
 	def update(self):
 		self.updateBasic()
-		if my.input.mousePressed and my.input.hoveredCellType == 'townHall':# or self.menu:
+		if my.input.mousePressed == 1 and my.input.hoveredCellType == 'townHall':# or self.menu:
 			self.showMenu()
 
 

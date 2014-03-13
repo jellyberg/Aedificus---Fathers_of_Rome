@@ -1,4 +1,4 @@
-import pygame, my, logic
+import pygame, my, logic, os
 from pygame.locals import *
 
 pygame.init()
