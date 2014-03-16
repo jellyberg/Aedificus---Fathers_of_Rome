@@ -16,7 +16,7 @@ my.BUILDINGSTATS['shed']      = {'description':'Increases wood max amount by 30.
 									'buildTime': 2000, 'buildMaterials': {'wood': 50},
 									'img': loadImg('shed')}
 my.BUILDINGSTATS['orchard']   = {'description':'Feeds nearby humans.',
-									'buildTime': 1500, 'buildMaterials': {'wood': 200},
+									'buildTime': 1500, 'buildMaterials': {'wood': 100},
 									'img': loadImg('orchard')}
 my.BUILDINGSTATS['town hall'] = {'description':'Control town legislation and all that jazz.',
 									'buildTime': 10000, 'buildMaterials': {'wood': 500, 'iron': 10},
@@ -245,7 +245,7 @@ class FoodBuilding(Building):
 #MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 
 class Hut(Building):
-	"""Currently just a placeholder"""
+	"""Spawns a human when placed"""
 	def __init__(self):
 		stats = my.BUILDINGSTATS['hut']
 		Building.__init__(self, 'hut', 2, 2, stats['buildMaterials'], stats['buildTime'])

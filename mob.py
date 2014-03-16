@@ -3,6 +3,7 @@ pygame.init()
 from pygame.locals import *
 
 my.allMobs = pygame.sprite.Group()
+my.allHumans = pygame.sprite.Group()
 my.corpses = pygame.sprite.Group()
 my.designatedTrees = pygame.sprite.Group()
 
@@ -127,8 +128,7 @@ class Mob(pygame.sprite.Sprite):
 
 
 class Human(Mob):
-	"""Base class for humans"""
-
+	"""Base class for humans, with methods for the different occupations."""
 #   BASE CLASS
 	def __init__(self, coords, occupation=None):
 		self.occupation = occupation
@@ -233,6 +233,7 @@ class Human(Mob):
 		for frame in self.baseAnimation:
 			frame.blit(clothes, (0, 0))
 		self.animation = self.baseAnimation
+		self.buildAnimation = loadAnimationFiles('assets/mobs/build', 'build')
 		self.destination = None
 		self.building = None
 		self.destinationSite = None
@@ -301,7 +302,14 @@ class Human(Mob):
 					if done: break
 				if done: break
 		if not done:
+			if self.animation != self.baseAnimation:
+				self.animation = self.baseAnimation
+				self.animFrame = 0
 			self.building = None
+		else:
+			if self.animation != self.buildAnimation:
+				self.animation = self.buildAnimation
+				self.animFrame = 0
 		if my.builtBuildings.has(self.building):
 			self.building = None
 			self.intention = None
