@@ -1,6 +1,9 @@
 import pygame, my, math, building
 pygame.init()
 
+my.selectionBoxGroup = pygame.sprite.GroupSingle()
+my.pulseLights = pygame.sprite.Group()
+
 BASICFONT = pygame.font.Font('freesansbold.ttf', 12)
 PRETTYFONT = pygame.font.Font('assets/fonts/fontTitle.ttf', 12)
 BIGFONT   = pygame.font.Font('assets/fonts/fontTitle.ttf', 25)
@@ -67,6 +70,12 @@ class Hud:
 			if my.mode == 'look':
 				currentHighlight = self.HIGHLIGHTS['blue']
 			currentHighlight.update(my.input.hoveredCell)
+		# SELECTION BOX
+		if my.input.mousePressed == 3 and not my.selectionBoxGroup.sprite:
+			SelectionBox(True)
+		if my.selectionBoxGroup.sprite:
+			my.selectionBoxGroup.sprite.update()
+		my.pulseLights.update()
 
 
 	def genSurf(self):
@@ -319,14 +328,13 @@ class BottomBar:
 			rect = self.globalRects[i]
 			if rect.collidepoint(my.input.mousePos):
 				# hovered
-				if (self.lastHovered == None or resetted):
+				if (self.lastHovered is None or resetted):
 					self.surf.blit(self.cellHighlight, self.localRects[i])
-				if my.input.mousePressed == 1 and (self.lastClicked == None or resetted): # clicked
+				if my.input.mousePressed == 1 and (self.lastClicked is None or resetted): # clicked
 					self.surf.blit(self.cellClick, self.localRects[i])
-				if my.input.mouseUnpressed:
+				if my.input.mouseUnpressed == 1:
 					self.clickedCell = i
 		self.lastClicked, self.lastHovered = self.clickedCell, self.hovered
-
 
 
 
@@ -361,3 +369,89 @@ class Highlight:
 			self.animNum += self.numChange
 		my.updateSurf = True
 
+
+
+class SelectionBox(pygame.sprite.Sprite):
+	"""A click and drag selected area, detects the presence of tiles within"""
+	def __init__(self, designateTrees=False):
+		pygame.sprite.Sprite.__init__(self)
+		self.add(my.selectionBoxGroup)
+		self.designateTrees = designateTrees
+		self.origin = my.input.hoveredCell
+		self.end = self.origin
+		my.mode = 'build'
+
+
+	def update(self):
+		if my.input.mouseUnpressed:
+			self.finishSelection()
+		else:
+			self.end = my.input.hoveredCell
+			ox, oy = my.map.cellsToPixels(self.origin)
+			ex, ey = my.map.cellsToPixels(self.end)
+			if ox > ex:
+				leftx = ex
+				rightx = ox
+			else:
+				leftx = ox
+				rightx = ex
+			if oy > ey:
+				topy = ey
+				bottomy = oy
+			else:
+				topy = oy
+				bottomy = ey
+			rect = pygame.Rect((leftx, topy), (rightx - leftx, bottomy - topy))
+			pygame.draw.rect(my.surf, my.BLUE, rect)
+
+
+	def finishSelection(self):
+		"""Calculates the selected stuff, called when mouse is released"""
+		my.mode = 'look'
+		if self.designateTrees:
+			selected = self.findTerrainType('tree', my.designatedTrees)
+			for sprite in selected:
+				my.designatedTrees.add(sprite)
+		self.kill()
+
+
+	def findTerrainType(self, terrainType, currentGroup):
+		"""Returns a list of tuple coords of all trees in the SelectionBox"""
+		self.selected = []
+		ox, oy = self.origin
+		ex, ey = self.end
+		startx = min(ox, ex)
+		endx = max(ox, ex)
+		starty = min(oy, ey)
+		endy = max(oy, ey)
+		for x in range(startx, endx):
+			for y in range(starty, endy):
+				if my.map.map[x][y] == terrainType and (x, y):
+					coordsInGroup = False
+					for sprite in currentGroup.sprites():
+						if (x, y) == sprite.coords:
+							coordsInGroup = True
+					if not coordsInGroup:
+						self.selected.append(my.map.getTreeObj((x, y)))
+						PulseLight((x, y), my.ORANGE)
+		return self.selected
+
+
+
+class PulseLight(pygame.sprite.Sprite):
+	"""A coloured circle that appears on a coord then fades out"""
+	def __init__(self, coords, colour):
+		pygame.sprite.Sprite.__init__(self)
+		my.pulseLights.add(self)
+		x, y = my.map.cellsToPixels(coords)
+		self.pos = (x + my.HALFCELL, y + my.HALFCELL)
+		self.colour = colour
+		self.time = 20
+
+
+	def update(self):
+		if not self.time:
+			self.kill()
+		else:
+			pygame.draw.circle(my.surf, self.colour, self.pos, my.HALFCELL, 2)
+			self.time -=1

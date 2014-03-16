@@ -1,4 +1,4 @@
-import pygame, my, copy, math
+import pygame, my, copy, math, mob
 pygame.init()
 from pygame.locals import *
 
@@ -257,7 +257,9 @@ class Hut(Building):
 
 
 	def onPlace(self):
-		pass
+		x, y = self.coords
+		newHuman = mob.Human((x, y + 1))
+		newHuman.destination = (x - 1, y + 2)
 
 
 

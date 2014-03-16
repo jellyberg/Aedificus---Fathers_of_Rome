@@ -9,6 +9,10 @@ class Handler:
 		for i in range(20):
 			my.tick.append(False)
 		my.map = map.Map()
+		for x in range(my.MAPXCELLS):
+			for y in range(my.MAPYCELLS):
+				if my.map.map[x][y] == 'tree':
+					map.Tree((x, y))
 		my.input = input.Input()
 		my.camera = map.Camera()
 		my.hud = ui.Hud()
@@ -20,10 +24,10 @@ class Handler:
 		my.updateSurf = True
 		my.gameRunning = True
 
+		for i in range(3):
+			mob.Human((random.randint(5, 30), random.randint(5, 25)), 'woodcutter')
 		for i in range(5):
-			mob.Human((random.randint(0, 20), random.randint(0, 20)))
-		for i in range(5):
-			mob.Human((random.randint(0, 20), random.randint(0, 20)), 'builder')
+			mob.Human((random.randint(5, 25), random.randint(5, 25)), 'builder')
 
 
 	def update(self):
@@ -34,6 +38,7 @@ class Handler:
 			else:
 				my.tick[i] = False
 		my.input.get()
+		my.map.update()
 		building.updateBuildings()
 		mob.updateMobs()
 		my.camera.update()

@@ -4,12 +4,15 @@ from pygame.locals import *
 
 my.allMobs = pygame.sprite.Group()
 my.corpses = pygame.sprite.Group()
+my.designatedTrees = pygame.sprite.Group()
 
 def updateMobs():
 	for mob in my.allMobs.sprites():
 		mob.update()
 	for corpse in my.corpses.sprites():
 		corpse.update()
+	if len(my.designatedTrees) > my.MAXTREESDESIGNATED:
+		list(iter(my.designatedTrees))[0].remove()
 
 
 def loadAnimationFiles(directory, file):
@@ -61,8 +64,8 @@ class Mob(pygame.sprite.Sprite):
 		if self.destination:
 			x, y = self.rect.topleft
 			destx, desty = my.map.cellsToPixels(self.destination)
-			# destx += int(my.CELLSIZE / 2)
-			# desty += int(my.CELLSIZE / 2)
+			destx += my.CELLSIZE / 4
+			destx = int(destx)
 			# IS AT DESTINATION?
 			if x == destx and y == desty:
 				self.destination = None
@@ -111,13 +114,13 @@ class Mob(pygame.sprite.Sprite):
 
 	def initTooltip(self):
 		"""Initialises a tooltip that appears when the mob is hovered"""
-		tooltipPos = (self.rect.right + ui.GAP, self.rect.centery)
+		tooltipPos = (self.rect.right + ui.GAP, self.rect.top)
 		self.tooltip = ui.Tooltip('Blank tooltip', tooltipPos)
 
 
 	def handleTooltip(self):
 		"""Updates a tooltip that appears when the mob is hovered"""
-		self.tooltip.rect.topleft = (self.rect.right + ui.GAP, self.rect.centery)
+		self.tooltip.rect.topleft = (self.rect.right + ui.GAP, self.rect.top)
 		self.tooltip.simulate(self.rect.collidepoint(my.input.hoveredPixel), True)
 
 
@@ -125,15 +128,20 @@ class Mob(pygame.sprite.Sprite):
 
 class Human(Mob):
 	"""Base class for humans"""
+
+#   BASE CLASS
 	def __init__(self, coords, occupation=None):
 		self.occupation = occupation
-		if self.occupation == None:
-			self.animation = loadAnimationFiles('assets/mobs/dude', 'dude')
+		self.baseAnimation = loadAnimationFiles('assets/mobs/dude', 'dude')
+		if self.occupation is None:
+			self.animation = self.baseAnimation
 		self.size = (10, 20)
 		self.baseMoveSpeed = my.HUMANMOVESPEED
 		self.moveSpeed = my.HUMANMOVESPEED
 		if self.occupation == 'builder':
 			self.initBuilder()
+		elif self.occupation == 'woodcutter':
+			self.initWoodcutter()
 		Mob.__init__(self, self.baseMoveSpeed, self.animation, coords, self.size)
 		self.name = random.choice(my.FIRSTNAMES) + ' ' + random.choice(my.LASTNAMES)
 		self.tooltip.text = self.name
@@ -146,9 +154,11 @@ class Human(Mob):
 			self.updateEmotions()
 			if self.occupation == 'builder':
 				self.updateBuilder()
+			if self.occupation == 'woodcutter':
+				self.updateWoodcutter()
 			if self.rect.collidepoint(my.input.hoveredPixel) and my.input.mousePressed == 2:
-				self.occupation = 'builder'
-				self.initBuilder()
+				self.occupation = 'woodcutter'
+				self.initWoodcutter()
 
 
 	def initEmotions(self):
@@ -183,17 +193,19 @@ class Human(Mob):
 			if self.occupation == 'builder':
 				self.removeSiteReservation()
 				self.building, self.destination, self.destinationSite = None, None, None
+			elif self.occupation == 'woodcutter':
+				self.stopJob()
 		if self.hunger < 1: # starved to death?
 			self.causeOfDeath = 'starved to death'
 			self.die()
 		self.lastHunger = self.hunger
 
 		# THOUGHTBUBBLE
-		bubblePos = (self.rect.right + my.BUBBLEMARGIN, self.rect.top - my.BUBBLEMARGIN)
+		bubblePos = (self.rect.left + ui.GAP, self.rect.top - my.BUBBLEMARGIN)
 		self.bubble.update(self.thought, bubblePos, self.thoughtIsUrgent)
 		if self.intention == 'working':
 			self.thought = 'working'
-		if self.thought == None:
+		if self.thought is None:
 			thoughtText = 'chillaxing'
 		else:
 			thoughtText = self.thought
@@ -214,13 +226,13 @@ class Human(Mob):
 
 
 #	BUILDER
-
 	def initBuilder(self):
-		"""To be called upon changing self.occupation to 'builder'."""
+		"""Finds the nearest construction site and constructs it."""
 		clothes = pygame.image.load('assets/mobs/builder.png')
 		self.animation = loadAnimationFiles('assets/mobs/dude', 'dude')
-		for frame in self.animation:
+		for frame in self.baseAnimation:
 			frame.blit(clothes, (0, 0))
+		self.animation = self.baseAnimation
 		self.destination = None
 		self.building = None
 		self.destinationSite = None
@@ -229,7 +241,7 @@ class Human(Mob):
 
 	def updateBuilder(self):
 		if not self.isDead:
-			if self.building == None and my.tick[self.tick]:
+			if self.building is None and my.tick[self.tick]:
 				self.findConstructionSite()
 			self.build()
 			if (self.destinationSite and self.destination) or self.building:
@@ -239,7 +251,7 @@ class Human(Mob):
 				self.thought = None
 				self.thoughtIsUrgent = False
 			if self.intention == 'working' and (not self.destination or not self.building):
-				self.intention == None
+				self.intention is None
 			self.lastDestination = self.destination
 
 
@@ -247,12 +259,12 @@ class Human(Mob):
 		"""Find nearest free cell in a site and set as destination"""
 		done = False
 		sites = my.map.findNearestBuildings(self.coords, my.buildingsUnderConstruction)
-		if sites and (self.intention == None or self.intention == 'working'):
+		if sites and (self.intention is None or self.intention == 'working'):
 			for site in sites:
 				for x in range(len(site.buildersPositions)):
 					for y in range(len(site.buildersPositions[0])):
 						if done: break
-						if site.buildersPositions[x][y] == None:
+						if site.buildersPositions[x][y] is None:
 							# go to, and reserve a place at, the site
 							self.destination = site.buildersPositionsCoords[x][y]
 							site.buildersPositions[x][y] = self
@@ -293,6 +305,57 @@ class Human(Mob):
 		if my.builtBuildings.has(self.building):
 			self.building = None
 			self.intention = None
+
+
+#	WOODCUTTER
+	def initWoodcutter(self):
+		"""Chops down the nearest tree in my.designatedTrees"""
+		self.occupation = 'woodcutter'
+		clothes = pygame.image.load('assets/mobs/woodcutter.png')
+		self.animation = loadAnimationFiles('assets/mobs/dude', 'dude')
+		for frame in self.baseAnimation:
+			frame.blit(clothes, (0, 0))
+		self.animation = self.baseAnimation
+		self.chopAnimation = loadAnimationFiles('assets/mobs/chop', 'chop')
+		self.chopping = False
+		self.destinationSite = None
+
+
+	def updateWoodcutter(self):
+		if self.intention in [None, 'working']\
+											 and not self.chopping and my.tick[self.tick]:
+			self.intention = 'working'
+			self.findDestination()
+		if self.destinationSite and self.coords == self.destinationSite.coords:
+			self.chopping = True
+			self.destinationSite.chop()
+			if self.destinationSite.isDead:
+				self.destinationSite = None
+				self.intention, self.thought = None, None
+				self.chopping = False
+		else:
+			self.chopping = False
+			if self.animation != self.baseAnimation:
+				self.animation = self.baseAnimation
+				self.animFrame = 0
+			if self.intention == 'working':
+				self.intention = None
+		if self.chopping:
+			self.animation = self.chopAnimation
+
+
+	def findDestination(self):
+		if my.designatedTrees:
+			self.thought = 'working'
+			self.destinationSite = my.map.findNearestBuilding(self.coords, my.designatedTrees)
+			self.destination = self.destinationSite.coords
+		self.thought = None
+		self.intention = None
+
+
+	def stopJob(self):
+		self.destinationSite = None
+		self.chopping = False
 
 
 

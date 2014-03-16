@@ -13,6 +13,7 @@ screen = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT), DOUBLEBUF)
 
 
 CELLSIZE = 20
+HALFCELL = 10
 MAPXCELLS = 200
 MAPYCELLS = 200
 MAPWIDTH = CELLSIZE * MAPXCELLS
@@ -23,9 +24,13 @@ MAPEDGEBOUNCE = 10
 MAXSCROLLSPEED = 4
 
 
-TREEFREQUENCY = random.randint(10, 20)   # 1/xth of tiles are trees
-STARTRESOURCES    = {'wood': 1000, 'iron': 10, 'cheese': 250}
-STARTMAXRESOURCES = {'wood': 1000, 'iron': 40, 'cheese': 250}
+TREEFREQUENCY = random.randint(50, 100)   # 1/xth of tiles are trees
+TREEMAXHEALTH = 500
+WOODPERTREE = 50
+TREECHOPSPEED = 1
+MAXTREESDESIGNATED = 20 # to help performance
+STARTRESOURCES    = {'wood': 50, 'iron': 10, 'cheese': 250}
+STARTMAXRESOURCES = {'wood': 100, 'iron': 40, 'cheese': 250}
 HUMANMOVESPEED = 2
 CONSTRUCTIONSPEED = 3 # progress towards completion added per tick
 STARTINGHAPPINESS = 20
@@ -59,7 +64,10 @@ BLUETRANS = (  0,   0, 255, 100)
 
 FIRSTNAMES = 'Robert Jenny Steve Jeff Alice Benjamin Yoric Fatima Reem Aya Suha Paul Becca Habiba \
 				Mariam Irene Salma Liam Jacob Mohammed Ethan Cohen Jake Landon Elizabeth James John\
-				Sophia Olivia Emma Brooklyn Ahmed Yusuf Chih-ming Chun-chieh Ji-hoon Abdullo Berat'.split()
+				Sophia Olivia Emma Brooklyn Ahmed Yusuf Chih-ming Chun-chieh Ji-hoon Abdullo Berat\
+				Jim Catherine Earl Petunia Annabel Emily Nathan Jonathan Dylan Rachel Lucy Hannah\
+				Jane Melissa Tabatha Willoughby Zanzibar Alexander Julius Atilla Mary Astrid Kylie\
+				Josef Joseph Matilda Vladmir Charles Terence Lucifer Emmeline Elliot'.split()
 LASTNAMES  = 'Prifti Loshi Leka Hoxha Gruber Huber Bauer Steiner Moser Jacobs Simon Martin Dupont\
 				Dimitrov Trifonov Yanev Blagoev Hristov Yankov Novak Matic Hansen Magi Sepp Ilves\
 				Koppel Parn Ilves Ivanov Pertov Putin Johannesen Thomsen Binks Rider Lehtonen Laine\

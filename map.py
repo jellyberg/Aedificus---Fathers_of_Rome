@@ -2,11 +2,13 @@ import my, pygame, random, math
 from pygame.locals import *
 pygame.init()
 
+my.allTrees = pygame.sprite.Group()
 
-def loadTerrainImgs(buildingNames):
+
+def loadTerrainImgs(terrainNames):
 	"""Load terrain .png's from assets/buildings/ when given a ist of names"""
 	imgs = {}
-	for name in buildingNames:
+	for name in terrainNames:
 		imgs[name] = (pygame.image.load('assets/buildings/' + name + '.png').convert_alpha())
 	return imgs
 
@@ -16,7 +18,7 @@ class Map:
 	IMGS = loadTerrainImgs(TERRAIN)
 	def __init__(self):
 		self.genBlankStructure()
-		self.surf = self.genSurf()
+		self.genSurf()
 
 
 	def genBlankStructure(self):
@@ -32,17 +34,17 @@ class Map:
 
 
 	def genSurf(self):
-		surf = pygame.Surface((my.MAPWIDTH, my.MAPHEIGHT))
+		self.surf = pygame.Surface((my.MAPWIDTH, my.MAPHEIGHT))
 		for x in range(my.MAPXCELLS):
 			for y in range(my.MAPYCELLS):
-				tile = self.map[x][y]
-				if tile not in Map.TERRAIN:
-					tile = 'grass'
-				surf.blit(Map.IMGS[tile], (x * my.CELLSIZE, y * my.CELLSIZE))
-		my.updateSurf = True
-		return surf
+				self.surf.blit(Map.IMGS['grass'], (x * my.CELLSIZE, y * my.CELLSIZE))
 
 
+	def update(self):
+		for tree in my.allTrees:
+			tree.update()
+
+#   UNIT CONVERSIONS
 	def screenToGamePix(self, pixels):
 		"""Given a tuple of screen pixel coords, returns corresponding game surf pixel coords"""
 		x, y = pixels
@@ -80,12 +82,26 @@ class Map:
 		return self.map[x][y]
 
 
+#   PATHFINDING
 	def distanceTo(self, start, end):
 		"""Distance from cell A to cell B. Look at me, using PYTHAGORUS like a real man."""
 		startx, starty = start
 		endx, endy =  end
-		return math.sqrt(math.pow(math.fabs(endx - startx), 2)
-						 + math.pow(math.fabs(endy - starty), 2))
+		return (endx - startx)*(endx-startx) + (endy - starty)*(endy - starty)
+
+
+	def findNearestBuilding(self, myCoords, buildingGroup):
+		"""Returns a single value of the nearest building object"""
+		if len(buildingGroup) == 0: return None
+		lowestDistanceBuilding = None
+		lowestDistance = 1000000000 # arbritarily big number
+		for sprite in buildingGroup.sprites():
+			dist = self.distanceTo(myCoords, sprite.coords)
+			if dist < lowestDistance:
+				lowestDistance = dist
+				lowestDistanceBuilding = sprite
+		return lowestDistanceBuilding
+
 
 
 	def findNearestBuildings(self, myCoords, buildingGroup):
@@ -108,6 +124,16 @@ class Map:
 				buildings.append(building)
 				distances.append(distance)
 		return buildings
+
+
+	def getTreeObj(self, coords):
+		"""Given a pair of coords, return the tree object at those coords"""
+		x, y = coords
+		if my.map.map[x][y] != 'tree':
+			return None
+		for tree in my.allTrees:
+			if tree.coords == coords:
+				return tree
 
 
 
@@ -179,3 +205,36 @@ class Camera:
 	def shake(self, intensity):
 		pass
 
+
+class Tree(pygame.sprite.Sprite):
+	"""A simple tree class that allows for saplings and woodcutting"""
+	stumpImg = pygame.image.load('assets/buildings/treestump.png')
+	def __init__(self, coords, isSapling=False):
+		pygame.sprite.Sprite.__init__(self)
+		self.add(my.allTrees)
+		self.coords, self.isSapling = coords, isSapling
+		x, y = coords
+		my.map.map[x][y] = 'tree'
+		self.health = my.TREEMAXHEALTH
+		self.isDead = False
+		self.pos = my.map.cellsToPixels(self.coords)
+
+
+	def update(self):
+		x, y = self.coords
+		if not self.isDead:
+			my.surf.blit(Map.IMGS['tree'], self.pos)
+		elif my.map.map[x][y] == 'grass':
+			my.surf.blit(Tree.stumpImg, my.map.cellsToPixels(self.coords))
+		else:
+			self.kill()
+
+
+	def chop(self):
+		self.health -= my.TREECHOPSPEED
+		if self.health < 1:
+			x, y = self.coords
+			my.map.map[x][y] = 'grass'
+			self.isDead = True
+			self.remove(my.designatedTrees)
+			my.resources['wood'] += my.WOODPERTREE + random.randint(0, 50) 
