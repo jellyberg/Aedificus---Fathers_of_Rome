@@ -1,5 +1,4 @@
 import my, pygame, map, ui, os, random, math
-pygame.init()
 from pygame.locals import *
 
 my.allMobs = pygame.sprite.Group()
@@ -26,6 +25,31 @@ def loadAnimationFiles(directory, file):
 		img = pygame.image.load(directory + '/' + file +  '.' + num + '.png').convert_alpha()
 		animation.append(img)
 	return animation
+
+
+def blitClothes(baseAnim, clothes, swimmingMask=None):
+	"""Returns a list of Surfaces, or a tuple if both clothes and swimmingMask are given as arguments"""
+	if clothes: clothesImg = pygame.image.load('assets/mobs/%s.png' %(clothes))
+	clothedAnim, swimAnim = [], []
+	for i in range(len(baseAnim)):
+		if clothes:
+			frame = baseAnim[i].copy()
+			frame.blit(clothesImg, (0, 0))
+			clothedAnim.append(frame)
+		if swimmingMask:
+			if clothes:
+				frame = clothedAnim[i].copy()
+			else:
+				frame = baseAnim[i].copy()
+			frame.blit(swimmingMask, (0, 0))
+			swimAnim.append(frame)
+	if clothes and swimmingMask:
+		return (clothedAnim, swimAnim)
+	elif swimmingMask:
+		return swimAnim
+	else:
+		return clothedAnim
+
 
 
 
@@ -92,6 +116,9 @@ class Mob(pygame.sprite.Sprite):
 
 	def die(self):
 		"""Pretty self explanatory really. Kick the bucket."""
+		if self.occupation == None: self.stopCarryingJob()
+		elif self.occupation == 'builder': self.removeSiteReservation()
+		elif self.occupation == 'woodcutter': self.stopWoodcutterJob()
 		self.kill()
 		self.isDead = True
 		Corpse((self.rect.centerx, self.rect.bottom + 5), pygame.image.load('assets/mobs/dude.png'),
@@ -116,7 +143,7 @@ class Mob(pygame.sprite.Sprite):
 	def initTooltip(self):
 		"""Initialises a tooltip that appears when the mob is hovered"""
 		tooltipPos = (self.rect.right + ui.GAP, self.rect.top)
-		self.tooltip = ui.Tooltip('Blank tooltip', tooltipPos)
+		self.tooltip = ui.Tooltip('BLANK TOOLTIP', tooltipPos)
 
 
 	def handleTooltip(self):
@@ -129,12 +156,20 @@ class Mob(pygame.sprite.Sprite):
 
 class Human(Mob):
 	"""Base class for humans, with methods for the different occupations."""
+	baseAnimation = loadAnimationFiles('assets/mobs/dude', 'dude')
+	swimmingMask = pygame.image.load('assets/mobs/swimmingMask.png')
+	swimAnim = blitClothes(baseAnimation, None, swimmingMask)
+	builderAnim, builderSwimAnim = blitClothes(baseAnimation, 'builder', swimmingMask)
+	buildAnim = loadAnimationFiles('assets/mobs/build', 'build')
+	woodcutterAnim, woodcutterSwimAnim = blitClothes(baseAnimation, 'woodcutter', swimmingMask)
+	chopAnim = loadAnimationFiles('assets/mobs/chop', 'chop')
+
 #   BASE CLASS
 	def __init__(self, coords, occupation=None):
 		self.occupation = occupation
-		self.baseAnimation = loadAnimationFiles('assets/mobs/dude', 'dude')
+		self.idleAnim = Human.baseAnimation
 		if self.occupation is None:
-			self.animation = self.baseAnimation
+			self.animation = self.idleAnim
 		self.size = (10, 20)
 		self.baseMoveSpeed = my.HUMANMOVESPEED
 		self.moveSpeed = my.HUMANMOVESPEED
@@ -146,12 +181,17 @@ class Human(Mob):
 		self.name = random.choice(my.FIRSTNAMES) + ' ' + random.choice(my.LASTNAMES)
 		self.tooltip.text = self.name
 		self.initEmotions()
+		self.carrying = None
+		self.destinationItem = None
+		self.destinationSite = None
 
 
 	def update(self):
 		if not self.isDead:
 			self.baseUpdate()
 			self.updateEmotions()
+			if self.occupation is None:
+				self.updateSerf()
 			if self.occupation == 'builder':
 				self.updateBuilder()
 			if self.occupation == 'woodcutter':
@@ -159,6 +199,10 @@ class Human(Mob):
 			if self.rect.collidepoint(my.input.hoveredPixel) and my.input.mousePressed == 2:
 				self.occupation = 'woodcutter'
 				self.initWoodcutter()
+			if my.map.cellType(self.coords) == 'water' and self.animation == self.idleAnim:
+				self.animation = self.swimAnim
+			elif my.map.cellType(self.coords) != 'water' and self.animation == self.swimAnim:
+				self.animation = self.idleAnim
 
 
 	def initEmotions(self):
@@ -177,24 +221,22 @@ class Human(Mob):
 		"""Update the human's wants and needs, and kills it if need be!"""
 		# HUNGER
 		self.hunger -= 1
-		if self.hunger < my.HUNGERWARNING or (self.thought == 'eating' and self.hunger < my.MAXHUNGER - 50):
+		if self.hunger < my.HUNGERWARNING:
 			if not self.intention == 'find food': # ^ is hungry or eating?
 				self.goGetFood()
 				self.thoughtIsUrgent = False
 			if self.hunger < my.HUNGERURGENT:
 				self.thought = 'hungry'
 				self.thoughtIsUrgent = True
-		elif self.intention == 'find food': # reset values
-			self.intention = None
-			self.thought = None
-		if self.hunger > self.lastHunger and self.intention == 'find food': # is eating?
-			self.thought = 'eating'
-			self.thoughtIsUrgent = False
-			if self.occupation == 'builder':
-				self.removeSiteReservation()
-				self.building, self.destination, self.destinationSite = None, None, None
-			elif self.occupation == 'woodcutter':
-				self.stopJob()
+		elif self.thought == 'eating' and self.hunger > my.MAXHUNGER - 50 and self.destination == self.coords:
+			x, y = self.destination # move away from food zone
+			self.destination = (x + random.randint(4, 7), y + random.randint(4, 7))
+			print('randomly get out of food zone!!')
+		for building in my.foodBuildingsWithSpace.sprites(): # is eating?
+			if self in building.currentCustomers:
+				self.thought = 'eating'
+				self.thoughtIsUrgent = False
+				self.eatingAt = building
 		if self.hunger < 1: # starved to death?
 			self.causeOfDeath = 'starved to death'
 			self.die()
@@ -215,25 +257,97 @@ class Human(Mob):
 		self.tooltip.text = self.name + ' is ' + urgency + thoughtText
 
 
-	def goGetFood(self):
-		"""Find the nearest food place and go and eat there"""
-		sites = my.map.findNearestBuildings(self.coords, my.foodBuildings)
-		if sites:
-			site = sites[0]
+	def goGetFood(self, specificSite=None):
+		"""Find the nearest food place and go and eat there. If specificSite, go there instead"""
+		site = None
+		if not specificSite:
+			sites = my.map.findNearestBuildings(self.coords, my.foodBuildingsWithSpace)
+			if sites:
+				site = sites[0]
+		elif specificSite:
+			site = specificSite
+		if site:
 			self.destination = random.choice(site.AOEcoords)
 			self.intention = 'find food'
-		self.thought = 'hungry'
+			self.thought = 'hungry'
+			if self.occupation is None:
+				self.stopCarryingJob()
+			if self.occupation == 'builder':
+				self.removeSiteReservation()
+				self.building, self.destination, self.destinationSite = None, None, None
+			elif self.occupation == 'woodcutter':
+				self.stopWoodcutterJob()
+
+
+#   SERF
+	def updateSerf(self):
+		"""A human without an occupation who carries items around"""
+		if not self.carrying:
+			self.findItem()
+		if self.carrying:
+			self.tooltip.text += ' and carrying %s %s' %(self.carrying.quantity, self.carrying.name)
+			self.carry()
+
+
+	def findItem(self):
+		if self.intention in [None, 'working']: # find item
+			done = False
+			items = my.map.findNearestBuildings(self.coords, my.itemsOnTheFloor)
+			if items:
+				for item in items:
+					if not item.reserved and len(my.storageBuildingsWithSpace) > 0:
+						self.destination = item.coords
+						self.destinationItem = item
+						item.reserved = self
+						self.intention = 'working'
+						done = True
+					if done: break
+		if self.destinationItem and self.coords == self.destinationItem.coords\
+										 and self.destinationItem.reserved == self: # pick up item
+			self.carrying = self.destinationItem
+			self.destinationItem = None
+			self.carrying.beingCarried = True
+
+
+	def carry(self):
+		if self.intention in [None, 'working'] and not self.destinationSite:
+			sites = my.map.findNearestBuildings(self.coords, my.storageBuildingsWithSpace)
+			done = False
+			for site in sites:
+				if site.totalStored + self.carrying.quantity < site.storageCapacity:
+					self.intention = 'working'
+					self.destinationSite = site
+					self.destination = self.destinationSite.coords
+				if done: break
+			if not self.destinationSite:
+				self.intention = None
+				self.stopCarryingJob()
+		if self.destinationSite and self.coords == self.destinationSite.coords:
+			self.destinationSite.storeResource(self.carrying.name, self.carrying.quantity)
+			self.carrying.kill()
+			self.carrying = None
+			self.destinationSite = None
+			self.intention = None
+
+
+	def stopCarryingJob(self):
+		if self.destinationItem:
+			self.destinationItem.reserved = None
+			self.destinationItem = None
+		self.destinationSite = None
+		if self.carrying:
+			self.carrying.reserved = None
+			self.carrying.coords = self.coords
+			self.carrying.beingCarried = False
+			self.carrying = None
 
 
 #	BUILDER
 	def initBuilder(self):
 		"""Finds the nearest construction site and constructs it."""
-		clothes = pygame.image.load('assets/mobs/builder.png')
-		self.animation = loadAnimationFiles('assets/mobs/dude', 'dude')
-		for frame in self.baseAnimation:
-			frame.blit(clothes, (0, 0))
-		self.animation = self.baseAnimation
-		self.buildAnimation = loadAnimationFiles('assets/mobs/build', 'build')
+		self.idleAnim = Human.builderAnim
+		self.swimAnim = Human.builderSwimAnim
+		self.animation = self.idleAnim
 		self.destination = None
 		self.building = None
 		self.destinationSite = None
@@ -302,13 +416,13 @@ class Human(Mob):
 					if done: break
 				if done: break
 		if not done:
-			if self.animation != self.baseAnimation:
-				self.animation = self.baseAnimation
+			if self.animation != self.idleAnim:
+				self.animation = self.idleAnim
 				self.animFrame = 0
 			self.building = None
 		else:
-			if self.animation != self.buildAnimation:
-				self.animation = self.buildAnimation
+			if self.animation != Human.buildAnim:
+				self.animation = Human.buildAnim
 				self.animFrame = 0
 		if my.builtBuildings.has(self.building):
 			self.building = None
@@ -319,19 +433,16 @@ class Human(Mob):
 	def initWoodcutter(self):
 		"""Chops down the nearest tree in my.designatedTrees"""
 		self.occupation = 'woodcutter'
-		clothes = pygame.image.load('assets/mobs/woodcutter.png')
-		self.animation = loadAnimationFiles('assets/mobs/dude', 'dude')
-		for frame in self.baseAnimation:
-			frame.blit(clothes, (0, 0))
-		self.animation = self.baseAnimation
-		self.chopAnimation = loadAnimationFiles('assets/mobs/chop', 'chop')
+		self.idleAnim = Human.woodcutterAnim
+		self.swimAnim = Human.woodcutterSwimAnim
+		self.animation = self.idleAnim
 		self.chopping = False
 		self.destinationSite = None
 
 
 	def updateWoodcutter(self):
-		if self.intention in [None, 'working']\
-											 and not self.chopping and my.tick[self.tick]:
+		if self.intention in [None, 'working'] and not self.chopping \
+								and my.resources['wood'] < my.maxResources['wood'] and my.tick[self.tick]:
 			self.intention = 'working'
 			self.findDestination()
 		if self.destinationSite and self.coords == self.destinationSite.coords:
@@ -343,26 +454,37 @@ class Human(Mob):
 				self.chopping = False
 		else:
 			self.chopping = False
-			if self.animation != self.baseAnimation:
-				self.animation = self.baseAnimation
+			if self.animation != self.idleAnim:
+				self.animation = self.idleAnim
 				self.animFrame = 0
-			if self.intention == 'working':
-				self.intention = None
 		if self.chopping:
-			self.animation = self.chopAnimation
+			self.animation = Human.chopAnim
+		self.lastSite = self.destinationSite
 
 
 	def findDestination(self):
 		if my.designatedTrees:
 			self.thought = 'working'
-			self.destinationSite = my.map.findNearestBuilding(self.coords, my.designatedTrees)
-			self.destination = self.destinationSite.coords
+			sites = my.map.findNearestBuildings(self.coords, my.designatedTrees)
+			if sites:
+				done = False
+				for site in sites:
+					if not site.reserved or site.reserved == self:
+						self.destinationSite = site
+						self.destination = self.destinationSite.coords
+						self.destinationSite.reserved = self
+						if self.lastSite and self.lastSite != self.destinationSite:
+							self.lastSite.reserved = False
+						done = True
+					if done: return
 		self.thought = None
 		self.intention = None
 
 
-	def stopJob(self):
-		self.destinationSite = None
+	def stopWoodcutterJob(self):
+		if self.destinationSite:
+			self.destinationSite.reserved = False
+			self.destinationSite = None
 		self.chopping = False
 
 

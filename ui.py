@@ -1,5 +1,4 @@
 import pygame, my, math, building
-pygame.init()
 
 my.selectionBoxGroup = pygame.sprite.GroupSingle()
 my.pulseLights = pygame.sprite.Group()
@@ -68,7 +67,10 @@ class Hud:
 		# HIGHLIGHT
 		if my.mode != 'build':
 			if my.mode == 'look':
-				currentHighlight = self.HIGHLIGHTS['blue']
+				if my.input.hoveredCellType not in ['grass', 'water']:
+					currentHighlight = self.HIGHLIGHTS['yellow']
+				else:
+					currentHighlight = self.HIGHLIGHTS['blue']
 			currentHighlight.update(my.input.hoveredCell)
 		# SELECTION BOX
 		if my.input.mousePressed == 3 and not my.selectionBoxGroup.sprite:
@@ -243,7 +245,7 @@ class BottomBar:
 		self.genTooltips()
 		stats = my.BUILDINGSTATS # synctactic sugar
 		self.SURFS = [self.genSurf([stats['hut']['img'], stats['shed']['img'],
-					  stats['orchard']['img'], stats['town hall']['img']])]
+					  stats['orchard']['img'], stats['fishing boat']['img'], stats['town hall']['img']])]
 		self.surf.blit(self.SURFS[self.tab], (0, 0))
 
 
@@ -301,6 +303,8 @@ class BottomBar:
 			elif self.clickedCell == 2:
 				building.Orchard()
 			elif self.clickedCell == 3:
+				building.FishingBoat()
+			elif self.clickedCell == 4:
 				building.TownHall()
 		my.screen.blit(self.surf, self.bounds)
 		i=0
@@ -439,7 +443,7 @@ class SelectionBox(pygame.sprite.Sprite):
 
 
 class PulseLight(pygame.sprite.Sprite):
-	"""A coloured circle that appears on a coord then fades out"""
+	"""A coloured circle that appears on a coord then disappears"""
 	def __init__(self, coords, colour):
 		pygame.sprite.Sprite.__init__(self)
 		my.pulseLights.add(self)

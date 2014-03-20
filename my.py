@@ -1,15 +1,25 @@
 import pygame, random
 from pygame.locals import *
 
+DEBUGMODE = True
+
 pygame.init()
 
-FPS = 60
+FPS = 40
 FPSCLOCK = pygame.time.Clock()
-WINDOWWIDTH = 640
-WINDOWHEIGHT = 480
+
+if DEBUGMODE:
+	WINDOWWIDTH = 1080
+	WINDOWHEIGHT = 720
+	screen = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
+	loadingScreen = pygame.transform.scale(pygame.image.load('assets/ui/loadingScreen.png'), (WINDOWWIDTH, WINDOWHEIGHT))
+if not DEBUGMODE:
+	WINDOWWIDTH = 1920
+	WINDOWHEIGHT = 1080
+	screen = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT), FULLSCREEN)
+	loadingScreen = pygame.image.load('assets/ui/fullscreenLoadingScreen.png')
 HALFWINDOWWIDTH = int(WINDOWWIDTH / 2)
 HALFWINDOWHEIGHT = int(WINDOWHEIGHT / 2)
-screen = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT), DOUBLEBUF)
 
 
 CELLSIZE = 20
@@ -29,13 +39,16 @@ TREEMAXHEALTH = 400
 WOODPERTREE = 50
 TREECHOPSPEED = 1
 MAXTREESDESIGNATED = 20 # to help performance
-STARTRESOURCES    = {'wood': 50, 'iron': 10, 'cheese': 250}
-STARTMAXRESOURCES = {'wood': 100, 'iron': 40, 'cheese': 250}
+NUMRIVERS = 30
+
+STARTRESOURCES    = {'wood': 250, 'iron': 10, 'cheese': 250}
+STARTMAXRESOURCES = {'wood': 500, 'iron': 40, 'cheese': 250}
 HUMANMOVESPEED = 2
 CONSTRUCTIONSPEED = 3 # progress towards completion added per tick
 STARTINGHAPPINESS = 20
-STARTINGHUNGER = 1500
-MAXHUNGER = 1500
+STARTINGHUNGER = 2000
+MAXHUNGER = 2000
+LOWFOOD = 500 # when people eating at a food building will look elsewhere
 HUNGERWARNING = 800
 HUNGERURGENT = 300
 BUBBLEMARGIN = 3

@@ -1,5 +1,4 @@
-import pygame, my, input, ui, map, building, mob, random
-pygame.init()
+import pygame, my, input, ui, map, building, mob, item, random
 
 class Handler:
 	"""Keep the main.runGame() function nice and tidy"""
@@ -9,10 +8,7 @@ class Handler:
 		for i in range(20):
 			my.tick.append(False)
 		my.map = map.Map()
-		for x in range(my.MAPXCELLS):
-			for y in range(my.MAPYCELLS):
-				if my.map.map[x][y] == 'tree':
-					map.Tree((x, y))
+		my.map.completeGen()
 		my.input = input.Input()
 		my.camera = map.Camera()
 		my.hud = ui.Hud()
@@ -24,15 +20,17 @@ class Handler:
 		my.updateSurf = True
 		my.gameRunning = True
 
+		for i in range(4):
+			mob.Human((random.randint(5, 25), random.randint(5, 25)), None)
 		for i in range(3):
-			mob.Human((random.randint(5, 30), random.randint(5, 25)), 'woodcutter')
+			mob.Human((random.randint(5, 25), random.randint(5, 25)), 'woodcutter')
 		for i in range(5):
 			mob.Human((random.randint(5, 25), random.randint(5, 25)), 'builder')
 
 
 	def update(self):
 		my.ticks += 1
-		for i in range(1, 19):
+		for i in range(1, 20):
 			if my.ticks % i == 0:
 				my.tick[i] = True
 			else:
@@ -40,6 +38,7 @@ class Handler:
 		my.input.get()
 		my.map.update()
 		building.updateBuildings()
+		item.update()
 		mob.updateMobs()
 		my.camera.update()
 		my.hud.update()

@@ -1,8 +1,9 @@
-import my, pygame, random, math
+import my, pygame, random, math, item
 from pygame.locals import *
-pygame.init()
+from random import randint
 
 my.allTrees = pygame.sprite.Group()
+DIR = {'downright': (1, 1), 'downleft': (1, -1), 'upright': (-1, 1), 'upleft': (-1, -1)} # directions
 
 
 def loadTerrainImgs(terrainNames):
@@ -14,10 +15,21 @@ def loadTerrainImgs(terrainNames):
 
 
 class Map:
-	TERRAIN = ['tree', 'grass']
+#   WORLD GEN
+	TERRAIN = ['tree', 'water', 'grass']
 	IMGS = loadTerrainImgs(TERRAIN)
 	def __init__(self):
 		self.genBlankStructure()
+
+
+	def completeGen(self):
+		"""To be called after __init__() so my.map.map is accessible"""
+		for i in range(my.NUMRIVERS):
+			River()
+		for x in range(my.MAPXCELLS):
+			for y in range(my.MAPYCELLS):
+				if my.map.map[x][y] == 'tree':
+					Tree((x, y))
 		self.genSurf()
 
 
@@ -37,7 +49,10 @@ class Map:
 		self.surf = pygame.Surface((my.MAPWIDTH, my.MAPHEIGHT))
 		for x in range(my.MAPXCELLS):
 			for y in range(my.MAPYCELLS):
-				self.surf.blit(Map.IMGS['grass'], (x * my.CELLSIZE, y * my.CELLSIZE))
+				if self.map[x][y] in ['water', 'grass']:
+					tile = self.map[x][y]
+				else: tile = 'grass'
+				self.surf.blit(Map.IMGS[tile], (x * my.CELLSIZE, y * my.CELLSIZE))
 
 
 	def update(self):
@@ -80,7 +95,6 @@ class Map:
 		"""Given a tuple of map coords, returns the cell's type"""
 		x, y = coords
 		return self.map[x][y]
-
 
 #   PATHFINDING
 	def distanceTo(self, start, end):
@@ -134,7 +148,6 @@ class Map:
 		for tree in my.allTrees:
 			if tree.coords == coords:
 				return tree
-
 
 
 class Camera:
@@ -216,8 +229,9 @@ class Tree(pygame.sprite.Sprite):
 		x, y = coords
 		my.map.map[x][y] = 'tree'
 		self.health = my.TREEMAXHEALTH
-		self.isDead = False
+		self.isDead, self.justDied = False, True
 		self.pos = my.map.cellsToPixels(self.coords)
+		self.reserved = False
 
 
 	def update(self):
@@ -232,9 +246,60 @@ class Tree(pygame.sprite.Sprite):
 
 	def chop(self):
 		self.health -= my.TREECHOPSPEED
-		if self.health < 1:
+		if self.health < 1 and self.justDied:
+			item.Wood(my.WOODPERTREE + random.randint(0, 50), self.coords)
 			x, y = self.coords
 			my.map.map[x][y] = 'grass'
 			self.isDead = True
 			self.remove(my.designatedTrees)
 			my.resources['wood'] += my.WOODPERTREE + random.randint(0, 50) 
+			self.justDied = False
+
+
+class River:
+	changeDirectionFreq = 40 # %
+	changeWidthFreq = 20 # %
+	branchFreq = 20
+	endRiverFreq = 2 # %
+	"""Randomly generates a river and modifies the my.map.map data"""
+	def __init__(self):
+		self.modifyMap()
+
+
+	def modifyMap(self):
+		"""Modifies the my.map.map"""
+		self.width = randint(2, 4)
+		self.startPoint = (randint(0, my.MAPXCELLS), randint(0, my.MAPYCELLS))
+		self.startDir = random.choice(list(DIR.keys()))
+		self.changeNextCell(self.startPoint, self.startDir)
+
+
+	def changeNextCell(self, currentCell, currentDir):
+		"""Modifies next cell of the river on the map, and can change direction/width or end the river"""
+		if currentDir == 'upleft':
+			possibleChanges = ['downleft', 'upright']
+		elif currentDir == 'upright':
+			possibleChanges = ['upleft', 'downright']
+		elif currentDir == 'downright':
+			possibleChanges = ['upright', 'downleft']
+		elif currentDir == 'downleft':
+			possibleChanges = ['downright', 'upleft']
+		randomNum = randint(0, 100)
+		randomNum2 = randint(0, 100)
+		if randomNum < River.endRiverFreq:
+			return
+		elif randomNum < River.changeDirectionFreq:
+			nextDir = random.choice(possibleChanges)
+		else:
+			nextDir = currentDir
+		if randomNum2 < River.changeWidthFreq and self.width > 2:
+			self.width += randint(-1, 1)
+		currentx, currenty = currentCell
+		changex, changey = DIR[nextDir]
+		nextx, nexty = (currentx + changex, currenty + changey)
+		if nextx < 0 or nextx > my.MAPXCELLS - self.width or nexty < 0 or nexty > my.MAPYCELLS  - self.width:
+			return
+		for x in range(self.width):
+			for y in range(self.width):
+				my.map.map[nextx + x][nexty + y] = 'water'
+		self.changeNextCell((nextx, nexty), nextDir)

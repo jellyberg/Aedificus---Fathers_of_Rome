@@ -1,26 +1,29 @@
-import pygame, my, copy, math, mob
-pygame.init()
+import pygame, my, copy, math, mob, ui
 from pygame.locals import *
 
 
 def loadImg(buildingName):
 	"""Just to save copy pasting in my.BUILDINGSTATS"""
-	return pygame.image.load('assets/buildings/%s.png' %(buildingName))
+	return pygame.image.load('assets/buildings/' + buildingName + '.png').convert_alpha()
 
-my.BUILDINGNAMES = ['hut', 'shed', 'orchard', 'town hall']
+
+my.BUILDINGNAMES = ['hut', 'shed', 'orchard', 'fishing boat', 'town hall']
 my.BUILDINGSTATS = {}
 my.BUILDINGSTATS['hut']       =  {'description':'A placeholder hut',
-									'buildTime': 500, 'buildMaterials': {'wood': 5},
-									'img': loadImg('hut')}
+								'buildTime': 500, 'buildMaterials': {'wood': 5},
+								'img': loadImg('hut')}
 my.BUILDINGSTATS['shed']      = {'description':'Increases wood max amount by 30.',
-									'buildTime': 2000, 'buildMaterials': {'wood': 50},
-									'img': loadImg('shed')}
+								'buildTime': 2000, 'buildMaterials': {'wood': 50},
+								'img': loadImg('shed')}
 my.BUILDINGSTATS['orchard']   = {'description':'Feeds nearby humans.',
-									'buildTime': 1500, 'buildMaterials': {'wood': 100},
-									'img': loadImg('orchard')}
+								'buildTime': 1500, 'buildMaterials': {'wood': 100},
+								'img': loadImg('orchard')}
+my.BUILDINGSTATS['fishing boat'] = {'description':'Feeds nearby humans when manned by a fisherman.',
+								'buildTime': 1500, 'buildMaterials': {'wood': 100},
+								'img': loadImg('fishingBoat')}
 my.BUILDINGSTATS['town hall'] = {'description':'Control town legislation and all that jazz.',
-									'buildTime': 10000, 'buildMaterials': {'wood': 500, 'iron': 10},
-									'img': loadImg('townHall')}
+								'buildTime': 10000, 'buildMaterials': {'wood': 500, 'iron': 10},
+								'img': loadImg('townHall')}
 
 my.allBuildings = pygame.sprite.Group() 
 my.builtBuildings = pygame.sprite.Group() 
@@ -28,11 +31,15 @@ my.buildingBeingPlaced = pygame.sprite.GroupSingle()
 my.buildingsUnderConstruction = pygame.sprite.Group()
 
 my.foodBuildings = pygame.sprite.Group()
+my.foodBuildingsWithSpace = pygame.sprite.Group()
+my.storageBuildings = pygame.sprite.Group()
+my.storageBuildingsWithSpace = pygame.sprite.Group()
 
 my.townHall = pygame.sprite.GroupSingle()
 my.huts = pygame.sprite.Group()
 my.sheds = pygame.sprite.Group()
 my.orchards = pygame.sprite.Group()
+my.fishingBoats = pygame.sprite.Group()
 
 cross = pygame.image.load('assets/ui/cross.png').convert_alpha() # indicates invalid construction site
 unscaledConstructionImg = pygame.image.load('assets/buildings/underConstruction.png').convert_alpha()
@@ -49,23 +56,24 @@ def updateBuildings():
 
 class Building(pygame.sprite.Sprite):
 	"""Base class for buildings with basic functions"""
-	def __init__(self, name, xsize, ysize, buildCost, buildTime, AOEsize=None):
+	def __init__(self, name, size, buildCost, buildTime, AOEsize=None):
 		"""buildCost {'material1': amount1, 'material2': amount2} ad infinity
 		   buildTime is actually amount of production needed to construct"""
 		pygame.sprite.Sprite.__init__(self)
 		self.name, self.buildingImage = name, pygame.image.load('assets/buildings/' + name + '.png').convert_alpha()
 		self.buildCost, self.totalBuildProgress = buildCost, buildTime
 		self.buildProgress = 0
-		self.xsize, self.ysize = xsize, ysize
+		self.xsize, self.ysize = size
 		self.add(my.buildingBeingPlaced)
-		self.scaledCross = pygame.transform.scale(cross, (xsize * my.CELLSIZE, ysize * my.CELLSIZE))
+		self.scaledCross = pygame.transform.scale(cross, (self.xsize * my.CELLSIZE, self.ysize * my.CELLSIZE))
 		self.constructionImg = pygame.transform.scale(unscaledConstructionImg, 
-			(xsize * my.CELLSIZE, ysize * my.CELLSIZE))
+			(self.xsize * my.CELLSIZE, self.ysize * my.CELLSIZE))
 		self.allCoords = []
 		if AOEsize:
 			self.AOE = True
 			self.AOEsize = AOEsize
 		else: self.AOE = False
+		self.buildableTerrain = 'grass'
 
 
 	def addToMapFile(self, topleftcell):
@@ -87,8 +95,10 @@ class Building(pygame.sprite.Sprite):
 			self.construct()
 			if self.AOE:
 				self.updateAOE()
-				#self.drawAOE()
+				if self.rect.collidepoint(my.input.hoveredPixel):
+					self.drawAOE()
 			self.blit()
+			self.handleTooltip()
 
 
 	def placeMode(self):
@@ -138,6 +148,7 @@ class Building(pygame.sprite.Sprite):
 
 		if self.AOE:
 			self.initAOE(self.AOEsize)
+		self.initTooltip()
 
 
 	def canPlace(self, topLeftCoord):
@@ -147,7 +158,7 @@ class Building(pygame.sprite.Sprite):
 			return False
 		for x in range(leftx, leftx + self.xsize):
 			for y in range(topy, topy + self.ysize):
-				if my.map.cellType((x, y)) != 'grass':
+				if my.map.cellType((x, y)) not in self.buildableTerrain:
 					return False
 		for key in self.buildCost.keys():
 			if self.buildCost[key] > my.resources[key]:
@@ -219,36 +230,90 @@ class Building(pygame.sprite.Sprite):
 			pygame.draw.rect(my.surf, my.BLUETRANS, rect)
 
 
+	def initTooltip(self):
+		"""Initialises a tooltip that appears when the mob is hovered"""
+		tooltipPos = (self.rect.right + ui.GAP, self.rect.top)
+		self.tooltip = ui.Tooltip('This ' + self.name + ' is under construction', tooltipPos)
+
+
+	def handleTooltip(self):
+		"""Updates a tooltip that appears when the mob is hovered"""
+		self.tooltip.simulate(self.rect.collidepoint(my.input.hoveredPixel), True)
+
+
 
 
 class FoodBuilding(Building):
 	"""Base class for food buildings"""
-	def __init__(self, name, xsize, ysize, buildCost, buildTime,xAOE, yAOE, feedSpeed):
-		Building.__init__(self, name, xsize, ysize, buildCost, buildTime, (xAOE, yAOE))
-		self.feedSpeed = feedSpeed # hunger sated per second
+	def __init__(self, name, size, buildCost, buildTime, AOEsize, feedSpeed, maxCustomers):
+		Building.__init__(self, name, size, buildCost, buildTime, AOEsize)
+		self.feedSpeed, self.maxCustomers = feedSpeed, maxCustomers
 
 
 	def updateFood(self):
 		if my.builtBuildings.has(self):
+			self.currentCustomers = []
 			for customer in self.AOEmobsAffected.sprites():
-				if customer.hunger < my.MAXHUNGER:
+				if customer.hunger < my.MAXHUNGER and customer.intention in ['eating', 'find food']\
+															 and len(self.currentCustomers) < self.maxCustomers:
 					customer.hunger += self.feedSpeed
+					self.currentCustomers.append(customer)
+			self.tooltip.text = '%s/%s customers being fed' %(len(self.currentCustomers), self.maxCustomers)
+			if len(self.currentCustomers) >= self.maxCustomers:
+				self.remove(my.foodBuildingsWithSpace)
+			else:
+				self.add(my.foodBuildingsWithSpace)
 
 
 	def onPlaceFood(self):
 		self.add(my.foodBuildings)
+		self.add(my.foodBuildingsWithSpace)
+		self.currentCustomers = []
+
+
+class StorageBuilding(Building):
+	"""Base class for storage buildings"""
+	def __init__(self, name, size, buildCost, buildTime, storageCapacity):
+		Building.__init__(self, name, size, buildCost, buildTime)
+		self.storageCapacity = storageCapacity
+		self.stored = {}
+		for resource in my.resources.keys():
+			self.stored[resource] = 0
+		self.totalStored = 0
+
+
+	def updateStorage(self):
+		self.totalStored = 0
+		for resourceAmount in self.stored.values():
+			self.totalStored += resourceAmount
+		self.tooltip.text = '%s/%s storage crates are full. This %s contains %s.'\
+							 %(self.totalStored, self.storageCapacity, self.name, self.stored)
+		if self.totalStored >= self.storageCapacity and my.storageBuildingsWithSpace.has(self):
+			self.remove(my.storageBuildingsWithSpace)
+		elif self.totalStored < self.storageCapacity and not my.storageBuildingsWithSpace.has(self):
+			my.storageBuildingsWithSpace.add(self)
+
+
+	def storeResource(self, resource, quantity):
+		if self.totalStored + quantity < self.storageCapacity:
+			self.stored[resource] += quantity
+
+
+	def removeResource(self, resource, quantity):
+		if self.stored[resource] >= quantity:
+			self.stored[resource] -= quantity
 
 
 
-#MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
-#MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM    BUILDINGS    MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
-#MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+#MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+#MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM    BUILDINGS    MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+#MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 
 class Hut(Building):
 	"""Spawns a human when placed"""
 	def __init__(self):
 		stats = my.BUILDINGSTATS['hut']
-		Building.__init__(self, 'hut', 2, 2, stats['buildMaterials'], stats['buildTime'])
+		Building.__init__(self, 'hut', (2, 2), stats['buildMaterials'], stats['buildTime'])
 		self.add(my.huts)
 
 
@@ -260,23 +325,27 @@ class Hut(Building):
 		x, y = self.coords
 		newHuman = mob.Human((x, y + 1))
 		newHuman.destination = (x - 1, y + 2)
+		self.humansName = newHuman.name
+		self.tooltip.text = 'The home of ' + self.humansName
 
 
 
-class Shed(Building):
-	"""Increase max wood storage by 30"""
+class Shed(StorageBuilding):
+	"""Basic storage building"""
 	def __init__(self):
 		stats = my.BUILDINGSTATS['shed']
-		Building.__init__(self, 'shed', 3, 3, stats['buildMaterials'], stats['buildTime'])
+		StorageBuilding.__init__(self, 'shed', (3, 3), {'wood': 100}, 500, 150)
 		self.add(my.sheds)
 
 
-	def onPlace(self):
-		my.maxResources['wood'] += 30
-
-
 	def update(self):
+		if my.builtBuildings.has(self):
+			self.updateStorage()
 		self.updateBasic()
+
+
+	def onPlace(self):
+		pass
 
 
 
@@ -284,7 +353,7 @@ class Orchard(FoodBuilding):
 	"""Basic food place"""
 	def __init__(self):
 		stats = my.BUILDINGSTATS['orchard']
-		FoodBuilding.__init__(self, 'orchard', 4, 2, stats['buildMaterials'], stats['buildTime'], 3, 2, 2)
+		FoodBuilding.__init__(self, 'orchard', (4, 2), stats['buildMaterials'], stats['buildTime'], (3, 2), 4, 5)
 
 
 	def onPlace(self):
@@ -293,7 +362,26 @@ class Orchard(FoodBuilding):
 
 	def update(self):
 		self.updateBasic()
-		self.updateFood()
+		if my.builtBuildings.has(self):
+			self.updateFood()
+
+
+
+class FishingBoat(FoodBuilding):
+	def __init__(self):
+		stats = my.BUILDINGSTATS['fishing boat']
+		FoodBuilding.__init__(self, 'fishingBoat', (2, 1), stats['buildMaterials'], stats['buildTime'], (1, 2), 10, 4)
+		self.buildableTerrain = 'water'
+
+
+	def onPlace(self):
+		self.onPlaceFood()
+
+
+	def update(self):
+		self.updateBasic()
+		if my.builtBuildings.has(self):
+			self.updateFood()
 
 
 
@@ -301,7 +389,7 @@ class TownHall(Building):
 	"""Control town legislation etc"""
 	def __init__(self):
 		stats = my.BUILDINGSTATS['town hall']
-		Building.__init__(self, 'townHall', 4, 3, stats['buildMaterials'], stats['buildTime'])
+		Building.__init__(self, 'townHall', (4, 3), stats['buildMaterials'], stats['buildTime'])
 		self.add(my.townHall)
 		self.menu = False
 

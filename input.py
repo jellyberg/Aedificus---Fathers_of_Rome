@@ -1,5 +1,4 @@
 import pygame, sys, my
-pygame.init()
 from pygame.locals import *
 
 class Input:
