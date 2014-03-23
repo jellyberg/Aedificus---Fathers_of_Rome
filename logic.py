@@ -20,11 +20,11 @@ class Handler:
 		my.updateSurf = True
 		my.gameRunning = True
 
-		for i in range(4):
+		for i in range(0):
 			mob.Human((random.randint(5, 25), random.randint(5, 25)), None)
-		for i in range(3):
+		for i in range(0):
 			mob.Human((random.randint(5, 25), random.randint(5, 25)), 'woodcutter')
-		for i in range(5):
+		for i in range(3):
 			mob.Human((random.randint(5, 25), random.randint(5, 25)), 'builder')
 
 

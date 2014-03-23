@@ -16,7 +16,7 @@ my.BUILDINGSTATS['shed']      = {'description':'Increases wood max amount by 30.
 								'buildTime': 2000, 'buildMaterials': {'wood': 50},
 								'img': loadImg('shed')}
 my.BUILDINGSTATS['orchard']   = {'description':'Feeds nearby humans.',
-								'buildTime': 1500, 'buildMaterials': {'wood': 100},
+								'buildTime': 100, 'buildMaterials': {'wood': 100},
 								'img': loadImg('orchard')}
 my.BUILDINGSTATS['fishing boat'] = {'description':'Feeds nearby humans when manned by a fisherman.',
 								'buildTime': 1500, 'buildMaterials': {'wood': 100},
@@ -251,14 +251,23 @@ class FoodBuilding(Building):
 
 
 	def updateFood(self):
+		"""Update self.currentCustomers and feed those in it. Update my.foodBuildingsWithSpace too."""
 		if my.builtBuildings.has(self):
-			self.currentCustomers = []
-			for customer in self.AOEmobsAffected.sprites():
-				if customer.hunger < my.MAXHUNGER and customer.intention in ['eating', 'find food']\
-															 and len(self.currentCustomers) < self.maxCustomers:
-					customer.hunger += self.feedSpeed
-					self.currentCustomers.append(customer)
-			self.tooltip.text = '%s/%s customers being fed' %(len(self.currentCustomers), self.maxCustomers)
+			lastCustomers = self.currentCustomers.copy()
+			self.currentCustomers = pygame.sprite.Group()
+			# keep feeding previous customers 
+			for customer in lastCustomers.sprites():
+				if customer in self.AOEmobsAffected.sprites() and customer.hunger < my.FULLMARGIN + 10\
+							 and customer.intention in ['eating', 'find food']:
+					self.feedCustomer(customer)
+			# if there's still space, feed any new customers
+			if len(self.currentCustomers) < self.maxCustomers:
+				for customer in self.AOEmobsAffected.sprites():
+					if customer.hunger < my.FULLMARGIN + 10 and customer.intention in ['eating', 'find food']\
+							 and len(self.currentCustomers) < self.maxCustomers and customer not in self.currentCustomers:
+						self.feedCustomer(customer)
+			self.tooltip.text = '%s/%s customers being fed, currentCustomers: %s' \
+								%(len(self.currentCustomers), self.maxCustomers, self.currentCustomers)
 			if len(self.currentCustomers) >= self.maxCustomers:
 				self.remove(my.foodBuildingsWithSpace)
 			else:
@@ -268,7 +277,14 @@ class FoodBuilding(Building):
 	def onPlaceFood(self):
 		self.add(my.foodBuildings)
 		self.add(my.foodBuildingsWithSpace)
-		self.currentCustomers = []
+		self.currentCustomers = pygame.sprite.Group()
+
+
+	def feedCustomer(self, customer):
+		"""Feeds the customer, adds them to self.currentCustomers"""
+		customer.hunger += self.feedSpeed
+		customer.thought = 'eating'
+		self.currentCustomers.add(customer)
 
 
 class StorageBuilding(Building):

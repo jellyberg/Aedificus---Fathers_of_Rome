@@ -203,6 +203,7 @@ class Human(Mob):
 				self.animation = self.swimAnim
 			elif my.map.cellType(self.coords) != 'water' and self.animation == self.swimAnim:
 				self.animation = self.idleAnim
+			print(str(self.hunger), str(self.intention), str(my.foodBuildingsWithSpace))
 
 
 	def initEmotions(self):
@@ -228,15 +229,13 @@ class Human(Mob):
 			if self.hunger < my.HUNGERURGENT:
 				self.thought = 'hungry'
 				self.thoughtIsUrgent = True
-		elif self.thought == 'eating' and self.hunger > my.MAXHUNGER - 50 and self.destination == self.coords:
-			x, y = self.destination # move away from food zone
-			self.destination = (x + random.randint(4, 7), y + random.randint(4, 7))
+		elif self.thought == 'eating' and self.hunger > my.FULLMARGIN and self.destination is None:
+			x, y = self.coords # move away from food zone
+			self.destination = (x + random.randint(4, 6), y + random.randint(3, 6))
+			self.intention = None
+			self.thought = None
 			print('randomly get out of food zone!!')
-		for building in my.foodBuildingsWithSpace.sprites(): # is eating?
-			if self in building.currentCustomers:
-				self.thought = 'eating'
-				self.thoughtIsUrgent = False
-				self.eatingAt = building
+
 		if self.hunger < 1: # starved to death?
 			self.causeOfDeath = 'starved to death'
 			self.die()
@@ -258,7 +257,7 @@ class Human(Mob):
 
 
 	def goGetFood(self, specificSite=None):
-		"""Find the nearest food place and go and eat there. If specificSite, go there instead"""
+		"""Find the nearest food place wiht slots and go and eat there. If specificSite, go there instead"""
 		site = None
 		if not specificSite:
 			sites = my.map.findNearestBuildings(self.coords, my.foodBuildingsWithSpace)
@@ -274,9 +273,10 @@ class Human(Mob):
 				self.stopCarryingJob()
 			if self.occupation == 'builder':
 				self.removeSiteReservation()
-				self.building, self.destination, self.destinationSite = None, None, None
+				self.building, self.destinationSite = None, None
 			elif self.occupation == 'woodcutter':
 				self.stopWoodcutterJob()
+			print('goGetFood')
 
 
 #   SERF
@@ -438,6 +438,7 @@ class Human(Mob):
 		self.animation = self.idleAnim
 		self.chopping = False
 		self.destinationSite = None
+		self.lastSite = self.destinationSite
 
 
 	def updateWoodcutter(self):
