@@ -1,7 +1,7 @@
 import pygame, random
 from pygame.locals import *
 
-DEBUGMODE = True
+DEBUGMODE = False
 
 pygame.init()
 

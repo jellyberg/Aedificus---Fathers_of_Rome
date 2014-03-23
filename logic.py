@@ -30,11 +30,11 @@ class Handler:
 		my.gameRunning = True
 		self.sunx = int(my.MAPWIDTH / 2)
 		my.sunPos = (self.sunx, my.MAPHEIGHT + 10)
-		for i in range(0):
+		for i in range(3):
 			mob.Human((random.randint(5, 25), random.randint(5, 25)), None)
-		for i in range(0):
+		for i in range(2):
 			mob.Human((random.randint(5, 25), random.randint(5, 25)), 'woodcutter')
-		for i in range(20):
+		for i in range(5):
 			mob.Human((random.randint(5, 25), random.randint(5, 25)), 'builder')
 
 

@@ -234,6 +234,7 @@ class Building(pygame.sprite.Sprite):
 		"""Initialises a tooltip that appears when the mob is hovered"""
 		tooltipPos = (self.rect.right + ui.GAP, self.rect.top)
 		self.tooltip = ui.Tooltip('This ' + self.name + ' is under construction', tooltipPos)
+		self.tooltip.topleft = tooltipPos
 
 
 	def handleTooltip(self):

@@ -154,12 +154,12 @@ class Tooltip:
 	"""A multiline text box, displayed when isHovered=True"""
 	def __init__(self, text, pos):
 		self.pos, self.text = pos, text
+		self.x, self.y = pos
 		self.alpha = 0
 		self.newTooltip()
 		self.lastText = self.text
 		self.lockAlpha = False
 		self.fadeRate = 20
-		self.rect.topleft = self.pos
 
 
 	def newTooltip(self):
@@ -174,6 +174,7 @@ class Tooltip:
 			self.surf.blit(self.textObjs[i][0], self.textObjs[i][1])
 		self.surf.set_colorkey(my.BLACK)
 		self.rect = self.surf.get_rect()
+		self.rect.topleft = self.pos
 		
 
 	def simulate(self, isHovered, blitToLand=False):
@@ -471,9 +472,9 @@ class StatusText:
 	"""Displays my.statusMessage as a tooltip when it is changed in the upper left of the screen"""
 	def __init__(self):
 		self.lastStatus = my.statusMessage
-		self.tooltip = Tooltip(my.statusMessage, (0, 0))
+		self.pos = int(my.WINDOWWIDTH / 4) * 3, int(my.WINDOWHEIGHT / 4)
+		self.tooltip = Tooltip(my.statusMessage, self.pos)
 		self.tooltip.fadeRate = 2
-		self.tooltip.rect.topright = (int(my.WINDOWWIDTH / 4) * 3, int(my.WINDOWHEIGHT / 6))
 	
 
 	def update(self):
