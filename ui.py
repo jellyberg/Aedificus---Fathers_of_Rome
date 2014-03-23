@@ -55,14 +55,13 @@ class Hud:
 
 	def update(self):
 		my.surf.blit(my.map.surf, (0, 0))
-		# BOTTOM BAR
 		self.bottomBar.update()
 		# RESOURCE AMOUNTS
 		i = 0
 		currentWidth = 0
 		for key in my.resources.keys():
 			currentWidth += resourceText('%s: %s/%s' % (key, my.resources[key], my.maxResources[key]), 
-						      (GAP * (i + 1) + currentWidth, GAP))
+																  (GAP * (i + 1) + currentWidth, GAP))
 			i += 1
 		# HIGHLIGHT
 		if my.mode != 'build':
@@ -415,7 +414,10 @@ class SelectionBox(pygame.sprite.Sprite):
 		if self.designateTrees:
 			selected = self.findTerrainType('tree', my.designatedTrees)
 			for sprite in selected:
-				my.designatedTrees.add(sprite)
+				if len(my.designatedTrees) < my.MAXTREESDESIGNATED:
+					my.designatedTrees.add(sprite)
+				else:
+					my.statusMessage = 'Too many trees designated!'
 		self.kill()
 
 
@@ -459,3 +461,22 @@ class PulseLight(pygame.sprite.Sprite):
 		else:
 			pygame.draw.circle(my.surf, self.colour, self.pos, my.HALFCELL, 2)
 			self.time -=1
+
+
+
+class StatusText:
+	"""Displays my.statusMessage as a tooltip when it is changed in the upper left of the screen"""
+	def __init__(self):
+		self.lastStatus = my.statusMessage
+		self.pos = int(my.WINDOWWIDTH / 4) * 3, int(my.WINDOWHEIGHT / 4)
+		self.tooltip = Tooltip(my.statusMessage, self.pos)
+	
+
+	def update(self):
+		if my.statusMessage != self.lastStatus:
+			self.tooltip.text = my.statusMessage
+			self.tooltip.simulate(True)
+		else:
+			self.tooltip.simulate(False)
+		self.lastStatus = my.statusMessage
+

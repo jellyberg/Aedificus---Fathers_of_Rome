@@ -1,4 +1,4 @@
-import pygame, my, copy, math, mob, ui
+import pygame, my, copy, math, mob, ui, logic
 from pygame.locals import *
 
 
@@ -120,7 +120,7 @@ class Building(pygame.sprite.Sprite):
 		self.add(my.buildingsUnderConstruction)
 		self.add(my.allBuildings)
 		for key in self.buildCost.keys():
-			my.resources[key] -= self.buildCost[key]
+			logic.spendResource(key, self.buildCost[key])
 
 		self.buildersPositions = []
 		for x in range(self.xsize):
@@ -284,6 +284,7 @@ class FoodBuilding(Building):
 		"""Feeds the customer, adds them to self.currentCustomers"""
 		customer.hunger += self.feedSpeed
 		customer.thought = 'eating'
+		customer.thoughtIsUrgent = False
 		self.currentCustomers.add(customer)
 
 
@@ -299,6 +300,7 @@ class StorageBuilding(Building):
 
 
 	def updateStorage(self):
+		"""Updates the sprite's tooltip and the groups it is in"""
 		self.totalStored = 0
 		for resourceAmount in self.stored.values():
 			self.totalStored += resourceAmount
@@ -311,13 +313,25 @@ class StorageBuilding(Building):
 
 
 	def storeResource(self, resource, quantity):
+		"""Store a resource in this building, also adds to global quantity of that resource"""
 		if self.totalStored + quantity < self.storageCapacity:
 			self.stored[resource] += quantity
+			my.resources[resource] += quantity
 
 
 	def removeResource(self, resource, quantity):
-		if self.stored[resource] >= quantity:
-			self.stored[resource] -= quantity
+		"""
+		Extract a resource from this building, also subtracts from global quantity of that resource.
+		If trying to remove more of the resource than is available, remove as much as possible then
+		return what it couldn't remove.
+		"""
+		self.stored[resource] -= quantity
+		my.resources[resource] -= quantity
+		if self.stored[resource] < 0:
+			excess = -self.stored[resource]
+			self.stored[resource] = 0
+			my.resources[resource] += excess
+			return excess
 
 
 

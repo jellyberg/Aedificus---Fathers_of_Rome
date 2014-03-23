@@ -1,6 +1,7 @@
 import pygame, my, logic, os
 from pygame.locals import *
 
+os.environ['SDL_VIDEO_CENTERED'] = '1'
 pygame.init()
 pygame.display.set_caption('Real time strategy')
 

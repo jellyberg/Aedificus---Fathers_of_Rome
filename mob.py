@@ -1,4 +1,4 @@
-import my, pygame, map, ui, os, random, math
+import my, pygame, map, ui, os, random, math, shadow
 from pygame.locals import *
 
 my.allMobs = pygame.sprite.Group()
@@ -8,9 +8,15 @@ my.designatedTrees = pygame.sprite.Group()
 
 def updateMobs():
 	for mob in my.allMobs.sprites():
+		mob.handleShadow()
+	for mob in my.allMobs.sprites():
 		mob.update()
 	for corpse in my.corpses.sprites():
 		corpse.update()
+	for mob in my.allMobs.sprites():
+		mob.handleTooltip()
+	for corpse in my.corpses.sprites():
+		corpse.handleTooltip()
 	if len(my.designatedTrees) > my.MAXTREESDESIGNATED:
 		list(iter(my.designatedTrees))[0].remove()
 
@@ -73,6 +79,7 @@ class Mob(pygame.sprite.Sprite):
 		self.coords =  coords
 		self.tick = random.randint(1, 19)
 		self.initTooltip()
+		self.shadow = shadow.Shadow(self, self.animation[0])
 
 
 	def baseUpdate(self):
@@ -81,7 +88,6 @@ class Mob(pygame.sprite.Sprite):
 			self.updateMove()
 			self.handleImage()
 			self.blit()
-		self.handleTooltip()
 
 
 	def updateMove(self):
@@ -152,6 +158,11 @@ class Mob(pygame.sprite.Sprite):
 		self.tooltip.simulate(self.rect.collidepoint(my.input.hoveredPixel), True)
 
 
+	def handleShadow(self):
+		"""A nice shadow cast by the sun (which moves along the top of the map)"""
+		self.shadow.draw(my.surf, my.sunPos)
+
+
 
 
 class Human(Mob):
@@ -203,7 +214,6 @@ class Human(Mob):
 				self.animation = self.swimAnim
 			elif my.map.cellType(self.coords) != 'water' and self.animation == self.swimAnim:
 				self.animation = self.idleAnim
-			print(str(self.hunger), str(self.intention), str(my.foodBuildingsWithSpace))
 
 
 	def initEmotions(self):
@@ -231,11 +241,9 @@ class Human(Mob):
 				self.thoughtIsUrgent = True
 		elif self.thought == 'eating' and self.hunger > my.FULLMARGIN and self.destination is None:
 			x, y = self.coords # move away from food zone
-			self.destination = (x + random.randint(4, 6), y + random.randint(3, 6))
+			self.destination = (x + random.randint(3, 5), y + random.randint(2, 4))
 			self.intention = None
 			self.thought = None
-			print('randomly get out of food zone!!')
-
 		if self.hunger < 1: # starved to death?
 			self.causeOfDeath = 'starved to death'
 			self.die()
@@ -269,14 +277,26 @@ class Human(Mob):
 			self.destination = random.choice(site.AOEcoords)
 			self.intention = 'find food'
 			self.thought = 'hungry'
-			if self.occupation is None:
-				self.stopCarryingJob()
-			if self.occupation == 'builder':
-				self.removeSiteReservation()
-				self.building, self.destinationSite = None, None
-			elif self.occupation == 'woodcutter':
-				self.stopWoodcutterJob()
-			print('goGetFood')
+			self.stopJob()
+
+
+	def changeOccupation(self, newOccupation):
+		"""Change occupation and stop any previous jobs"""
+		self.stopJob()
+		self.occupation = newOccupation
+
+
+	def stopJob(self):
+		"""Stop the current job, for any occupation"""
+		if self.intention == 'working':
+			self.intention, self.thought, self.destination = None, None, None
+		if self.occupation is None:
+			self.stopCarryingJob()
+		if self.occupation == 'builder':
+			self.removeSiteReservation()
+			self.building, self.destinationSite = None, None
+		elif self.occupation == 'woodcutter':
+			self.stopWoodcutterJob()
 
 
 #   SERF
@@ -322,6 +342,7 @@ class Human(Mob):
 			if not self.destinationSite:
 				self.intention = None
 				self.stopCarryingJob()
+		# STORE ITEM
 		if self.destinationSite and self.coords == self.destinationSite.coords:
 			self.destinationSite.storeResource(self.carrying.name, self.carrying.quantity)
 			self.carrying.kill()
@@ -359,6 +380,10 @@ class Human(Mob):
 			if self.building is None and my.tick[self.tick]:
 				self.findConstructionSite()
 			self.build()
+			if self.destinationSite and my.builtBuildings.has(self.destinationSite):
+				self.removeSiteReservation()
+				self.destination = None
+				self.intention = None
 			if (self.destinationSite and self.destination) or self.building:
 				self.thought = 'working'
 				self.intention = 'working'
@@ -464,6 +489,7 @@ class Human(Mob):
 
 
 	def findDestination(self):
+		"""Find nearest unreserved tree and go there"""
 		if my.designatedTrees:
 			self.thought = 'working'
 			sites = my.map.findNearestBuildings(self.coords, my.designatedTrees)
@@ -487,6 +513,11 @@ class Human(Mob):
 			self.destinationSite.reserved = False
 			self.destinationSite = None
 		self.chopping = False
+
+
+#   FISHERMAN
+#	def initFisherman(self):
+#		self.
 
 
 

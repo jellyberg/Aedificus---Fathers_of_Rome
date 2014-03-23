@@ -33,12 +33,12 @@ SCROLLDRAG = 2 # bigger is less drag
 MAPEDGEBOUNCE = 10
 MAXSCROLLSPEED = 4
 
-
+SUNMOVESPEED = 1
 TREEFREQUENCY = random.randint(50, 100)   # 1/xth of tiles are trees
 TREEMAXHEALTH = 400
 WOODPERTREE = 50
 TREECHOPSPEED = 1
-MAXTREESDESIGNATED = 20 # to help performance
+MAXTREESDESIGNATED = 30 # to help performance
 NUMRIVERS = 30
 
 STARTRESOURCES    = {'wood': 250, 'iron': 10, 'cheese': 250}
@@ -49,7 +49,6 @@ STARTINGHAPPINESS = 20
 STARTINGHUNGER = 1500
 MAXHUNGER = 1500
 FULLMARGIN = MAXHUNGER - 100
-LOWFOOD = 500 # when people eating at a food building will look elsewhere
 HUNGERWARNING = 800 # when people not eating look for food
 HUNGERURGENT = 300 # UH OH CRAZY HUNGRY NEED FOOD REAL QUICK
 BUBBLEMARGIN = 3

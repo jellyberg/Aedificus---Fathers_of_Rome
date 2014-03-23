@@ -1,4 +1,4 @@
-import my, pygame, random, math, item
+import my, pygame, random, math, item, shadow
 from pygame.locals import *
 from random import randint
 
@@ -231,6 +231,7 @@ class Tree(pygame.sprite.Sprite):
 		self.health = my.TREEMAXHEALTH
 		self.isDead, self.justDied = False, True
 		self.pos = my.map.cellsToPixels(self.coords)
+		self.rect = pygame.Rect(self.pos, (my.CELLSIZE, my.CELLSIZE - 3))
 		self.reserved = False
 
 
@@ -251,8 +252,7 @@ class Tree(pygame.sprite.Sprite):
 			x, y = self.coords
 			my.map.map[x][y] = 'grass'
 			self.isDead = True
-			self.remove(my.designatedTrees)
-			my.resources['wood'] += my.WOODPERTREE + random.randint(0, 50) 
+			self.remove(my.designatedTrees) 
 			self.justDied = False
 
 
