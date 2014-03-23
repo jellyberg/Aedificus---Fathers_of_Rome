@@ -15,6 +15,7 @@ class Handler:
 		my.tick = []
 		for i in range(20):
 			my.tick.append(False)
+		my.statusMessage = 'None'
 		my.map = map.Map()
 		my.map.completeGen()
 		my.input = input.Input()
@@ -27,7 +28,6 @@ class Handler:
 						'iron': my.STARTMAXRESOURCES['iron'], 'cheese': my.STARTMAXRESOURCES['cheese']}
 		my.updateSurf = True
 		my.gameRunning = True
-		my.statusMessage = 'None'
 		self.sunx = int(my.MAPWIDTH / 2)
 		my.sunPos = (self.sunx, my.MAPHEIGHT + 10)
 		for i in range(0):

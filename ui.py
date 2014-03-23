@@ -51,11 +51,13 @@ class Hud:
 		for colour in Highlight.IMGS.keys():
 			self.HIGHLIGHTS[colour] = Highlight(colour)
 		self.bottomBar = BottomBar()
+		self.statusText = StatusText()
 		my.surf = pygame.Surface(my.map.surf.get_size())
 
 	def update(self):
 		my.surf.blit(my.map.surf, (0, 0))
 		self.bottomBar.update()
+		self.statusText.update()
 		# RESOURCE AMOUNTS
 		i = 0
 		currentWidth = 0
@@ -152,10 +154,12 @@ class Tooltip:
 	"""A multiline text box, displayed when isHovered=True"""
 	def __init__(self, text, pos):
 		self.pos, self.text = pos, text
-		self.x, self.y = pos
 		self.alpha = 0
 		self.newTooltip()
 		self.lastText = self.text
+		self.lockAlpha = False
+		self.fadeRate = 20
+		self.rect.topleft = self.pos
 
 
 	def newTooltip(self):
@@ -170,7 +174,6 @@ class Tooltip:
 			self.surf.blit(self.textObjs[i][0], self.textObjs[i][1])
 		self.surf.set_colorkey(my.BLACK)
 		self.rect = self.surf.get_rect()
-		self.rect.topleft = self.pos
 		
 
 	def simulate(self, isHovered, blitToLand=False):
@@ -178,8 +181,8 @@ class Tooltip:
 			self.newTooltip()
 		if isHovered:
 			if self.alpha < 200: self.alpha += 20
-		elif self.alpha > 0:
-			self.alpha -= 20
+		elif self.alpha > 0 and not self.lockAlpha:
+			self.alpha -= self.fadeRate
 		if self.alpha > 0:
 			self.surf.set_alpha(self.alpha)
 			if not blitToLand:
@@ -468,14 +471,16 @@ class StatusText:
 	"""Displays my.statusMessage as a tooltip when it is changed in the upper left of the screen"""
 	def __init__(self):
 		self.lastStatus = my.statusMessage
-		self.pos = int(my.WINDOWWIDTH / 4) * 3, int(my.WINDOWHEIGHT / 4)
-		self.tooltip = Tooltip(my.statusMessage, self.pos)
+		self.tooltip = Tooltip(my.statusMessage, (0, 0))
+		self.tooltip.fadeRate = 2
+		self.tooltip.rect.topright = (int(my.WINDOWWIDTH / 4) * 3, int(my.WINDOWHEIGHT / 6))
 	
 
 	def update(self):
 		if my.statusMessage != self.lastStatus:
 			self.tooltip.text = my.statusMessage
 			self.tooltip.simulate(True)
+			self.tooltip.alpha = 255
 		else:
 			self.tooltip.simulate(False)
 		self.lastStatus = my.statusMessage

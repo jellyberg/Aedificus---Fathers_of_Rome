@@ -21,15 +21,27 @@ def updateMobs():
 		list(iter(my.designatedTrees))[0].remove()
 
 
-def loadAnimationFiles(directory, file):
+#def loadAnimationFiles(directory, file):
+#	"""Load images from directory into a list of surfaces"""
+#	animation = []
+#	frames = len(os.listdir(directory))
+#	for num in range(0, frames):
+#		num = str(num)
+#		num = num.zfill(4)
+#		img = pygame.image.load(directory + '/' + file +  '.' + num + '.png').convert_alpha()
+#		animation.append(img)
+#	return animation
+
+
+def loadAnimationFiles(directory):
 	"""Load images from directory into a list of surfaces"""
 	animation = []
-	frames = len(os.listdir(directory))
-	for num in range(0, frames):
-		num = str(num)
-		num = num.zfill(4)
-		img = pygame.image.load(directory + '/' + file +  '.' + num + '.png').convert_alpha()
-		animation.append(img)
+	for frame in os.listdir(directory):
+		name,extension = os.path.splitext(frame)
+		if extension == ".png":
+			path = os.path.join(directory, frame)
+			img = pygame.image.load(path).convert_alpha()
+			animation.append(img)
 	return animation
 
 
@@ -167,13 +179,13 @@ class Mob(pygame.sprite.Sprite):
 
 class Human(Mob):
 	"""Base class for humans, with methods for the different occupations."""
-	baseAnimation = loadAnimationFiles('assets/mobs/dude', 'dude')
+	baseAnimation = loadAnimationFiles('assets/mobs/dude')
 	swimmingMask = pygame.image.load('assets/mobs/swimmingMask.png')
 	swimAnim = blitClothes(baseAnimation, None, swimmingMask)
 	builderAnim, builderSwimAnim = blitClothes(baseAnimation, 'builder', swimmingMask)
-	buildAnim = loadAnimationFiles('assets/mobs/build', 'build')
+	buildAnim = loadAnimationFiles('assets/mobs/build')
 	woodcutterAnim, woodcutterSwimAnim = blitClothes(baseAnimation, 'woodcutter', swimmingMask)
-	chopAnim = loadAnimationFiles('assets/mobs/chop', 'chop')
+	chopAnim = loadAnimationFiles('assets/mobs/chop')
 
 #   BASE CLASS
 	def __init__(self, coords, occupation=None):
@@ -531,7 +543,7 @@ class ThoughtBubble:
 		icons[icon] = pygame.image.load('assets/mobs/thoughtBubble/' + icon + '.png')
 	animIcons = {}
 	for icon in ['eating']:
-		animIcons[icon] = loadAnimationFiles('assets/mobs/thoughtBubble/' + icon, icon)
+		animIcons[icon] = loadAnimationFiles('assets/mobs/thoughtBubble/' + icon)
 
 	def __init__(self, thought, pos, isUrgent=False):
 		self.alpha = 200
