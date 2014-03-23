@@ -1,7 +1,8 @@
 import pygame, random
 from pygame.locals import *
 
-DEBUGMODE = False
+DEBUGMODE = True
+CHEATS = {'noHunger': False, 'fastActions': True}
 
 pygame.init()
 
@@ -40,11 +41,11 @@ WOODPERTREE = 50
 TREECHOPSPEED = 1
 MAXTREESDESIGNATED = 30 # to help performance
 NUMRIVERS = 30
+CONSTRUCTIONSPEED = 3 # progress towards completion added per tick
 
 STARTRESOURCES    = {'wood': 250, 'iron': 10, 'cheese': 250}
 STARTMAXRESOURCES = {'wood': 500, 'iron': 40, 'cheese': 250}
 HUMANMOVESPEED = 2
-CONSTRUCTIONSPEED = 3 # progress towards completion added per tick
 STARTINGHAPPINESS = 20
 STARTINGHUNGER = 1500
 MAXHUNGER = 1500
@@ -52,6 +53,14 @@ FULLMARGIN = MAXHUNGER - 100
 HUNGERWARNING = 800 # when people not eating look for food
 HUNGERURGENT = 300 # UH OH CRAZY HUNGRY NEED FOOD REAL QUICK
 BUBBLEMARGIN = 3
+
+if CHEATS['noHunger']:
+	STARTINGHUNGER = 100000000000000000000000000000000000000
+if CHEATS['fastActions']:
+	TREECHOPSPEED = 100
+	CONSTRUCTIONSPEED = 100
+	HUMANMOVESPEED = 5
+
 
 
 # Colours     R    G    B  ALPHA

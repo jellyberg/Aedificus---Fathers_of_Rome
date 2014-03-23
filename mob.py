@@ -21,18 +21,6 @@ def updateMobs():
 		list(iter(my.designatedTrees))[0].remove()
 
 
-#def loadAnimationFiles(directory, file):
-#	"""Load images from directory into a list of surfaces"""
-#	animation = []
-#	frames = len(os.listdir(directory))
-#	for num in range(0, frames):
-#		num = str(num)
-#		num = num.zfill(4)
-#		img = pygame.image.load(directory + '/' + file +  '.' + num + '.png').convert_alpha()
-#		animation.append(img)
-#	return animation
-
-
 def loadAnimationFiles(directory):
 	"""Load images from directory into a list of surfaces"""
 	animation = []
@@ -358,9 +346,7 @@ class Human(Mob):
 		if self.destinationSite and self.coords == self.destinationSite.coords:
 			self.destinationSite.storeResource(self.carrying.name, self.carrying.quantity)
 			self.carrying.kill()
-			self.carrying = None
-			self.destinationSite = None
-			self.intention = None
+			self.stopCarryingJob()
 
 
 	def stopCarryingJob(self):

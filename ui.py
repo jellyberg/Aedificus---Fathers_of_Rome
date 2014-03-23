@@ -11,27 +11,17 @@ GAP = 5
 TOOLTIPWORDSPERLINE = 6  # subtract 1!
 
 
-def genText(text, topLeftPos, colour, isTitle=0, isMega=0, centerPos=0, isPretty=0):
-	if isTitle:
-		font = BIGFONT
-	elif isMega:
-		font = MEGAFONT
-	elif isPretty:
-		font = PRETTYFONT
-	else: font = BASICFONT
+def genText(text, topLeftPos, colour, font):
 	surf = font.render(text, 1, colour)
 	rect = surf.get_rect()
-	if centerPos:
-		rect.center = centerPos
-	else:
-		rect.topleft = topLeftPos
+	rect.topleft = topLeftPos
 	return (surf, rect)
 
 
 def resourceText(text, topLeftPos):
 	"""Generates and blits resource amount indicators"""
 	x, y = topLeftPos
-	textSurf, textRect = genText(text, (GAP, GAP), my.WHITE, 0, 0, 0)
+	textSurf, textRect = genText(text, (GAP, GAP), my.WHITE, BASICFONT)
 	bgRect = pygame.Rect((x, y), (textRect.width + GAP * 2, textRect.height + GAP * 2))
 	bgSurf = pygame.Surface((bgRect.width, bgRect.height))
 	bgSurf.fill(my.BROWN)
@@ -152,8 +142,8 @@ class Button:
 
 class Tooltip:
 	"""A multiline text box, displayed when isHovered=True"""
-	def __init__(self, text, pos):
-		self.pos, self.text = pos, text
+	def __init__(self, text, pos, font=BASICFONT):
+		self.pos, self.text, self.font = pos, text, font
 		self.x, self.y = pos
 		self.alpha = 0
 		self.newTooltip()
@@ -210,12 +200,12 @@ class Tooltip:
 		lastLine = ' '.join(extraWords)
 		newText.append(lastLine)
 		# CONVERT STRINGS TO TEXT SURFS AND RECTS
-		testText, testRect = genText(newText[0], (0, 0), my.BLACK, 0, 0, 0, 0)
+		testText, testRect = genText(newText[0], (0, 0), my.BLACK, self.font)
 		textHeight = testText.get_height()
 		totalHeight = textHeight * (len(newText)) + GAP * (len(newText))
 		for lineNum in range(len(newText)):
 			surf, rect = genText(newText[lineNum], (GAP * 2, textHeight * lineNum + GAP * lineNum + GAP),
-								 my.DARKGREY,0,0,0,0)
+								 my.DARKGREY, self.font)
 			textObjs.append([surf, rect])
 		return textObjs, totalHeight
 
@@ -421,7 +411,7 @@ class SelectionBox(pygame.sprite.Sprite):
 				if len(my.designatedTrees) < my.MAXTREESDESIGNATED:
 					my.designatedTrees.add(sprite)
 				else:
-					my.statusMessage = 'Too many trees designated!'
+					my.statusMessage = 'Woah, too many trees designated! Your wooducutters have forgotten some.'
 		self.kill()
 
 
@@ -473,8 +463,9 @@ class StatusText:
 	def __init__(self):
 		self.lastStatus = my.statusMessage
 		self.pos = int(my.WINDOWWIDTH / 4) * 3, int(my.WINDOWHEIGHT / 4)
-		self.tooltip = Tooltip(my.statusMessage, self.pos)
+		self.tooltip = Tooltip(my.statusMessage, (10, 40), BIGFONT)
 		self.tooltip.fadeRate = 2
+		self.tooltip.rect.topright = self.pos
 	
 
 	def update(self):
