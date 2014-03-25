@@ -16,7 +16,7 @@ def loadImg(name):
 class Item(pygame.sprite.Sprite):
 	"""Base class for items dropped when resources are harvested etc"""
 	IMG = {}
-	for item in ['wood']:
+	for item in ['wood', 'fish']:
 		IMG[item] = loadImg(item)
 	def __init__(self, name, quantity, coords, imageName=None):
 		# imageName need only be specified if it's not the same as the item name

@@ -1,5 +1,6 @@
-import my, pygame, map, ui, os, random, math, shadow
+import my, pygame, map, ui, os, random, math, item, shadow
 from pygame.locals import *
+from random import randint
 
 my.allMobs = pygame.sprite.Group()
 my.allHumans = pygame.sprite.Group()
@@ -77,7 +78,7 @@ class Mob(pygame.sprite.Sprite):
 		self.destination = None
 		self.baseMoveSpeed = baseMoveSpeed
 		self.coords =  coords
-		self.tick = random.randint(1, 19)
+		self.tick = randint(1, 19)
 		self.initTooltip()
 		self.shadow = shadow.Shadow(self, self.animation[0])
 
@@ -116,8 +117,8 @@ class Mob(pygame.sprite.Sprite):
 			if y < desty:   movey =  self.moveSpeed
 			elif y > desty: movey = -self.moveSpeed
 			self.rect.move_ip(movex, movey)
-		if random.randint(0, 200) == 0:
-			self.moveSpeed = random.randint(self.baseMoveSpeed - 1, self.baseMoveSpeed + 1)
+		if randint(0, 100) == 0:
+			self.moveSpeed = randint(self.baseMoveSpeed - 1, self.baseMoveSpeed + 1)
 
 
 	def die(self):
@@ -164,7 +165,6 @@ class Mob(pygame.sprite.Sprite):
 
 
 
-
 class Human(Mob):
 	"""Base class for humans, with methods for the different occupations."""
 	baseAnimation = loadAnimationFiles('assets/mobs/dude')
@@ -174,6 +174,8 @@ class Human(Mob):
 	buildAnim = loadAnimationFiles('assets/mobs/build')
 	woodcutterAnim, woodcutterSwimAnim = blitClothes(baseAnimation, 'woodcutter', swimmingMask)
 	chopAnim = loadAnimationFiles('assets/mobs/chop')
+	fishermanAnim, fishermanSwimAnim = blitClothes(baseAnimation, 'fisherman', swimmingMask)
+	fishAnim = loadAnimationFiles('assets/mobs/fish')
 
 #   BASE CLASS
 	def __init__(self, coords, occupation=None):
@@ -188,11 +190,14 @@ class Human(Mob):
 			self.initBuilder()
 		elif self.occupation == 'woodcutter':
 			self.initWoodcutter()
+		elif self.occupation == 'fisherman':
+			self.initFisherman()
 		Mob.__init__(self, self.baseMoveSpeed, self.animation, coords, self.size)
 		self.name = random.choice(my.FIRSTNAMES) + ' ' + random.choice(my.LASTNAMES)
 		self.tooltip.text = self.name
 		self.initEmotions()
 		self.carrying = None
+		self.lastDestItem = None
 		self.destinationItem = None
 		self.destinationSite = None
 
@@ -207,9 +212,11 @@ class Human(Mob):
 				self.updateBuilder()
 			if self.occupation == 'woodcutter':
 				self.updateWoodcutter()
+			if self.occupation == 'fisherman':
+				self.updateFisherman()
 			if self.rect.collidepoint(my.input.hoveredPixel) and my.input.mousePressed == 2:
-				self.occupation = 'woodcutter'
-				self.initWoodcutter()
+				self.occupation = 'fisherman'
+				self.initFisherman()
 			if my.map.cellType(self.coords) == 'water' and self.animation == self.idleAnim:
 				self.animation = self.swimAnim
 			elif my.map.cellType(self.coords) != 'water' and self.animation == self.swimAnim:
@@ -219,7 +226,7 @@ class Human(Mob):
 	def initEmotions(self):
 		"""Initialise the human's wants and needs"""
 		self.happiness = my.STARTINGHAPPINESS
-		self.hunger = my.STARTINGHUNGER + random.randint(-100, 100)
+		self.hunger = my.STARTINGHUNGER + randint(-100, 100)
 		self.lastHunger = self.hunger
 		bubblePos = (self.rect.centerx, self.rect.top - my.BUBBLEMARGIN)
 		self.intention = None
@@ -239,11 +246,11 @@ class Human(Mob):
 			if self.hunger < my.HUNGERURGENT:
 				self.thought = 'hungry'
 				self.thoughtIsUrgent = True
-		elif self.thought == 'eating' and self.hunger > my.FULLMARGIN and self.destination is None:
-			x, y = self.coords # move away from food zone
-			self.destination = (x + random.randint(3, 5), y + random.randint(2, 4))
-			self.intention = None
-			self.thought = None
+		#elif self.thought == 'eating' and self.hunger > my.FULLMARGIN and self.destination is None:
+		#	x, y = self.coords # move away from food zone
+		#	self.destination = (x + randint(3, 5), y + randint(2, 4))
+		#	self.intention = None
+		#	self.thought = None
 		if self.hunger < 1: # starved to death?
 			self.causeOfDeath = 'starved to death'
 			self.die()
@@ -307,31 +314,54 @@ class Human(Mob):
 		if self.carrying:
 			self.tooltip.text += ' and carrying %s %s' %(self.carrying.quantity, self.carrying.name)
 			self.carry()
+		if self.lastDestItem and self.lastDestItem != self.destinationItem:
+			self.lastDestItem.reserved = False
+		if self.destinationItem:
+			self.lastDestItem = self.destinationItem
 
 
 	def findItem(self):
+		"""Find the nearest unreserved item"""
 		if self.intention in [None, 'working']: # find item
 			done = False
 			items = my.map.findNearestBuildings(self.coords, my.itemsOnTheFloor)
 			if items:
 				for item in items:
-					if not item.reserved and len(my.storageBuildingsWithSpace) > 0:
+					if item.name == 'fish' and not item.reserved and len(my.fishMongers):
+						self.destination = item.coords
+						self.destinationItem = item
+						item.reserved = self
+						self.intention = 'working'
+						done = True
+					elif not item.reserved and len(my.storageBuildingsWithSpace):
 						self.destination = item.coords
 						self.destinationItem = item
 						item.reserved = self
 						self.intention = 'working'
 						done = True
 					if done: break
-		if self.destinationItem and self.coords == self.destinationItem.coords\
-										 and self.destinationItem.reserved == self: # pick up item
+		if self.destinationItem and self.coords == self.destinationItem.coords \
+				and self.destinationItem.reserved == self: # pick up item
 			self.carrying = self.destinationItem
 			self.destinationItem = None
 			self.carrying.beingCarried = True
 
 
 	def carry(self):
+		"""Carry the item to the nearest storage building with space"""
 		if self.intention in [None, 'working'] and not self.destinationSite:
-			sites = my.map.findNearestBuildings(self.coords, my.storageBuildingsWithSpace)
+			if self.carrying.name == 'fish': # if fish, only send to fishmongers
+				fishMongers = my.map.findNearestBuildings(self.coords, my.fishMongers)
+				if fishMongers:
+					site = fishMongers[0]
+					self.intention = 'working'
+					self.destinationSite = site
+					self.destination = self.destinationSite.coords
+					return
+				else:
+					my.statusMessage = 'Build a fishmongers!'
+			else:
+				sites = my.map.findNearestBuildings(self.coords, my.storageBuildingsWithSpace)
 			done = False
 			for site in sites:
 				if site.totalStored + self.carrying.quantity < site.storageCapacity:
@@ -340,8 +370,10 @@ class Human(Mob):
 					self.destination = self.destinationSite.coords
 				if done: break
 			if not self.destinationSite:
+				my.statusMessage = 'No storage space for %s!' %(self.carrying.name)
 				self.intention = None
 				self.stopCarryingJob()
+		else: my.statusMessage = 'No storage space for %s!' %(self.carrying.name)
 		# STORE ITEM
 		if self.destinationSite and self.coords == self.destinationSite.coords:
 			self.destinationSite.storeResource(self.carrying.name, self.carrying.quantity)
@@ -465,10 +497,9 @@ class Human(Mob):
 
 
 	def updateWoodcutter(self):
-		if self.intention in [None, 'working'] and not self.chopping \
-								and my.resources['wood'] < my.maxResources['wood'] and my.tick[self.tick]:
+		if self.intention in [None, 'working'] and not self.chopping and my.tick[self.tick]:
 			self.intention = 'working'
-			self.findDestination()
+			self.findTree()
 		if self.destinationSite and self.coords == self.destinationSite.coords:
 			self.chopping = True
 			self.destinationSite.chop()
@@ -486,10 +517,9 @@ class Human(Mob):
 		self.lastSite = self.destinationSite
 
 
-	def findDestination(self):
+	def findTree(self):
 		"""Find nearest unreserved tree and go there"""
 		if my.designatedTrees:
-			self.thought = 'working'
 			sites = my.map.findNearestBuildings(self.coords, my.designatedTrees)
 			if sites:
 				done = False
@@ -498,6 +528,7 @@ class Human(Mob):
 						self.destinationSite = site
 						self.destination = self.destinationSite.coords
 						self.destinationSite.reserved = self
+						self.intention = 'working'
 						if self.lastSite and self.lastSite != self.destinationSite:
 							self.lastSite.reserved = False
 						done = True
@@ -514,8 +545,61 @@ class Human(Mob):
 
 
 #   FISHERMAN
-#	def initFisherman(self):
-#		self.
+	def initFisherman(self):
+		"""Goes to the nearest free fishing boat seat and occasionally spawns a Fish() item"""
+		self.occupation = 'fisherman'
+		self.idleAnim = Human.fishermanAnim
+		self.swimAnim = Human.fishermanSwimAnim
+		self.animation = self.idleAnim
+		self.destinationSite = None
+		self.fishing = None
+		self.lastSite = None
+
+
+	def updateFisherman(self):
+		if not self.fishing and not self.destinationSite and \
+										self.intention in ['working', None] and my.tick[self.tick]:
+			self.findFishingSpot()
+		elif self.destinationSite:
+			self.fish()
+		self.lastSite = self.destinationSite
+
+
+	def findFishingSpot(self):
+		"""Find nearest unreserved fishing boat seat and go there"""
+		sites = my.map.findNearestBuildings(self.coords, my.fishingBoats)
+		if sites:
+			done = False
+			for site in sites:
+				for seatCoords in site.seats.keys():
+					if not site.seats[seatCoords] or site.seats[seatCoords] == self:
+						self.destinationSite = site
+						self.destination = seatCoords
+						self.seatCoords = seatCoords
+						site.seats[seatCoords] = self
+						self.intention = 'working'
+						if self.lastSite and self.lastSite != self.destinationSite:
+							self.lastSite.reserved = False
+						done = True
+					if done: return
+		self.thought = None
+		self.intention = None
+		
+
+	def fish(self):
+		"""If on seat, fish (occasionally spawn a Fish() item)"""
+		if self.intention == 'working' and self.coords == self.seatCoords:
+			if not self.animation == Human.fishAnim:
+				self.animation = Human.fishAnim
+				self.animCount = 0
+			if randint(0, 50) == 0:
+				x, y = self.coords
+				item.Fish(randint(my.FISHPERFISH - 20, my.FISHPERFISH + 20),
+						  (randint(x - 2, x + 2), randint(y - 2, y + 2)))
+		elif self.animation == Human.fishAnim:
+			self.animation = self.idleAnim
+			self.animCount = 0
+
 
 
 

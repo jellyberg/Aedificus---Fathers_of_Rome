@@ -2,7 +2,7 @@ import pygame, random
 from pygame.locals import *
 
 DEBUGMODE = True
-CHEATS = {'noHunger': False, 'fastActions': True}
+CHEATS = {'noHunger': False, 'fastActions': True, 'fastMoving': True}
 
 pygame.init()
 
@@ -42,6 +42,7 @@ TREECHOPSPEED = 1
 MAXTREESDESIGNATED = 30 # to help performance
 NUMRIVERS = 30
 CONSTRUCTIONSPEED = 3 # progress towards completion added per tick
+FISHPERFISH = 50 # fish per Fish() caught by fishermen (+/- 20)
 
 STARTRESOURCES    = {'wood': 250, 'iron': 10, 'cheese': 250}
 STARTMAXRESOURCES = {'wood': 500, 'iron': 40, 'cheese': 250}
@@ -59,7 +60,8 @@ if CHEATS['noHunger']:
 if CHEATS['fastActions']:
 	TREECHOPSPEED = 100
 	CONSTRUCTIONSPEED = 100
-	HUMANMOVESPEED = 5
+if CHEATS['fastMoving']:
+	HUMANMOVESPEED = 10
 
 
 

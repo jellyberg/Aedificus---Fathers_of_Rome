@@ -7,20 +7,23 @@ def loadImg(buildingName):
 	return pygame.image.load('assets/buildings/' + buildingName + '.png').convert_alpha()
 
 
-my.BUILDINGNAMES = ['hut', 'shed', 'orchard', 'fishing boat', 'town hall']
+my.BUILDINGNAMES = ['hut', 'shed', 'orchard', 'fishing boat', 'fish mongers', 'town hall']
 my.BUILDINGSTATS = {}
-my.BUILDINGSTATS['hut']       =  {'description':'A placeholder hut',
-								'buildTime': 500, 'buildMaterials': {'wood': 5},
+my.BUILDINGSTATS['hut']       =  {'description':'Spawns a human when placed.',
+								'buildTime': 500, 'buildMaterials': {'wood': 25},
 								'img': loadImg('hut')}
 my.BUILDINGSTATS['shed']      = {'description':'Increases wood max amount by 30.',
-								'buildTime': 2000, 'buildMaterials': {'wood': 50},
+								'buildTime': 2000, 'buildMaterials': {'wood': 75},
 								'img': loadImg('shed')}
 my.BUILDINGSTATS['orchard']   = {'description':'Feeds nearby humans.',
-								'buildTime': 100, 'buildMaterials': {'wood': 100},
+								'buildTime': 500, 'buildMaterials': {'wood': 150},
 								'img': loadImg('orchard')}
-my.BUILDINGSTATS['fishing boat'] = {'description':'Feeds nearby humans when manned by a fisherman.',
+my.BUILDINGSTATS['fishing boat'] = {'description':'Fishermen fish fish here. Kinda fishy.',
 								'buildTime': 1500, 'buildMaterials': {'wood': 100},
 								'img': loadImg('fishingBoat')}
+my.BUILDINGSTATS['fish mongers'] = {'description':'Feeds nearby people when fish is brought here.',
+								'buildTime': 2000, 'buildMaterials': {'wood': 150},
+								'img': loadImg('fishMongers')}
 my.BUILDINGSTATS['town hall'] = {'description':'Control town legislation and all that jazz.',
 								'buildTime': 10000, 'buildMaterials': {'wood': 500, 'iron': 10},
 								'img': loadImg('townHall')}
@@ -40,6 +43,7 @@ my.huts = pygame.sprite.Group()
 my.sheds = pygame.sprite.Group()
 my.orchards = pygame.sprite.Group()
 my.fishingBoats = pygame.sprite.Group()
+my.fishMongers = pygame.sprite.Group()
 
 cross = pygame.image.load('assets/ui/cross.png').convert_alpha() # indicates invalid construction site
 unscaledConstructionImg = pygame.image.load('assets/buildings/underConstruction.png').convert_alpha()
@@ -203,6 +207,9 @@ class Building(pygame.sprite.Sprite):
 				self.AOEcoords.append((x, y))
 		self.AOEmobsAffected = pygame.sprite.Group()
 		self.AOEbuildingsAffected = pygame.sprite.Group()
+		self.AOEsurf = pygame.Surface((xdist * my.CELLSIZE, ydist * my.CELLSIZE))
+		self.AOEsurf.fill(my.YELLOW)
+		self.AOEsurf.set_alpha(100)
 
 
 	def updateAOE(self):
@@ -224,10 +231,7 @@ class Building(pygame.sprite.Sprite):
 
 
 	def drawAOE(self):
-		for coord in self.AOEcoords:
-			x, y = coord
-			rect = pygame.Rect(x * my.CELLSIZE, y * my.CELLSIZE, my.CELLSIZE, my.CELLSIZE)
-			pygame.draw.rect(my.surf, my.BLUETRANS, rect)
+		my.surf.blit(self.AOEsurf, my.map.cellsToPixels(self.AOEcoords[0]))
 
 
 	def initTooltip(self):
@@ -240,7 +244,6 @@ class Building(pygame.sprite.Sprite):
 	def handleTooltip(self):
 		"""Updates a tooltip that appears when the mob is hovered"""
 		self.tooltip.simulate(self.rect.collidepoint(my.input.hoveredPixel), True)
-
 
 
 
@@ -267,8 +270,8 @@ class FoodBuilding(Building):
 					if customer.hunger < my.FULLMARGIN + 10 and customer.intention in ['eating', 'find food']\
 							 and len(self.currentCustomers) < self.maxCustomers and customer not in self.currentCustomers:
 						self.feedCustomer(customer)
-			self.tooltip.text = '%s/%s customers being fed, currentCustomers: %s' \
-								%(len(self.currentCustomers), self.maxCustomers, self.currentCustomers)
+			self.tooltip.text = '%s/%s customers being fed at this %s' \
+								%(len(self.currentCustomers), self.maxCustomers, self.name)
 			if len(self.currentCustomers) >= self.maxCustomers:
 				self.remove(my.foodBuildingsWithSpace)
 			else:
@@ -287,6 +290,7 @@ class FoodBuilding(Building):
 		customer.thought = 'eating'
 		customer.thoughtIsUrgent = False
 		self.currentCustomers.add(customer)
+
 
 
 class StorageBuilding(Building):
@@ -398,22 +402,57 @@ class Orchard(FoodBuilding):
 
 
 
-class FishingBoat(FoodBuilding):
+class FishingBoat(Building):
 	def __init__(self):
 		stats = my.BUILDINGSTATS['fishing boat']
-		FoodBuilding.__init__(self, 'fishingBoat', (2, 1), stats['buildMaterials'], stats['buildTime'], (1, 2), 10, 4)
+		Building.__init__(self, 'fishingBoat', (2, 1), stats['buildMaterials'], stats['buildTime'])
 		self.buildableTerrain = 'water'
 
 
 	def onPlace(self):
-		self.onPlaceFood()
+		self.seats = {} # to allow reservations and destinations for fishermen
+		x, y = self.coords
+		for offsetx in range(2):
+			self.seats[(x + offsetx, y)] = None
+		self.add(my.fishingBoats)
 
 
 	def update(self):
 		self.updateBasic()
 		if my.builtBuildings.has(self):
-			self.updateFood()
+			pass
 
+
+
+class FishMongers(FoodBuilding):
+	"""Fish() are taken here, then can be eaten"""
+	def __init__(self):
+		stats = my.BUILDINGSTATS['fish mongers']
+		FoodBuilding.__init__(self, 'fishMongers', (2, 2), stats['buildMaterials'], stats['buildTime'], (3, 2), 9, 9)
+
+
+	def onPlace(self):
+		self.add(my.foodBuildings)
+		self.add(my.fishMongers)
+		self.currentCustomers = pygame.sprite.Group()
+		self.fish = 0
+
+
+	def update(self):
+		"""If has fish, act like a food building. Else, do nowt."""
+		self.updateBasic()
+		if my.builtBuildings.has(self):
+			if self.fish:
+				self.add(my.foodBuildingsWithSpace)
+				self.updateFood()
+			else:
+				self.remove(my.foodBuildingsWithSpace)
+
+
+	def storeResource(self, resource, quanitity):
+		"""Add Fish().quanitity to self.fish."""
+		assert resource == 'fish', "Serf is storing item other than fish in a fishmonger. Stupid serf."
+		self.fish += quanitity
 
 
 class TownHall(Building):
