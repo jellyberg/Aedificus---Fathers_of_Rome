@@ -1,12 +1,5 @@
 import pygame, my, input, ui, map, building, mob, item, random
 
-def spendResource(resource, quantity):
-	"""Spend a resource by subtracting from global resource count and subtracting from any stored buildings"""
-	for building in my.storageBuildings.sprites():
-		if building.resources[resource]:
-			excess = building.removeResource(resource, quantity)
-		if not excess:
-			break
 
 class Handler:
 	"""Keep the main.runGame() function nice and tidy"""
@@ -46,7 +39,7 @@ class Handler:
 			else:
 				my.tick[i] = False
 		self.sunx += my.SUNMOVESPEED
-		if self.sunx > my.MAPWIDTH: self.sunx = 0
+		if self.sunx > my.MAPWIDTH: self.sunx = -30
 		my.sunPos = (self.sunx, my.MAPHEIGHT + 10)
 		my.input.get()
 		my.map.update()
@@ -59,7 +52,6 @@ class Handler:
 		pygame.display.update()
 		my.FPSCLOCK.tick(my.FPS)
 		pygame.display.set_caption('Real time strategy' + ' ' * 10 + 'FPS: ' + str(int(my.FPSCLOCK.get_fps())))
-		my.input.checkForQuit()
 
 		for key in my.resources.keys():
 			if my.resources[key] > my.maxResources[key]:

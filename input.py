@@ -34,8 +34,12 @@ class Input:
                 self.mousePressed = False
                 self.mouseUnpressed = event.button
         self.hoveredPixel = my.map.screenToGamePix(self.mousePos)
-        self.hoveredCell = my.map.screenToCellCoords(self.mousePos)
-        self.hoveredCellType = my.map.cellType(self.hoveredCell)
+        if not my.hud.bottomBar.bounds.collidepoint(self.mousePos):
+            self.hoveredCell = my.map.screenToCellCoords(self.mousePos)
+            self.hoveredCellType = my.map.cellType(self.hoveredCell)
+        else:  
+            self.hoveredCell = None
+            self.hoveredCellType = None
 
 
     def checkForQuit(self):

@@ -2,6 +2,7 @@ import pygame, my
 
 my.allItems = pygame.sprite.Group()
 my.itemsOnTheFloor = pygame.sprite.Group()
+my.fishOnTheFloor = pygame.sprite.Group()
 
 
 def update():
@@ -11,6 +12,20 @@ def update():
 
 def loadImg(name):
 	return pygame.image.load('assets/items/' + name  + '.png').convert_alpha()
+
+
+def spendResource(resource, quantity):
+	"""Spend a resource by subtracting from global resource count and subtracting from any stored buildings"""
+	if len(my.storageBuildings) == 0:
+		my.resources[resource] -= quantity
+		print('no storageBuildings!')
+	for building in my.storageBuildings.sprites():
+		if building.stored[resource]:
+			excess = building.removeResource(resource, quantity)
+			print('removing...')
+		if not excess:
+			print('no excess...')
+			break
 
 
 class Item(pygame.sprite.Sprite):
@@ -51,7 +66,8 @@ class Item(pygame.sprite.Sprite):
 					self.bobDir = 'down'
 				elif self.bob < -5:
 					self.bobDir = 'up'
-			if not self.beingCarried: my.surf.blit(self.image, self.rect)
+			if not self.beingCarried and self.rect.colliderect(my.camera.viewArea):
+				my.surf.blit(self.image, self.rect)
 		if self.beingCarried:
 			self.coords = None
 			self.remove(my.itemsOnTheFloor)
@@ -76,4 +92,7 @@ class Fish(Item):
 
 	def update(self):
 		Item.update(self)
-
+		if my.itemsOnTheFloor.has(self):
+			self.add(my.fishOnTheFloor)
+		else:
+			self.remove(my.fishOnTheFloor)

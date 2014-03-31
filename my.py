@@ -2,7 +2,7 @@ import pygame, random
 from pygame.locals import *
 
 DEBUGMODE = True
-CHEATS = {'noHunger': False, 'fastActions': True, 'fastMoving': True}
+CHEATS = {'noHunger': 1, 'fastActions': 0, 'fastMoving': 1}
 
 pygame.init()
 
@@ -37,14 +37,22 @@ MAXSCROLLSPEED = 4
 SUNMOVESPEED = 1
 TREEFREQUENCY = random.randint(50, 100)   # 1/xth of tiles are trees
 TREEMAXHEALTH = 400
-WOODPERTREE = 50
+WOODPERTREE = 50 # +/- a bit
+NUMRIVERS = 30
+NUMMOUNTAINS = 20
+IRONFREQ = 2 # % of rock tiles
+COALFREQ = 10 # % of rock tiles
+
+
 TREECHOPSPEED = 1
 MAXTREESDESIGNATED = 30 # to help performance
-NUMRIVERS = 30
 CONSTRUCTIONSPEED = 3 # progress towards completion added per tick
-FISHPERFISH = 50 # fish per Fish() caught by fishermen (+/- 20)
+FISHFREQUENCY = 200 # lower is higher chance of fish per frame
+FISHPERFISH = 100 # fish per Fish() caught by fishermen (+/- 20)
+FISHCONSUMEDPERTICK = 0.2 # fish consumed per frame by each person eating at the fishmongers
+MAXFISHONFLOOR = 5
 
-STARTRESOURCES    = {'wood': 250, 'iron': 10, 'cheese': 250}
+STARTRESOURCES    = {'wood': 100, 'iron': 10, 'cheese': 250}
 STARTMAXRESOURCES = {'wood': 500, 'iron': 40, 'cheese': 250}
 HUMANMOVESPEED = 2
 STARTINGHAPPINESS = 20

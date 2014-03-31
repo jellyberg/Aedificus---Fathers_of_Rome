@@ -1,4 +1,4 @@
-import pygame, my, copy, math, mob, ui, logic
+import pygame, my, copy, math, mob, ui, shadow, item
 from pygame.locals import *
 
 
@@ -55,14 +55,19 @@ def updateBuildings():
 		my.buildingBeingPlaced.empty()
 	my.buildingBeingPlaced.update()
 	my.allBuildings.update()
+	for building in my.builtBuildings:
+		building.handleShadow()
 
 
 
 class Building(pygame.sprite.Sprite):
 	"""Base class for buildings with basic functions"""
 	def __init__(self, name, size, buildCost, buildTime, AOEsize=None):
-		"""buildCost {'material1': amount1, 'material2': amount2} ad infinity
-		   buildTime is actually amount of production needed to construct"""
+		"""
+		buildCost {'material1': amount1, 'material2': amount2} ad infinity
+		buildTime is actually amount of production needed to construct
+		AOEsize is number of cells from centre the area of effect should cover
+		"""
 		pygame.sprite.Sprite.__init__(self)
 		self.name, self.buildingImage = name, pygame.image.load('assets/buildings/' + name + '.png').convert_alpha()
 		self.buildCost, self.totalBuildProgress = buildCost, buildTime
@@ -108,12 +113,13 @@ class Building(pygame.sprite.Sprite):
 	def placeMode(self):
 		"""Show ghost building on hover"""
 		my.mode = 'build'
-		hoveredPixels = my.map.cellsToPixels(my.input.hoveredCell)
-		my.surf.blit(self.buildingImage, hoveredPixels)
-		if not self.canPlace(my.input.hoveredCell):
-			my.surf.blit(self.scaledCross, hoveredPixels)
-		if my.input.mousePressed == 1 and self.canPlace(my.input.hoveredCell):
-			self.place()
+		if my.input.hoveredCell:
+			hoveredPixels = my.map.cellsToPixels(my.input.hoveredCell)
+			my.surf.blit(self.buildingImage, hoveredPixels)
+			if not self.canPlace(my.input.hoveredCell):
+				my.surf.blit(self.scaledCross, hoveredPixels)
+			if my.input.mousePressed == 1 and self.canPlace(my.input.hoveredCell):
+				self.place()
 
 
 	def place(self):
@@ -124,7 +130,7 @@ class Building(pygame.sprite.Sprite):
 		self.add(my.buildingsUnderConstruction)
 		self.add(my.allBuildings)
 		for key in self.buildCost.keys():
-			logic.spendResource(key, self.buildCost[key])
+			item.spendResource(key, self.buildCost[key])
 
 		self.buildersPositions = []
 		for x in range(self.xsize):
@@ -177,6 +183,7 @@ class Building(pygame.sprite.Sprite):
 				my.builtBuildings.add(self)
 				self.image = self.buildingImage
 				self.onPlace()
+				self.shadow = shadow.Shadow(self, self.buildingImage)
 				my.hud.genSurf()
 				return
 			else:
@@ -207,7 +214,7 @@ class Building(pygame.sprite.Sprite):
 				self.AOEcoords.append((x, y))
 		self.AOEmobsAffected = pygame.sprite.Group()
 		self.AOEbuildingsAffected = pygame.sprite.Group()
-		self.AOEsurf = pygame.Surface((xdist * my.CELLSIZE, ydist * my.CELLSIZE))
+		self.AOEsurf = pygame.Surface((xdist * my.CELLSIZE * 2, ydist * my.CELLSIZE * 2))
 		self.AOEsurf.fill(my.YELLOW)
 		self.AOEsurf.set_alpha(100)
 
@@ -246,6 +253,11 @@ class Building(pygame.sprite.Sprite):
 		self.tooltip.simulate(self.rect.collidepoint(my.input.hoveredPixel), True)
 
 
+	def handleShadow(self):
+		"""Draw the shadow to my.surf. Is called before self.update() to ensure nice layers"""
+		self.shadow.draw(my.surf, my.sunPos)
+
+
 
 class FoodBuilding(Building):
 	"""Base class for food buildings"""
@@ -257,31 +269,34 @@ class FoodBuilding(Building):
 	def updateFood(self):
 		"""Update self.currentCustomers and feed those in it. Update my.foodBuildingsWithSpace too."""
 		if my.builtBuildings.has(self):
-			lastCustomers = self.currentCustomers.copy()
 			self.currentCustomers = pygame.sprite.Group()
 			# keep feeding previous customers 
-			for customer in lastCustomers.sprites():
-				if customer in self.AOEmobsAffected.sprites() and customer.hunger < my.FULLMARGIN + 10\
-							 and customer.intention in ['eating', 'find food']:
+			for customer in self.lastCustomers.sprites():
+				if customer in self.AOEmobsAffected.sprites() and customer.hunger < my.FULLMARGIN\
+							 and customer.intention  == 'find food':
 					self.feedCustomer(customer)
 			# if there's still space, feed any new customers
-			if len(self.currentCustomers) < self.maxCustomers:
-				for customer in self.AOEmobsAffected.sprites():
-					if customer.hunger < my.FULLMARGIN + 10 and customer.intention in ['eating', 'find food']\
-							 and len(self.currentCustomers) < self.maxCustomers and customer not in self.currentCustomers:
-						self.feedCustomer(customer)
+			for customer in self.AOEmobsAffected.sprites():
+				if customer.hunger < my.FULLMARGIN and customer.intention == 'find food'\
+						 and len(self.currentCustomers) < self.maxCustomers and customer not in self.currentCustomers:
+					self.feedCustomer(customer)
 			self.tooltip.text = '%s/%s customers being fed at this %s' \
 								%(len(self.currentCustomers), self.maxCustomers, self.name)
 			if len(self.currentCustomers) >= self.maxCustomers:
 				self.remove(my.foodBuildingsWithSpace)
 			else:
 				self.add(my.foodBuildingsWithSpace)
+			for customer in self.AOEmobsAffected: # reset none eating customers thoughts
+				if customer.thought == 'eating' and customer not in self.currentCustomers:
+					customer.thought = None
+			self.lastCustomers = self.currentCustomers.copy()
 
 
 	def onPlaceFood(self):
 		self.add(my.foodBuildings)
 		self.add(my.foodBuildingsWithSpace)
 		self.currentCustomers = pygame.sprite.Group()
+		self.lastCustomers = self.currentCustomers.copy()
 
 
 	def feedCustomer(self, customer):
@@ -302,6 +317,10 @@ class StorageBuilding(Building):
 		for resource in my.resources.keys():
 			self.stored[resource] = 0
 		self.totalStored = 0
+
+
+	def onPlaceStorage(self):
+		self.add(my.storageBuildings)
 
 
 	def updateStorage(self):
@@ -380,7 +399,7 @@ class Shed(StorageBuilding):
 
 
 	def onPlace(self):
-		pass
+		self.onPlaceStorage()
 
 
 
@@ -420,7 +439,7 @@ class FishingBoat(Building):
 	def update(self):
 		self.updateBasic()
 		if my.builtBuildings.has(self):
-			pass
+			self.tooltip.text = 'Fishing boat'
 
 
 
@@ -432,27 +451,36 @@ class FishMongers(FoodBuilding):
 
 
 	def onPlace(self):
-		self.add(my.foodBuildings)
+		self.onPlaceFood()
+		self.remove(my.foodBuildingsWithSpace)
 		self.add(my.fishMongers)
 		self.currentCustomers = pygame.sprite.Group()
-		self.fish = 0
+		self.totalStored = 0
+		self.storageCapacity = 500
 
 
 	def update(self):
 		"""If has fish, act like a food building. Else, do nowt."""
 		self.updateBasic()
 		if my.builtBuildings.has(self):
-			if self.fish:
-				self.add(my.foodBuildingsWithSpace)
+			if self.totalStored > 0:
 				self.updateFood()
+				self.totalStored -= len(self.currentCustomers) * my.FISHCONSUMEDPERTICK
+				self.tooltip.text = '%s/%s customers being fed at this %s. It contains %s/%s fish.' \
+								%(len(self.currentCustomers), self.maxCustomers, self.name, int(self.totalStored), self.storageCapacity)
 			else:
 				self.remove(my.foodBuildingsWithSpace)
+				self.tooltip.text = 'This fishmongers has no fish!'
+				self.currentCustomers = None
+				for customer in self.AOEmobsAffected: # reset none eating customers thoughts
+					if customer.thought == 'eating':
+						customer.thought = None
 
 
-	def storeResource(self, resource, quanitity):
-		"""Add Fish().quanitity to self.fish."""
+	def storeResource(self, resource, quantity):
+		"""Add Fish().quantity to self.fish."""
 		assert resource == 'fish', "Serf is storing item other than fish in a fishmonger. Stupid serf."
-		self.fish += quanitity
+		self.totalStored += quantity
 
 
 class TownHall(Building):
@@ -466,7 +494,7 @@ class TownHall(Building):
 
 	def update(self):
 		self.updateBasic()
-		if my.input.mousePressed == 1 and my.input.hoveredCellType == 'townHall':# or self.menu:
+		if my.input.mousePressed == 1 and my.input.hoveredCell and my.input.hoveredCellType == 'townHall':# or self.menu:
 			self.showMenu()
 
 

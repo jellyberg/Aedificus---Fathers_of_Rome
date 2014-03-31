@@ -3,7 +3,11 @@ from pygame.locals import *
 from random import randint
 
 my.allTrees = pygame.sprite.Group()
-DIR = {'downright': (1, 1), 'downleft': (1, -1), 'upright': (-1, 1), 'upleft': (-1, -1)} # directions
+my.allOres = pygame.sprite.Group()
+CARDINALDIR = {'down': (0, 1), 'left': (-1, 0), 'right': (1, 0), 'up': (0, -1)} # cardinal directions
+DIAGONALDIR = {'downright': (1, 1), 'downleft': (-1, 1), 'upright': (1, -1), 'upleft': (-1, -1)} # diagonal directions
+ALLDIR = {'down': (0, 1), 'left': (-1, 0), 'right': (1, 0), 'up': (0, -1),
+		 'downright': (1, 1), 'downleft': (-1, 1), 'upright': (1, -1), 'upleft': (-1, -1)}
 
 
 def loadTerrainImgs(terrainNames):
@@ -16,7 +20,7 @@ def loadTerrainImgs(terrainNames):
 
 class Map:
 #   WORLD GEN
-	TERRAIN = ['tree', 'water', 'grass']
+	TERRAIN = ['tree', 'water', 'grass', 'rock', 'iron', 'coal']
 	IMGS = loadTerrainImgs(TERRAIN)
 	def __init__(self):
 		self.genBlankStructure()
@@ -24,6 +28,8 @@ class Map:
 
 	def completeGen(self):
 		"""To be called after __init__() so my.map.map is accessible"""
+		for i in range(my.NUMMOUNTAINS):
+			Mountain()
 		for i in range(my.NUMRIVERS):
 			River()
 		for x in range(my.MAPXCELLS):
@@ -49,13 +55,17 @@ class Map:
 		self.surf = pygame.Surface((my.MAPWIDTH, my.MAPHEIGHT))
 		for x in range(my.MAPXCELLS):
 			for y in range(my.MAPYCELLS):
-				if self.map[x][y] in ['water', 'grass']:
+				if self.map[x][y] in ['rock', 'water']:
 					tile = self.map[x][y]
+				elif self.map[x][y] in ['fishingBoat']:
+					tile = 'water'
 				else: tile = 'grass'
 				self.surf.blit(Map.IMGS[tile], (x * my.CELLSIZE, y * my.CELLSIZE))
 
 
 	def update(self):
+		for ore in my.allOres:
+			ore.update()
 		for tree in my.allTrees:
 			tree.update()
 
@@ -156,7 +166,8 @@ class Camera:
 		self.viewArea = pygame.Rect((0, 0), (my.WINDOWWIDTH, my.WINDOWHEIGHT))
 		self.width = my.WINDOWWIDTH
 		self.shake = 0
-		self.focus = (0, 0)
+		self.focus = (int(my.MAPXCELLS / 2), int(my.MAPYCELLS / 2))
+		self.focus = (20, 20)
 		self.xVel, self.yVel = 0, 0
 
 
@@ -237,12 +248,13 @@ class Tree(pygame.sprite.Sprite):
 
 	def update(self):
 		x, y = self.coords
-		if not self.isDead:
-			my.surf.blit(Map.IMGS['tree'], self.pos)
-		elif my.map.map[x][y] == 'grass':
-			my.surf.blit(Tree.stumpImg, my.map.cellsToPixels(self.coords))
-		else:
-			self.kill()
+		if self.rect.colliderect(my.camera.viewArea):
+			if not self.isDead:
+				my.surf.blit(Map.IMGS['tree'], self.pos)
+			elif my.map.map[x][y] == 'grass':
+				my.surf.blit(Tree.stumpImg, my.map.cellsToPixels(self.coords))
+			else:
+				self.kill()
 
 
 	def chop(self):
@@ -257,11 +269,10 @@ class Tree(pygame.sprite.Sprite):
 
 
 class River:
+	"""Randomly generates a river and modifies the my.map.map data"""
 	changeDirectionFreq = 40 # %
 	changeWidthFreq = 20 # %
-	branchFreq = 20
-	endRiverFreq = 2 # %
-	"""Randomly generates a river and modifies the my.map.map data"""
+	endRiverFreq = 4 # %
 	def __init__(self):
 		self.modifyMap()
 
@@ -270,7 +281,7 @@ class River:
 		"""Modifies the my.map.map"""
 		self.width = randint(2, 4)
 		self.startPoint = (randint(0, my.MAPXCELLS), randint(0, my.MAPYCELLS))
-		self.startDir = random.choice(list(DIR.keys()))
+		self.startDir = random.choice(list(DIAGONALDIR.keys()))
 		self.changeNextCell(self.startPoint, self.startDir)
 
 
@@ -295,7 +306,7 @@ class River:
 		if randomNum2 < River.changeWidthFreq and self.width > 2:
 			self.width += randint(-1, 1)
 		currentx, currenty = currentCell
-		changex, changey = DIR[nextDir]
+		changex, changey = DIAGONALDIR[nextDir]
 		nextx, nexty = (currentx + changex, currenty + changey)
 		if nextx < 0 or nextx > my.MAPXCELLS - self.width or nexty < 0 or nexty > my.MAPYCELLS  - self.width:
 			return
@@ -303,3 +314,79 @@ class River:
 			for y in range(self.width):
 				my.map.map[nextx + x][nexty + y] = 'water'
 		self.changeNextCell((nextx, nexty), nextDir)
+
+
+class Mountain:
+	"""Randomly generates a mountain and modifies my.map.map data"""
+	endMountainFreq = 4 # % of the time
+	thinMountainFreq = 40 # % of the time
+	maxRadius = 15
+	minStartRadius = 3
+	def __init__(self):
+		self.allCoords = []
+		self.genRock()
+		self.genOre()
+
+
+	def genRock(self):
+		"""Generate the rock tiles of the mountain"""
+		self.origin = (randint(5, my.MAPXCELLS - 5), randint(5, my.MAPYCELLS - 5))
+		self.radius = randint(Mountain.minStartRadius, Mountain.maxRadius)
+		for direction in ALLDIR.values():
+			self.changeNextCell(self.origin, direction)
+
+
+	def changeNextCell(self, cell, direction):
+		"""Called recursively to randomise mountain generation""" 
+		x, y = cell
+		self.modifyCircle(cell, self.radius)
+		randomNum = randint(0, 100)
+		if randomNum < Mountain.endMountainFreq:
+			return
+		elif randomNum < Mountain.thinMountainFreq:
+			self.radius -= 1
+		if self.radius < 2: return
+		changex, changey = direction
+		if 0 <(x + changex) < my.MAPXCELLS and 0 < (y + changey) < my.MAPYCELLS:
+			self.changeNextCell((x + changex, y + changey), direction)
+
+
+	def modifyCircle(self, centre, radius):
+		"""Makes all my.map.map tiles in a circle rock"""
+		centrex, centrey = centre
+		for x in range( -radius, radius):
+			for y in range(-radius, radius):
+				if x*x + y*y <= radius*radius and 0 <= (centrex + x) < my.MAPXCELLS and 0 < (centrey + y) < my.MAPYCELLS:
+					my.map.map[centrex + x][centrey + y] = 'rock'
+					if (centrex + x, centrey + y) not in self.allCoords:
+						self.allCoords.append((centrex + x, centrey + y))
+
+
+	def genOre(self):
+		for coord in self.allCoords:
+			num = randint(0, 100)
+			if num < my.IRONFREQ:
+				Ore('iron', coord)
+			elif num < my.COALFREQ:
+				Ore('coal', coord)
+
+
+
+class Ore(pygame.sprite.Sprite):
+	def __init__(self, mineral, coords):
+		pygame.sprite.Sprite.__init__(self)
+		self.add(my.allOres)
+		self.mineral, self.coords = mineral, coords
+		self.rect = pygame.Rect((my.map.cellsToPixels(self.coords)), (my.CELLSIZE, my.CELLSIZE))
+		self.img = Map.IMGS[mineral]
+		x, y = self.coords
+		my.map.map[x][y] = self.mineral
+
+
+	def update(self):
+		x, y = self.coords
+		if my.map.map[x][y] != self.mineral:
+			self.kill()
+		if my.allOres.has(self):
+			if self.rect.colliderect(my.camera.viewArea):
+				my.surf.blit(self.img, self.rect)

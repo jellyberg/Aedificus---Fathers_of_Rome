@@ -56,7 +56,7 @@ class Hud:
 																  (GAP * (i + 1) + currentWidth, GAP))
 			i += 1
 		# HIGHLIGHT
-		if my.mode != 'build':
+		if my.mode != 'build' and my.input.hoveredCell:
 			if my.mode == 'look':
 				if my.input.hoveredCellType not in ['grass', 'water']:
 					currentHighlight = self.HIGHLIGHTS['yellow']
@@ -358,7 +358,6 @@ class Highlight:
 
 
 	def update(self, cell):
-		#if my.updateSurf or my.input.hoveredCell != my.input.lastCell:
 		self.frames += 1
 		cellx, celly = cell
 		x, y = cellx * my.CELLSIZE, celly * my.CELLSIZE
@@ -377,15 +376,19 @@ class SelectionBox(pygame.sprite.Sprite):
 		pygame.sprite.Sprite.__init__(self)
 		self.add(my.selectionBoxGroup)
 		self.designateTrees = designateTrees
-		self.origin = my.input.hoveredCell
+		if my.input.hoveredCell:
+			self.origin = my.input.hoveredCell
+		else:
+			self.kill()
+			return
 		self.end = self.origin
 		my.mode = 'build'
 
 
 	def update(self):
-		if my.input.mouseUnpressed:
+		if my.input.mouseUnpressed and my.input.hoveredCell:
 			self.finishSelection()
-		else:
+		elif my.input.hoveredCell:
 			self.end = my.input.hoveredCell
 			ox, oy = my.map.cellsToPixels(self.origin)
 			ex, ey = my.map.cellsToPixels(self.end)

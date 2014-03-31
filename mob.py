@@ -70,6 +70,7 @@ class Mob(pygame.sprite.Sprite):
 		self.animFrame = 0
 		if type(img) == list:
 			self.animation = img
+			self.lastAnimation = self.animation
 			self.handleImage()
 		else:
 			self.image = img
@@ -102,9 +103,9 @@ class Mob(pygame.sprite.Sprite):
 			if x == destx and y == desty:
 				self.destination = None
 				return
+			# IF NOT, SET UP MOVE DISTANCE
 			elif math.fabs(x - destx) < self.moveSpeed or math.fabs(y - desty) < self.moveSpeed:
 				self.moveSpeed = 1
-			# IF NOT, SET UP MOVE DISTANCE
 			# If moving diagonally, only move half as far in x and half as far in y
 			movex, movey = 1, 1
 			if x == destx: movex = 0
@@ -134,17 +135,21 @@ class Mob(pygame.sprite.Sprite):
 
 	def blit(self):
 		"""Blit to surf, which is overlayed onto my.map.map"""
-		my.surf.blit(self.image, self.rect)
+		if self.rect.colliderect(my.camera.viewArea):
+			my.surf.blit(self.image, self.rect)
 
 
 	def handleImage(self):
 		"""If has animation, update self.image"""
 		if self.animation:
+			if self.animation != self.lastAnimation:
+				self.animFrame = 0
 			self.image = self.animation[self.animFrame]
 			if my.ticks % 6 == 0:
 				self.animFrame += 1
 			if self.animFrame > len(self.animation) - 1:
 				self.animFrame = 0
+			self.lastAnimation = self.animation
 
 
 	def initTooltip(self):
@@ -246,11 +251,8 @@ class Human(Mob):
 			if self.hunger < my.HUNGERURGENT:
 				self.thought = 'hungry'
 				self.thoughtIsUrgent = True
-		#elif self.thought == 'eating' and self.hunger > my.FULLMARGIN and self.destination is None:
-		#	x, y = self.coords # move away from food zone
-		#	self.destination = (x + randint(3, 5), y + randint(2, 4))
-		#	self.intention = None
-		#	self.thought = None
+		elif self.thought == 'eating' and self.hunger > my.FULLMARGIN:
+			self.intention = None
 		if self.hunger < 1: # starved to death?
 			self.causeOfDeath = 'starved to death'
 			self.die()
@@ -304,12 +306,14 @@ class Human(Mob):
 			self.building, self.destinationSite = None, None
 		elif self.occupation == 'woodcutter':
 			self.stopWoodcutterJob()
+		elif self.occupation == 'fisherman':
+			self.stopFishingJob()
 
 
 #   SERF
 	def updateSerf(self):
 		"""A human without an occupation who carries items around"""
-		if not self.carrying:
+		if not self.carrying and my.tick[self.tick]:
 			self.findItem()
 		if self.carrying:
 			self.tooltip.text += ' and carrying %s %s' %(self.carrying.quantity, self.carrying.name)
@@ -327,18 +331,24 @@ class Human(Mob):
 			items = my.map.findNearestBuildings(self.coords, my.itemsOnTheFloor)
 			if items:
 				for item in items:
-					if item.name == 'fish' and not item.reserved and len(my.fishMongers):
-						self.destination = item.coords
-						self.destinationItem = item
-						item.reserved = self
-						self.intention = 'working'
-						done = True
-					elif not item.reserved and len(my.storageBuildingsWithSpace):
-						self.destination = item.coords
-						self.destinationItem = item
-						item.reserved = self
-						self.intention = 'working'
-						done = True
+					if item.name == 'fish' and not item.reserved:
+						if self.isStorageSpace(my.fishMongers, item.quantity):
+							self.destination = item.coords
+							self.destinationItem = item
+							item.reserved = self
+							self.intention = 'working'
+							done = True
+						else:
+							my.statusMessage = "No storage space for %s" %(item.name)
+					elif not item.reserved:
+						if self.isStorageSpace(my.storageBuildingsWithSpace, item.quantity):
+							self.destination = item.coords
+							self.destinationItem = item
+							item.reserved = self
+							self.intention = 'working'
+							done = True
+						else:
+							my.statusMessage = "No storage space for %s" %(item.name)
 					if done: break
 		if self.destinationItem and self.coords == self.destinationItem.coords \
 				and self.destinationItem.reserved == self: # pick up item
@@ -370,10 +380,9 @@ class Human(Mob):
 					self.destination = self.destinationSite.coords
 				if done: break
 			if not self.destinationSite:
-				my.statusMessage = 'No storage space for %s!' %(self.carrying.name)
+				my.statusMessage = "No storage space for %s" %(self.carrying.name)
 				self.intention = None
 				self.stopCarryingJob()
-		else: my.statusMessage = 'No storage space for %s!' %(self.carrying.name)
 		# STORE ITEM
 		if self.destinationSite and self.coords == self.destinationSite.coords:
 			self.destinationSite.storeResource(self.carrying.name, self.carrying.quantity)
@@ -391,6 +400,16 @@ class Human(Mob):
 			self.carrying.coords = self.coords
 			self.carrying.beingCarried = False
 			self.carrying = None
+
+
+	def isStorageSpace(self, buildingGroup, quantity):
+		"""Checks if there will be enough storage space in any building in buildingGroup"""
+		if not len(buildingGroup):
+			return False
+		for building in buildingGroup.sprites():
+			if building.totalStored + quantity <= building.storageCapacity:
+				return True
+		return False
 
 
 #	BUILDER
@@ -554,14 +573,17 @@ class Human(Mob):
 		self.destinationSite = None
 		self.fishing = None
 		self.lastSite = None
+		self.seatCoords = None
 
 
 	def updateFisherman(self):
-		if not self.fishing and not self.destinationSite and \
-										self.intention in ['working', None] and my.tick[self.tick]:
+		if not self.destinationSite and len(my.fishOnTheFloor) < my.MAXFISHONFLOOR\
+										and self.intention in ['working', None] and my.tick[self.tick]:
 			self.findFishingSpot()
-		elif self.destinationSite:
+		elif self.destinationSite and len(my.fishOnTheFloor) < my.MAXFISHONFLOOR:
 			self.fish()
+		if len(my.fishOnTheFloor) >= my.MAXFISHONFLOOR:
+			self.stopFishingJob()
 		self.lastSite = self.destinationSite
 
 
@@ -592,11 +614,21 @@ class Human(Mob):
 			if not self.animation == Human.fishAnim:
 				self.animation = Human.fishAnim
 				self.animCount = 0
-			if randint(0, 50) == 0:
+			if randint(0, my.FISHFREQUENCY) == 0:
 				x, y = self.coords
 				item.Fish(randint(my.FISHPERFISH - 20, my.FISHPERFISH + 20),
-						  (randint(x - 2, x + 2), randint(y - 2, y + 2)))
+						  (randint(x - 1, x + 1), randint(y - 1, y + 1)))
 		elif self.animation == Human.fishAnim:
+			self.animation = self.idleAnim
+			self.animCount = 0
+
+
+	def stopFishingJob(self):
+		if self.destinationSite:
+			self.destinationSite.seats[self.seatCoords] = None
+			self.destinationSite = None
+		self.seatCoords = None
+		if self.animation == Human.fishAnim:
 			self.animation = self.idleAnim
 			self.animCount = 0
 
