@@ -232,7 +232,7 @@ class Camera:
 
 class Tree(pygame.sprite.Sprite):
 	"""A simple tree class that allows for saplings and woodcutting"""
-	stumpImg = pygame.image.load('assets/buildings/treestump.png')
+	stumpImg = pygame.image.load('assets/buildings/treestump.png').convert_alpha()
 	def __init__(self, coords, isSapling=False):
 		pygame.sprite.Sprite.__init__(self)
 		self.add(my.allTrees)

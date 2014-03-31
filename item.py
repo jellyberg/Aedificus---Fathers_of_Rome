@@ -18,13 +18,10 @@ def spendResource(resource, quantity):
 	"""Spend a resource by subtracting from global resource count and subtracting from any stored buildings"""
 	if len(my.storageBuildings) == 0:
 		my.resources[resource] -= quantity
-		print('no storageBuildings!')
 	for building in my.storageBuildings.sprites():
 		if building.stored[resource]:
 			excess = building.removeResource(resource, quantity)
-			print('removing...')
 		if not excess:
-			print('no excess...')
 			break
 
 

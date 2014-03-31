@@ -173,7 +173,7 @@ class Mob(pygame.sprite.Sprite):
 class Human(Mob):
 	"""Base class for humans, with methods for the different occupations."""
 	baseAnimation = loadAnimationFiles('assets/mobs/dude')
-	swimmingMask = pygame.image.load('assets/mobs/swimmingMask.png')
+	swimmingMask = pygame.image.load('assets/mobs/swimmingMask.png').convert_alpha()
 	swimAnim = blitClothes(baseAnimation, None, swimmingMask)
 	builderAnim, builderSwimAnim = blitClothes(baseAnimation, 'builder', swimmingMask)
 	buildAnim = loadAnimationFiles('assets/mobs/build')
@@ -694,7 +694,7 @@ class ThoughtBubble:
 
 class Corpse(pygame.sprite.Sprite):
 	"""Eyecandy spawned when a human dies"""
-	image = pygame.image.load('assets/mobs/corpse.png')
+	image = pygame.image.load('assets/mobs/corpse.png').convert_alpha()
 	def __init__(self, pos, livingImage, name, causeOfDeath=None):
 		pygame.sprite.Sprite.__init__(self)
 		self.add(my.corpses)

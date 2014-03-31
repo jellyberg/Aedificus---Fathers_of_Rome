@@ -227,9 +227,9 @@ class BottomBar:
 	def __init__(self):
 		self.bounds = pygame.Rect((0, my.WINDOWHEIGHT - BottomBar.height), (my.WINDOWWIDTH, BottomBar.height))
 		self.tab = 0
-		self.backgroundImg = pygame.image.load('assets/ui/bottomBar/background.png')
-		self.cellHighlight = pygame.image.load('assets/ui/bottomBar/cellHighlight.png')
-		self.cellClick     = pygame.image.load('assets/ui/bottomBar/cellClick.png')
+		self.backgroundImg = pygame.image.load('assets/ui/bottomBar/background.png').convert_alpha()
+		self.cellHighlight = pygame.image.load('assets/ui/bottomBar/cellHighlight.png').convert_alpha()
+		self.cellClick     = pygame.image.load('assets/ui/bottomBar/cellClick.png').convert_alpha()
 		self.clickedCell, self.hovered, self.lastClicked, self.lastHovered = None, None, None, None
 		self.surf = pygame.Surface(self.bounds.size)
 		self.surf.blit(self.backgroundImg, (0, 0))
@@ -345,8 +345,7 @@ class Highlight:
 	for colour in colours:
 		IMGS[colour] = []
 		for i in range(1, len(colours) + 1):
-			IMGS[colour].append(pygame.image.load('assets/ui/highlights/highlight '
-												   + colour + str(i) + '.png'))
+			IMGS[colour].append(pygame.image.load('assets/ui/highlights/highlight ' + colour + str(i) + '.png').convert_alpha())
 
 	def __init__(self, colour):
 		"""Execute once for each colour, then just update its cell when need be"""
