@@ -46,7 +46,7 @@ COALFREQ = 10 # % of rock tiles
 
 TREECHOPSPEED = 1
 MAXTREESDESIGNATED = 30 # to help performance
-CONSTRUCTIONSPEED = 3 # progress towards completion added per tick
+CONSTRUCTIONSPEED = 3 # progress towards completion added per tick per builder
 FISHFREQUENCY = 200 # lower is higher chance of fish per frame
 FISHPERFISH = 100 # fish per Fish() caught by fishermen (+/- 20)
 FISHCONSUMEDPERTICK = 0.2 # fish consumed per frame by each person eating at the fishmongers
@@ -59,7 +59,7 @@ STARTINGHAPPINESS = 20
 STARTINGHUNGER = 1500
 MAXHUNGER = 1500
 FULLMARGIN = MAXHUNGER - 100
-HUNGERWARNING = 800 # when people not eating look for food
+HUNGERWARNING = 800 # when people are not eating look for food
 HUNGERURGENT = 300 # UH OH CRAZY HUNGRY NEED FOOD REAL QUICK
 BUBBLEMARGIN = 3
 

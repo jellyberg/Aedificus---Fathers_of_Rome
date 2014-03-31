@@ -32,7 +32,6 @@ my.allBuildings = pygame.sprite.Group()
 my.builtBuildings = pygame.sprite.Group() 
 my.buildingBeingPlaced = pygame.sprite.GroupSingle()
 my.buildingsUnderConstruction = pygame.sprite.Group()
-
 my.foodBuildings = pygame.sprite.Group()
 my.foodBuildingsWithSpace = pygame.sprite.Group()
 my.storageBuildings = pygame.sprite.Group()
@@ -53,8 +52,8 @@ def updateBuildings():
 	"""To keep logic.update() nice and tidy"""
 	if my.input.mousePressed == 3: # right click
 		my.buildingBeingPlaced.empty()
-	#for building in my.builtBuildings:
-	#	building.handleShadow()
+	for building in my.builtBuildings.sprites():
+		building.handleShadow()
 	my.buildingBeingPlaced.update()
 	my.allBuildings.update()
 
@@ -102,14 +101,13 @@ class Building(pygame.sprite.Sprite):
 			self.placeMode()
 		else:
 			self.construct()
-			if self.AOE:
-				self.updateAOE()
-				if self.rect.collidepoint(my.input.hoveredPixel):
-					self.drawAOE()
+			if my.builtBuildings.has(self):
+				if self.AOE:
+					self.updateAOE()
+					if self.rect.collidepoint(my.input.hoveredPixel):
+						self.drawAOE()
 			self.handleTooltip()
 			self.blit()
-			if my.builtBuildings.has(self):
-				self.handleShadow()
 
 
 	def placeMode(self):
@@ -198,11 +196,7 @@ class Building(pygame.sprite.Sprite):
 
 
 	def blit(self):
-		if my.buildingsUnderConstruction.has(self):
-			destinationSurf = my.surf
-		else:
-			destinationSurf = my.map.surf
-		destinationSurf.blit(self.image, self.rect)
+		my.surf.blit(self.image, self.rect)
 
 
 	def initAOE(self, AOEsize):
@@ -256,7 +250,7 @@ class Building(pygame.sprite.Sprite):
 
 
 	def handleShadow(self):
-		"""Draw the shadow to my.surf. Is called before self.update() to ensure nice layers"""
+		"""Draw the shadow to my.surf"""
 		self.shadow.draw(my.surf, my.sunPos)
 
 

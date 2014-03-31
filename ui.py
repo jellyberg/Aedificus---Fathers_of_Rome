@@ -43,6 +43,8 @@ class Hud:
 		self.bottomBar = BottomBar()
 		self.statusText = StatusText()
 		my.surf = pygame.Surface(my.map.surf.get_size())
+		self.regenSurf = False
+
 
 	def update(self):
 		my.surf.blit(my.map.surf, (0, 0))
@@ -72,6 +74,11 @@ class Hud:
 
 
 	def genSurf(self):
+		"""Regenerates my.surf next frame to prevent blank frames"""
+		self.regenSurf = True
+
+
+	def genBlankSurf(self):
 		"""Regenerates my.surf"""
 		my.surf = pygame.Surface(my.map.surf.get_size())
 		my.hud.update()
