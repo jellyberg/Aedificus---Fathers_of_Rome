@@ -34,7 +34,7 @@ SCROLLDRAG = 2 # bigger is less drag
 MAPEDGEBOUNCE = 10
 MAXSCROLLSPEED = 4
 
-SUNMOVESPEED = 1
+SUNMOVESPEED = 0.5
 TREEFREQUENCY = random.randint(50, 100)   # 1/xth of tiles are trees
 TREEMAXHEALTH = 400
 WOODPERTREE = 50 # +/- a bit
@@ -52,7 +52,7 @@ FISHPERFISH = 100 # fish per Fish() caught by fishermen (+/- 20)
 FISHCONSUMEDPERTICK = 0.2 # fish consumed per frame by each person eating at the fishmongers
 MAXFISHONFLOOR = 5
 
-STARTRESOURCES    = {'wood': 100, 'iron': 10, 'cheese': 250}
+STARTRESOURCES    = {'wood': 300, 'iron': 10, 'cheese': 250}
 STARTMAXRESOURCES = {'wood': 500, 'iron': 40, 'cheese': 250}
 HUMANMOVESPEED = 2
 STARTINGHAPPINESS = 20

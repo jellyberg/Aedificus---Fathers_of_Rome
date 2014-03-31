@@ -19,10 +19,13 @@ def spendResource(resource, quantity):
 	if len(my.storageBuildings) == 0:
 		my.resources[resource] -= quantity
 	for building in my.storageBuildings.sprites():
+		excess = None
 		if building.stored[resource]:
 			excess = building.removeResource(resource, quantity)
 		if not excess:
 			break
+		else:
+			quantity -= excess
 
 
 class Item(pygame.sprite.Sprite):
