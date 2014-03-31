@@ -2,7 +2,7 @@ import pygame, random
 from pygame.locals import *
 
 DEBUGMODE = True
-CHEATS = {'noHunger': 1, 'fastActions': 0, 'fastMoving': 1}
+CHEATS = {'noHunger': 0, 'fastActions': 0, 'fastMoving': 0}
 
 pygame.init()
 

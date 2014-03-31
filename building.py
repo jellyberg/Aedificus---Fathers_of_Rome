@@ -51,12 +51,12 @@ unscaledConstructionImg = pygame.image.load('assets/buildings/underConstruction.
 
 def updateBuildings():
 	"""To keep logic.update() nice and tidy"""
-	if my.input.mousePressed == 3:
+	if my.input.mousePressed == 3: # right click
 		my.buildingBeingPlaced.empty()
+	#for building in my.builtBuildings:
+	#	building.handleShadow()
 	my.buildingBeingPlaced.update()
 	my.allBuildings.update()
-	for building in my.builtBuildings:
-		building.handleShadow()
 
 
 
@@ -106,8 +106,10 @@ class Building(pygame.sprite.Sprite):
 				self.updateAOE()
 				if self.rect.collidepoint(my.input.hoveredPixel):
 					self.drawAOE()
-			self.blit()
 			self.handleTooltip()
+			self.blit()
+			if my.builtBuildings.has(self):
+				self.handleShadow()
 
 
 	def placeMode(self):
