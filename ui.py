@@ -66,8 +66,10 @@ class Hud:
 					currentHighlight = self.HIGHLIGHTS['blue']
 			currentHighlight.update(my.input.hoveredCell)
 		# SELECTION BOX
+		#if my.input.mousePressed == 3 and not my.selectionBoxGroup.sprite:
+		#	SelectionBox('trees', False)
 		if my.input.mousePressed == 3 and not my.selectionBoxGroup.sprite:
-			SelectionBox(True)
+			SelectionBox(False, 'ores')
 		if my.selectionBoxGroup.sprite:
 			my.selectionBoxGroup.sprite.update()
 		my.pulseLights.update()
@@ -378,10 +380,10 @@ class Highlight:
 
 class SelectionBox(pygame.sprite.Sprite):
 	"""A click and drag selected area, detects the presence of tiles within"""
-	def __init__(self, designateTrees=False):
+	def __init__(self, designateTrees, designateOres):
 		pygame.sprite.Sprite.__init__(self)
 		self.add(my.selectionBoxGroup)
-		self.designateTrees = designateTrees
+		self.designateTrees, self.designateOres = designateTrees, designateOres
 		if my.input.hoveredCell:
 			self.origin = my.input.hoveredCell
 		else:
@@ -418,18 +420,28 @@ class SelectionBox(pygame.sprite.Sprite):
 		"""Calculates the selected stuff, called when mouse is released"""
 		my.mode = 'look'
 		if self.designateTrees:
-			selected = self.findTerrainType('tree', my.designatedTrees)
-			for sprite in selected:
-				if len(my.designatedTrees) < my.MAXTREESDESIGNATED:
-					my.designatedTrees.add(sprite)
+			group = my.designatedTrees
+			maxDesignated = my.MAXTREESDESIGNATED
+			terrainTypes = ['tree']
+		elif self.designateOres:
+			group = my.designatedOres
+			maxDesignated = my.MAXORESDESIGNATED
+			terrainTypes = ['coal', 'iron']
+		selected = []
+		for terrainType in terrainTypes:
+			selected.extend(self.findTerrainType(terrainType, group))
+		if selected:
+			for sprite in selected.sprites:
+				if len(group) < maxDesignated:
+					group.add(sprite)
 				else:
-					my.statusMessage = 'Woah, too many trees designated! Your wooducutters have forgotten some.'
+					my.statusMessage = 'Woah, too many %s designated! Your workers have forgotten some.' %(terrainTypes)
 		self.kill()
 
 
 	def findTerrainType(self, terrainType, currentGroup):
 		"""Returns a list of tuple coords of all trees in the SelectionBox"""
-		self.selected = []
+		self.selected = pygame.sprite.Group()
 		ox, oy = self.origin
 		ex, ey = self.end
 		startx = min(ox, ex)
@@ -444,7 +456,8 @@ class SelectionBox(pygame.sprite.Sprite):
 						if (x, y) == sprite.coords:
 							coordsInGroup = True
 					if not coordsInGroup:
-						self.selected.append(my.map.getTreeObj((x, y)))
+						print(str(my.map.map[x][y]))
+						self.selected.add(my.map.getObj((x, y), 'terrainType'))
 						PulseLight((x, y), my.ORANGE)
 		return self.selected
 

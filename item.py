@@ -4,6 +4,9 @@ my.allItems = pygame.sprite.Group()
 my.itemsOnTheFloor = pygame.sprite.Group()
 my.fishOnTheFloor = pygame.sprite.Group()
 
+my.designatedTrees = pygame.sprite.Group()
+my.designatedOres = pygame.sprite.Group()
+
 
 def update():
 	"""Keep my.handler.update() tidy"""
@@ -31,7 +34,7 @@ def spendResource(resource, quantity):
 class Item(pygame.sprite.Sprite):
 	"""Base class for items dropped when resources are harvested etc"""
 	IMG = {}
-	for item in ['wood', 'fish']:
+	for item in ['wood', 'fish', 'coal', 'iron']:
 		IMG[item] = loadImg(item)
 	def __init__(self, name, quantity, coords, imageName=None):
 		# imageName need only be specified if it's not the same as the item name
@@ -85,6 +88,7 @@ class Wood(Item):
 		Item.update(self)
 
 
+
 class Fish(Item):
 	def __init__(self, quantity, coords):
 		Item.__init__(self, 'fish', quantity, coords)
@@ -96,3 +100,14 @@ class Fish(Item):
 			self.add(my.fishOnTheFloor)
 		else:
 			self.remove(my.fishOnTheFloor)
+
+
+
+class Ore(Item):
+	def __init__(self, quantity, coords, mineral):
+		Item.__init__(self, mineral, quantity, coords)
+		self.mineral = mineral
+
+
+	def update(self):
+		Item.update(self)

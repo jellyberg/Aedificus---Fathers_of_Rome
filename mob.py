@@ -5,7 +5,6 @@ from random import randint
 my.allMobs = pygame.sprite.Group()
 my.allHumans = pygame.sprite.Group()
 my.corpses = pygame.sprite.Group()
-my.designatedTrees = pygame.sprite.Group()
 
 def updateMobs():
 	for mob in my.allMobs.sprites():
@@ -43,7 +42,8 @@ def blitClothes(baseAnim, clothes, swimmingMask=None):
 			frame = baseAnim[i].copy()
 			frame.blit(clothesImg, (0, 0))
 			clothedAnim.append(frame)
-		if swimmingMask:
+	if swimmingMask:
+		for i in range(len(baseAnim)):
 			if clothes:
 				frame = clothedAnim[i].copy()
 			else:
@@ -181,6 +181,8 @@ class Human(Mob):
 	chopAnim = loadAnimationFiles('assets/mobs/chop')
 	fishermanAnim, fishermanSwimAnim = blitClothes(baseAnimation, 'fisherman', swimmingMask)
 	fishAnim = loadAnimationFiles('assets/mobs/fish')
+	minerAnim, minerSwimAnim = blitClothes(baseAnimation, 'miner', swimmingMask)
+	mineAnim = loadAnimationFiles('assets/mobs/mine')
 
 #   BASE CLASS
 	def __init__(self, coords, occupation=None):
@@ -197,6 +199,8 @@ class Human(Mob):
 			self.initWoodcutter()
 		elif self.occupation == 'fisherman':
 			self.initFisherman()
+		elif occupation == 'miner':
+			self.initMiner()
 		Mob.__init__(self, self.baseMoveSpeed, self.animation, coords, self.size)
 		self.name = random.choice(my.FIRSTNAMES) + ' ' + random.choice(my.LASTNAMES)
 		self.tooltip.text = self.name
@@ -219,9 +223,11 @@ class Human(Mob):
 				self.updateWoodcutter()
 			if self.occupation == 'fisherman':
 				self.updateFisherman()
+			if self.occupation == 'miner':
+				self.updateMiner()
 			if self.rect.collidepoint(my.input.hoveredPixel) and my.input.mousePressed == 2:
-				self.occupation = 'fisherman'
-				self.initFisherman()
+				self.occupation = 'miner'
+				self.initMiner()
 			if my.map.cellType(self.coords) == 'water' and self.animation == self.idleAnim:
 				self.animation = self.swimAnim
 			elif my.map.cellType(self.coords) != 'water' and self.animation == self.swimAnim:
@@ -308,6 +314,8 @@ class Human(Mob):
 			self.stopWoodcutterJob()
 		elif self.occupation == 'fisherman':
 			self.stopFishingJob()
+		elif self.occupation == 'miner':
+			self.stopMiningJob()
 
 
 #   SERF
@@ -632,6 +640,68 @@ class Human(Mob):
 			self.animation = self.idleAnim
 			self.animCount = 0
 
+
+#   MINER
+	def initMiner(self):
+		"""Mines designated stone and ore, dropping Stone() and Ore() items"""
+		self.occupation = 'miner'
+		self.idleAnim = Human.minerAnim
+		self.swimAnim = Human.minerSwimAnim
+		self.animation = self.idleAnim
+		self.destinationSeam = None
+		self.mining = False
+		self.lastSeam = None
+
+
+	def updateMiner(self):
+		pass
+		#if not self.destinationSeam:
+		#	self.findMiningSpot()
+		#else:
+		#	self.mine()
+		#self.lastSeam = self.destinationSeam
+
+
+	def findMiningSpot(self):
+		sites = my.map.findNearestBuildings(self.coords, my.allOres)
+		if sites:
+			done = False
+			for site in sites:
+				if not site.reserved or site.reserved == self:
+					self.destination = site.coords
+					self.destinationSeam = site
+					site.reserved = self
+					self.intention = 'working'
+					if self.lastSeam and self.lastSeam != self.destinationSeam:
+						self.lastSeam.reserved = False
+					done = True
+				if done: return
+		self.thought = None
+		self.intention = None
+
+
+	def mine(self):
+		"""If at seam, mine, occasionally spawning Ore() items"""
+		if self.intention == 'working' and self.coords == self.destinationSeam.coords:
+			if not self.animation == Human.mineAnim:
+				self.animation = Human.mineAnim
+				self.animCount = 0
+			if randint(0, 100) < my.map.OREABUNDANCE[self.destinationSeam.mineral]:
+				x, y = self.coords
+				item.Ore(1, (x + randint(-1, 1), y + randint(-1, 1)), self.destinationSeam.mineral)
+		elif self.animation == Human.mineAnim:
+			self.animation = self.idleAnim
+			self.animCount = 0
+
+
+	def stopMiningJob(self):
+		if self.animation == Human.mineAnim:
+			self.animation = self.idleAnim
+			self.animCount = 0
+		self.mining = False
+		if self.destinationSeam:
+			self.destinationSeam.reserved = False
+			self.destinationSeam = None
 
 
 

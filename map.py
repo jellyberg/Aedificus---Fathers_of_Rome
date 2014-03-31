@@ -9,6 +9,9 @@ DIAGONALDIR = {'downright': (1, 1), 'downleft': (-1, 1), 'upright': (1, -1), 'up
 ALLDIR = {'down': (0, 1), 'left': (-1, 0), 'right': (1, 0), 'up': (0, -1),
 		 'downright': (1, 1), 'downleft': (-1, 1), 'upright': (1, -1), 'upleft': (-1, -1)}
 
+OREDURABILITY = {'coal': 500, 'iron': 700}
+OREABUNDANCE  = {'coal':   5, 'iron':   3} # % of mining time that an ore item drops
+
 
 def loadTerrainImgs(terrainNames):
 	"""Load terrain .png's from assets/buildings/ when given a ist of names"""
@@ -150,14 +153,18 @@ class Map:
 		return buildings
 
 
-	def getTreeObj(self, coords):
+	def getObj(self, coords, objName):
 		"""Given a pair of coords, return the tree object at those coords"""
 		x, y = coords
-		if my.map.map[x][y] != 'tree':
+		if my.map.map[x][y] != objName:
 			return None
-		for tree in my.allTrees:
-			if tree.coords == coords:
-				return tree
+			print('not here!')
+		if objName == 'tree': group = my.allTrees
+		elif objName == 'ore': group = my.allOres
+		for obj in group:
+			if obj.coords == coords:
+				return obj
+
 
 
 class Camera:
@@ -230,6 +237,7 @@ class Camera:
 		pass
 
 
+
 class Tree(pygame.sprite.Sprite):
 	"""A simple tree class that allows for saplings and woodcutting"""
 	stumpImg = pygame.image.load('assets/buildings/treestump.png').convert_alpha()
@@ -266,6 +274,7 @@ class Tree(pygame.sprite.Sprite):
 			self.isDead = True
 			self.remove(my.designatedTrees) 
 			self.justDied = False
+
 
 
 class River:
@@ -314,6 +323,7 @@ class River:
 			for y in range(self.width):
 				my.map.map[nextx + x][nexty + y] = 'water'
 		self.changeNextCell((nextx, nexty), nextDir)
+
 
 
 class Mountain:
@@ -381,6 +391,8 @@ class Ore(pygame.sprite.Sprite):
 		self.img = Map.IMGS[mineral]
 		x, y = self.coords
 		my.map.map[x][y] = self.mineral
+		self.reserved = False
+		self.durability = OREDURABILITY[self.mineral]
 
 
 	def update(self):

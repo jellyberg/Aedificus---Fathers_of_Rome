@@ -29,6 +29,8 @@ class Handler:
 			mob.Human((random.randint(5, 25), random.randint(5, 25)), 'woodcutter')
 		for i in range(5):
 			mob.Human((random.randint(5, 25), random.randint(5, 25)), 'builder')
+		for i in range(2):
+			mob.Human((random.randint(5, 25), random.randint(5, 25)), 'miner')
 
 
 	def update(self):
