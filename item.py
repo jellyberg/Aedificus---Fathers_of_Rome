@@ -3,6 +3,7 @@ import pygame, my
 my.allItems = pygame.sprite.Group()
 my.itemsOnTheFloor = pygame.sprite.Group()
 my.fishOnTheFloor = pygame.sprite.Group()
+my.oreOnTheFloor = pygame.sprite.Group()
 
 my.designatedTrees = pygame.sprite.Group()
 my.designatedOres = pygame.sprite.Group()
@@ -111,3 +112,7 @@ class Ore(Item):
 
 	def update(self):
 		Item.update(self)
+		if my.itemsOnTheFloor.has(self):
+			self.add(my.oreOnTheFloor)
+		else:
+			self.remove(my.oreOnTheFloor)

@@ -654,16 +654,18 @@ class Human(Mob):
 
 
 	def updateMiner(self):
-		pass
-		#if not self.destinationSeam:
-		#	self.findMiningSpot()
-		#else:
-		#	self.mine()
-		#self.lastSeam = self.destinationSeam
+		if (not self.destinationSeam or (my.tick[self.tick] and not self.mining)) and self.intention in [None, 'working']\
+					and len(my.oreOnTheFloor) < my.MAXOREONFLOOR:
+			self.findMiningSpot()
+		elif len(my.oreOnTheFloor) < my.MAXOREONFLOOR: # for performance
+			self.mine()
+		self.lastSeam = self.destinationSeam
 
 
 	def findMiningSpot(self):
-		sites = my.map.findNearestBuildings(self.coords, my.allOres)
+		if not my.designatedOres:
+			return
+		sites = my.map.findNearestBuildings(self.coords, my.designatedOres)
 		if sites:
 			done = False
 			for site in sites:
@@ -686,7 +688,7 @@ class Human(Mob):
 			if not self.animation == Human.mineAnim:
 				self.animation = Human.mineAnim
 				self.animCount = 0
-			if randint(0, 100) < my.map.OREABUNDANCE[self.destinationSeam.mineral]:
+			if randint(0, 1000) < map.OREABUNDANCE[self.destinationSeam.mineral]:
 				x, y = self.coords
 				item.Ore(1, (x + randint(-1, 1), y + randint(-1, 1)), self.destinationSeam.mineral)
 		elif self.animation == Human.mineAnim:
@@ -796,3 +798,4 @@ class Corpse(pygame.sprite.Sprite):
 		else:
 			isHovered = False
 		self.tooltip.simulate(isHovered, True)
+

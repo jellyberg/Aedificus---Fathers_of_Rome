@@ -154,13 +154,14 @@ class Map:
 
 
 	def getObj(self, coords, objName):
-		"""Given a pair of coords, return the tree object at those coords"""
+		"""Given a pair of coords, return the tree or ore object at those coords"""
 		x, y = coords
 		if my.map.map[x][y] != objName:
 			return None
-			print('not here!')
-		if objName == 'tree': group = my.allTrees
-		elif objName == 'ore': group = my.allOres
+		if objName == 'tree':
+			group = my.allTrees
+		elif objName in ['coal', 'iron']:
+			group = my.allOres
 		for obj in group:
 			if obj.coords == coords:
 				return obj
@@ -221,14 +222,14 @@ class Camera:
 		if self.viewArea.top < 0:
 			self.viewArea.top = 0
 			self.yVel = my.MAPEDGEBOUNCE
-		elif self.viewArea.bottom > my.map.surf.get_height():
-			self.viewArea.bottom = my.map.surf.get_height()
+		elif self.viewArea.bottom > my.surf.get_height():
+			self.viewArea.bottom = my.surf.get_height()
 			self.yVel = -my.MAPEDGEBOUNCE
 		if self.viewArea.left < 0:
 			self.viewArea.left = 0
 			self.xVel = my.MAPEDGEBOUNCE
-		elif self.viewArea.right > my.map.surf.get_width():
-			self.viewArea.right = my.map.surf.get_width()
+		elif self.viewArea.right > my.surf.get_width():
+			self.viewArea.right = my.surf.get_width()
 			self.xVel = -my.MAPEDGEBOUNCE
 		my.screen.blit(my.surf, (0,0), self.viewArea)
 

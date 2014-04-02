@@ -47,7 +47,6 @@ class Hud:
 
 
 	def update(self):
-		my.surf.blit(my.map.surf, (0, 0))
 		self.bottomBar.update()
 		self.statusText.update()
 		# RESOURCE AMOUNTS
@@ -60,7 +59,7 @@ class Hud:
 		# HIGHLIGHT
 		if my.mode != 'build' and my.input.hoveredCell:
 			if my.mode == 'look':
-				if my.input.hoveredCellType not in ['grass', 'water']:
+				if my.input.hoveredCellType not in ['grass', 'water', 'rock']:
 					currentHighlight = self.HIGHLIGHTS['yellow']
 				else:
 					currentHighlight = self.HIGHLIGHTS['blue']
@@ -427,11 +426,11 @@ class SelectionBox(pygame.sprite.Sprite):
 			group = my.designatedOres
 			maxDesignated = my.MAXORESDESIGNATED
 			terrainTypes = ['coal', 'iron']
-		selected = []
+		selected = pygame.sprite.Group()
 		for terrainType in terrainTypes:
-			selected.extend(self.findTerrainType(terrainType, group))
+			selected.add((self.findTerrainType(terrainType, group)).sprites())
 		if selected:
-			for sprite in selected.sprites:
+			for sprite in selected.sprites():
 				if len(group) < maxDesignated:
 					group.add(sprite)
 				else:
@@ -456,8 +455,7 @@ class SelectionBox(pygame.sprite.Sprite):
 						if (x, y) == sprite.coords:
 							coordsInGroup = True
 					if not coordsInGroup:
-						print(str(my.map.map[x][y]))
-						self.selected.add(my.map.getObj((x, y), 'terrainType'))
+						self.selected.add(my.map.getObj((x, y), terrainType))
 						PulseLight((x, y), my.ORANGE)
 		return self.selected
 
@@ -475,7 +473,7 @@ class PulseLight(pygame.sprite.Sprite):
 
 
 	def update(self):
-		if not self.time:
+		if self.time < 1:
 			self.kill()
 		else:
 			pygame.draw.circle(my.surf, self.colour, self.pos, my.HALFCELL, 2)
@@ -489,7 +487,7 @@ class StatusText:
 		self.lastStatus = my.statusMessage
 		self.pos = int(my.WINDOWWIDTH / 4) * 3, int(my.WINDOWHEIGHT / 4)
 		self.tooltip = Tooltip(my.statusMessage, (10, 40), BIGFONT)
-		self.tooltip.fadeRate = 2
+		self.tooltip.fadeRate = 1
 		self.tooltip.rect.topright = self.pos
 	
 

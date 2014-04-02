@@ -23,11 +23,12 @@ class Handler:
 		my.gameRunning = True
 		self.sunx = int(my.MAPWIDTH / 2)
 		my.sunPos = (self.sunx, my.MAPHEIGHT + 10)
-		for i in range(3):
+		# HUMANS FOR TESTING
+		for i in range(1):
 			mob.Human((random.randint(5, 25), random.randint(5, 25)), None)
-		for i in range(2):
+		for i in range(0):
 			mob.Human((random.randint(5, 25), random.randint(5, 25)), 'woodcutter')
-		for i in range(5):
+		for i in range(3):
 			mob.Human((random.randint(5, 25), random.randint(5, 25)), 'builder')
 		for i in range(2):
 			mob.Human((random.randint(5, 25), random.randint(5, 25)), 'miner')
@@ -52,14 +53,13 @@ class Handler:
 		item.update()
 		mob.updateMobs()
 		my.camera.update()
+		my.surf.blit(my.map.surf, (0, 0))
 		my.hud.update()
 
 		pygame.display.update()
 		my.FPSCLOCK.tick(my.FPS)
 		pygame.display.set_caption('Real time strategy' + ' ' * 10 + 'FPS: ' + str(int(my.FPSCLOCK.get_fps())))
 
-		for key in my.resources.keys():
-			if my.resources[key] > my.maxResources[key]:
-				my.resources[key] = my.maxResources[key]
+		for key in my.resources.keys(): # DON'T FIX THE BUGS, HIDE 'EM!
 			if my.resources[key] < 0:
 				my.resources[key] = 0

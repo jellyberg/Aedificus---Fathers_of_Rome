@@ -42,7 +42,8 @@ NUMRIVERS = 30
 NUMMOUNTAINS = 20
 IRONFREQ = 2 # % of rock tiles
 COALFREQ = 10 # % of rock tiles
-MAXORESDESIGNATED =  30
+MAXORESDESIGNATED =  60
+MAXOREONFLOOR = 20
 
 
 TREECHOPSPEED = 1
@@ -51,7 +52,7 @@ CONSTRUCTIONSPEED = 3 # progress towards completion added per tick per builder
 FISHFREQUENCY = 200 # lower is higher chance of fish per frame
 FISHPERFISH = 100 # fish per Fish() caught by fishermen (+/- 20)
 FISHCONSUMEDPERTICK = 0.2 # fish consumed per frame by each person eating at the fishmongers
-MAXFISHONFLOOR = 5
+MAXFISHONFLOOR = 10
 
 STARTRESOURCES    = {'wood': 300, 'iron': 10, 'cheese': 250}
 STARTMAXRESOURCES = {'wood': 500, 'iron': 40, 'cheese': 250}
