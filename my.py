@@ -2,7 +2,7 @@ import pygame, random
 from pygame.locals import *
 
 DEBUGMODE = True
-CHEATS = {'noHunger': 0, 'fastActions': 0, 'fastMoving': 0}
+CHEATS = {'noHunger': 1, 'fastActions': 0, 'fastMoving': 0}
 
 pygame.init()
 
@@ -42,12 +42,13 @@ NUMRIVERS = 30
 NUMMOUNTAINS = 20
 IRONFREQ = 2 # % of rock tiles
 COALFREQ = 10 # % of rock tiles
-MAXORESDESIGNATED =  60
+MAXORESDESIGNATED = 30
 MAXOREONFLOOR = 20
 
 
 TREECHOPSPEED = 1
 MAXTREESDESIGNATED = 30 # to help performance
+OREMINESPEED = 1
 CONSTRUCTIONSPEED = 3 # progress towards completion added per tick per builder
 FISHFREQUENCY = 200 # lower is higher chance of fish per frame
 FISHPERFISH = 100 # fish per Fish() caught by fishermen (+/- 20)
@@ -101,7 +102,13 @@ FIRSTNAMES = 'Robert Jenny Steve Jeff Alice Benjamin Yoric Fatima Reem Aya Suha 
 				Sophia Olivia Emma Brooklyn Ahmed Yusuf Chih-ming Chun-chieh Ji-hoon Abdullo Berat\
 				Jim Catherine Earl Petunia Annabel Emily Nathan Jonathan Dylan Rachel Lucy Hannah\
 				Jane Melissa Tabatha Willoughby Zanzibar Alexander Julius Atilla Mary Astrid Kylie\
-				Josef Joseph Matilda Vladmir Charles Terence Lucifer Emmeline Elliot'.split()
+				Josef Joseph Matilda Vladmir Charles Terence Lucifer Emmeline Elliot Marcus Julius\
+				Helen Madeline Filius Caecilius Annia Alfidia Arria Atia Antonia Baebinia Claudia\
+				Domitilla Domitia Euphemia Didia Clara Cornelia Davina Galla Helvia Hostia Julia\
+				Justina Junia Gnaea Livia Minervina Orbinia Matidia Mucia Marcia Octavia Servilia\
+				Terentia Turia Tullia Tranquilina Salonina Severa Vistillia Vesta Ulpia Violentilla\
+				Vipsania Valeria Titus Sextus Lucius Flavius Amelius Iullus Apicius Arellius\
+				Gaius Avienus Balista Decius Aufidius Aulus Tiberius Claudius Fannius Canius Spurius'.split()
 LASTNAMES  = 'Prifti Loshi Leka Hoxha Gruber Huber Bauer Steiner Moser Jacobs Simon Martin Dupont\
 				Dimitrov Trifonov Yanev Blagoev Hristov Yankov Novak Matic Hansen Magi Sepp Ilves\
 				Koppel Parn Ilves Ivanov Pertov Putin Johannesen Thomsen Binks Rider Lehtonen Laine\

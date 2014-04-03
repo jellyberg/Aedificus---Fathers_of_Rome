@@ -688,7 +688,13 @@ class Human(Mob):
 			if not self.animation == Human.mineAnim:
 				self.animation = Human.mineAnim
 				self.animCount = 0
-			if randint(0, 1000) < map.OREABUNDANCE[self.destinationSeam.mineral]:
+			self.destinationSeam.durability -= my.OREMINESPEED
+			print(str(self.destinationSeam.durability))
+			if self.destinationSeam.durability < 1:
+				self.destinationSeam = None
+				self.mining = False
+				self.intention = None
+			elif randint(0, 1000) < map.OREABUNDANCE[self.destinationSeam.mineral]:
 				x, y = self.coords
 				item.Ore(1, (x + randint(-1, 1), y + randint(-1, 1)), self.destinationSeam.mineral)
 		elif self.animation == Human.mineAnim:

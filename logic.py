@@ -24,17 +24,22 @@ class Handler:
 		self.sunx = int(my.MAPWIDTH / 2)
 		my.sunPos = (self.sunx, my.MAPHEIGHT + 10)
 		# HUMANS FOR TESTING
-		for i in range(1):
-			mob.Human((random.randint(5, 25), random.randint(5, 25)), None)
 		for i in range(0):
-			mob.Human((random.randint(5, 25), random.randint(5, 25)), 'woodcutter')
-		for i in range(3):
-			mob.Human((random.randint(5, 25), random.randint(5, 25)), 'builder')
-		for i in range(2):
-			mob.Human((random.randint(5, 25), random.randint(5, 25)), 'miner')
+			mob.Human((random.randint(int(my.MAPXCELLS / 2) - 5, int(my.MAPXCELLS / 2) + 5),
+					   random.randint(int(my.MAPYCELLS / 2) - 5, int(my.MAPYCELLS / 2) + 5)), None)
+		for i in range(0):
+			mob.Human((random.randint(int(my.MAPXCELLS / 2) - 5, int(my.MAPXCELLS / 2) + 5),
+					   random.randint(int(my.MAPYCELLS / 2) - 5, int(my.MAPYCELLS / 2) + 5)), 'woodcutter')
+		for i in range(0):
+			mob.Human((random.randint(int(my.MAPXCELLS / 2) - 5, int(my.MAPXCELLS / 2) + 5),
+					   random.randint(int(my.MAPYCELLS / 2) - 5, int(my.MAPYCELLS / 2) + 5)), 'builder')
+		for i in range(1):
+			mob.Human((random.randint(int(my.MAPXCELLS / 2) - 5, int(my.MAPXCELLS / 2) + 5),
+					   random.randint(int(my.MAPYCELLS / 2) - 5, int(my.MAPYCELLS / 2) + 5)), 'miner')
 
 
 	def update(self):
+		my.surf.blit(my.map.surf, (0, 0))
 		my.ticks += 1
 		for i in range(1, 20):
 			if my.ticks % i == 0:
@@ -52,9 +57,9 @@ class Handler:
 		building.updateBuildings()
 		item.update()
 		mob.updateMobs()
+		my.hud.updateWorldUI()
 		my.camera.update()
-		my.surf.blit(my.map.surf, (0, 0))
-		my.hud.update()
+		my.hud.updateHUD()
 
 		pygame.display.update()
 		my.FPSCLOCK.tick(my.FPS)

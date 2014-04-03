@@ -174,8 +174,7 @@ class Camera:
 		self.viewArea = pygame.Rect((0, 0), (my.WINDOWWIDTH, my.WINDOWHEIGHT))
 		self.width = my.WINDOWWIDTH
 		self.shake = 0
-		self.focus = (int(my.MAPXCELLS / 2), int(my.MAPYCELLS / 2))
-		self.focus = (20, 20)
+		self.focus = (int(my.MAPWIDTH / 2), int(my.MAPHEIGHT / 2))
 		self.xVel, self.yVel = 0, 0
 
 
@@ -398,7 +397,8 @@ class Ore(pygame.sprite.Sprite):
 
 	def update(self):
 		x, y = self.coords
-		if my.map.map[x][y] != self.mineral:
+		if my.map.map[x][y] != self.mineral or self.durability < 1:
+			my.map.map[x][y] = 'rock'
 			self.kill()
 		if my.allOres.has(self):
 			if self.rect.colliderect(my.camera.viewArea):

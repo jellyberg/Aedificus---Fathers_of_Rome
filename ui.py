@@ -46,7 +46,8 @@ class Hud:
 		self.regenSurf = False
 
 
-	def update(self):
+	def updateHUD(self):
+		"""Updates elements that are blitted to screen"""
 		self.bottomBar.update()
 		self.statusText.update()
 		# RESOURCE AMOUNTS
@@ -56,6 +57,10 @@ class Hud:
 			currentWidth += resourceText('%s: %s/%s' % (key, my.resources[key], my.maxResources[key]), 
 																  (GAP * (i + 1) + currentWidth, GAP))
 			i += 1
+
+
+	def updateWorldUI(self):
+		"""Updates elements that are blitted to my.surf"""
 		# HIGHLIGHT
 		if my.mode != 'build' and my.input.hoveredCell:
 			if my.mode == 'look':
@@ -74,6 +79,7 @@ class Hud:
 		my.pulseLights.update()
 
 
+
 	def genSurf(self):
 		"""Regenerates my.surf next frame to prevent blank frames"""
 		self.regenSurf = True
@@ -82,7 +88,7 @@ class Hud:
 	def genBlankSurf(self):
 		"""Regenerates my.surf"""
 		my.surf = pygame.Surface(my.map.surf.get_size())
-		my.hud.update()
+		my.hud.updateWorldUI()
 
 
 
