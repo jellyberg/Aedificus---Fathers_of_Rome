@@ -33,29 +33,34 @@ def loadAnimationFiles(directory):
 	return animation
 
 
-def blitClothes(baseAnim, clothes, swimmingMask=None):
+def blitClothes(baseAnim, moveAnim, clothes, swimmingMask=None):
 	"""Returns a list of Surfaces, or a tuple if both clothes and swimmingMask are given as arguments"""
 	if clothes: clothesImg = pygame.image.load('assets/mobs/%s.png' %(clothes))
-	clothedAnim, swimAnim = [], []
+	clothedIdleAnim, clothedMoveAnim, swimAnim = [], [], []
 	for i in range(len(baseAnim)):
 		if clothes:
 			frame = baseAnim[i].copy()
 			frame.blit(clothesImg, (0, 0))
-			clothedAnim.append(frame)
+			clothedIdleAnim.append(frame)
+	for i in range(len(moveAnim)):
+		if clothes:
+			frame = moveAnim[i].copy()
+			frame.blit(clothesImg, (0, 0))
+			clothedMoveAnim.append(frame)
 	if swimmingMask:
 		for i in range(len(baseAnim)):
 			if clothes:
-				frame = clothedAnim[i].copy()
+				frame = clothedMoveAnim[i].copy()
 			else:
 				frame = baseAnim[i].copy()
 			frame.blit(swimmingMask, (0, 0))
 			swimAnim.append(frame)
 	if clothes and swimmingMask:
-		return (clothedAnim, swimAnim)
+		return (clothedIdleAnim, clothedMoveAnim, swimAnim)
 	elif swimmingMask:
 		return swimAnim
 	else:
-		return clothedAnim
+		return (clothedIdleAnim, clothedMoveAnim)
 
 
 
@@ -118,6 +123,9 @@ class Mob(pygame.sprite.Sprite):
 			if y < desty:   movey =  self.moveSpeed
 			elif y > desty: movey = -self.moveSpeed
 			self.rect.move_ip(movex, movey)
+			if self.animation == self.idleAnim:
+				self.animation = self.moveAnim
+				self.animFrame = 0
 		if randint(0, 100) == 0:
 			self.moveSpeed = randint(self.baseMoveSpeed - 1, self.baseMoveSpeed + 1)
 
@@ -172,21 +180,22 @@ class Mob(pygame.sprite.Sprite):
 
 class Human(Mob):
 	"""Base class for humans, with methods for the different occupations."""
-	baseAnimation = loadAnimationFiles('assets/mobs/dude')
+	idleAnimation = loadAnimationFiles('assets/mobs/idle')
+	moveAnimation = loadAnimationFiles('assets/mobs/move')
 	swimmingMask = pygame.image.load('assets/mobs/swimmingMask.png').convert_alpha()
-	swimAnim = blitClothes(baseAnimation, None, swimmingMask)
-	builderAnim, builderSwimAnim = blitClothes(baseAnimation, 'builder', swimmingMask)
+	swimAnim = blitClothes(idleAnimation, moveAnimation, None, swimmingMask)
+	builderIdleAnim, builderMoveAnim, builderSwimAnim = blitClothes(idleAnimation, moveAnimation, 'builder', swimmingMask)
 	buildAnim = loadAnimationFiles('assets/mobs/build')
-	woodcutterAnim, woodcutterSwimAnim = blitClothes(baseAnimation, 'woodcutter', swimmingMask)
+	woodcutterIdleAnim, woodcutterMoveAnim, woodcutterSwimAnim = blitClothes(idleAnimation, moveAnimation, 'woodcutter', swimmingMask)
 	chopAnim = loadAnimationFiles('assets/mobs/chop')
-	fishermanAnim, fishermanSwimAnim = blitClothes(baseAnimation, 'fisherman', swimmingMask)
+	fishermanIdleAnim, fishermanMoveAnim, fishermanSwimAnim = blitClothes(idleAnimation, moveAnimation, 'fisherman', swimmingMask)
 	fishAnim = loadAnimationFiles('assets/mobs/fish')
-	minerAnim, minerSwimAnim = blitClothes(baseAnimation, 'miner', swimmingMask)
+	minerIdleAnim, minerMoveAnim, minerSwimAnim = blitClothes(idleAnimation, moveAnimation, 'miner', swimmingMask)
 	mineAnim = loadAnimationFiles('assets/mobs/mine')
 #   BASE CLASS
 	def __init__(self, coords, occupation=None):
 		self.occupation = occupation
-		self.idleAnim = Human.baseAnimation
+		self.idleAnim, self.moveAnim = Human.idleAnimation, Human.moveAnimation
 		if self.occupation is None:
 			self.animation = self.idleAnim
 		self.size = (10, 20)
@@ -227,7 +236,7 @@ class Human(Mob):
 			if self.rect.collidepoint(my.input.hoveredPixel) and my.input.mousePressed == 2:
 				self.occupation = 'miner'
 				self.initMiner()
-			if my.map.cellType(self.coords) == 'water' and self.animation == self.idleAnim:
+			if my.map.cellType(self.coords) == 'water' and self.animation == self.moveAnim:
 				self.animation = self.swimAnim
 			elif my.map.cellType(self.coords) != 'water' and self.animation == self.swimAnim:
 				self.animation = self.idleAnim
@@ -422,7 +431,8 @@ class Human(Mob):
 #	BUILDER
 	def initBuilder(self):
 		"""Finds the nearest construction site and constructs it."""
-		self.idleAnim = Human.builderAnim
+		self.idleAnim = Human.builderIdleAnim
+		self.moveAnim = Human.builderMoveAnim
 		self.swimAnim = Human.builderSwimAnim
 		self.animation = self.idleAnim
 		self.destination = None
@@ -497,7 +507,7 @@ class Human(Mob):
 					if done: break
 				if done: break
 		if not done:
-			if self.animation != self.idleAnim:
+			if self.animation not in [self.idleAnim, self.moveAnim]:
 				self.animation = self.idleAnim
 				self.animFrame = 0
 			self.building = None
@@ -514,7 +524,8 @@ class Human(Mob):
 	def initWoodcutter(self):
 		"""Chops down the nearest tree in my.designatedTrees"""
 		self.occupation = 'woodcutter'
-		self.idleAnim = Human.woodcutterAnim
+		self.idleAnim = Human.woodcutterIdleAnim
+		self.moveAnim = Human.woodcutterMoveAnim
 		self.swimAnim = Human.woodcutterSwimAnim
 		self.animation = self.idleAnim
 		self.chopping = False
@@ -535,7 +546,7 @@ class Human(Mob):
 				self.chopping = False
 		else:
 			self.chopping = False
-			if self.animation != self.idleAnim:
+			if self.animation not in [self.idleAnim, self.moveAnim]:
 				self.animation = self.idleAnim
 				self.animFrame = 0
 		if self.chopping:
@@ -574,7 +585,8 @@ class Human(Mob):
 	def initFisherman(self):
 		"""Goes to the nearest free fishing boat seat and occasionally spawns a Fish() item"""
 		self.occupation = 'fisherman'
-		self.idleAnim = Human.fishermanAnim
+		self.idleAnim = Human.fishermanIdleAnim
+		self.moveAnim = Human.fishermanMoveAnim
 		self.swimAnim = Human.fishermanSwimAnim
 		self.animation = self.idleAnim
 		self.destinationSite = None
@@ -644,7 +656,8 @@ class Human(Mob):
 	def initMiner(self):
 		"""Mines designated stone and ore, dropping Stone() and Ore() items"""
 		self.occupation = 'miner'
-		self.idleAnim = Human.minerAnim
+		self.idleAnim = Human.minerIdleAnim
+		self.moveAnim = Human.minerMoveAnim
 		self.swimAnim = Human.minerSwimAnim
 		self.animation = self.idleAnim
 		self.destinationSeam = None
@@ -665,7 +678,7 @@ class Human(Mob):
 		if not my.designatedOres:
 			if self.intention == 'working':
 				self.intention = None
-			if not self.animation == self.idleAnim:
+			if self.animation not in [self.idleAnim, self.moveAnim]:
 				self.animation = self.idleAnim
 				self.animCount = 0
 			return
@@ -689,7 +702,7 @@ class Human(Mob):
 	def mine(self):
 		"""If at seam, mine, occasionally spawning Ore() items"""
 		if self.intention == 'working' and self.coords == self.destinationSeam.coords:
-			if not self.animation == Human.mineAnim:
+			if self.animation != Human.mineAnim:
 				self.animation = Human.mineAnim
 				self.animCount = 0
 			self.destinationSeam.durability -= my.OREMINESPEED
