@@ -183,7 +183,6 @@ class Human(Mob):
 	fishAnim = loadAnimationFiles('assets/mobs/fish')
 	minerAnim, minerSwimAnim = blitClothes(baseAnimation, 'miner', swimmingMask)
 	mineAnim = loadAnimationFiles('assets/mobs/mine')
-
 #   BASE CLASS
 	def __init__(self, coords, occupation=None):
 		self.occupation = occupation
@@ -664,6 +663,11 @@ class Human(Mob):
 
 	def findMiningSpot(self):
 		if not my.designatedOres:
+			if self.intention == 'working':
+				self.intention = None
+			if not self.animation == self.idleAnim:
+				self.animation = self.idleAnim
+				self.animCount = 0
 			return
 		sites = my.map.findNearestBuildings(self.coords, my.designatedOres)
 		if sites:

@@ -15,25 +15,23 @@ class Handler:
 		my.camera = map.Camera()
 		my.hud = ui.Hud()
 		my.mode = 'look' 
-		my.resources = {'wood': my.STARTRESOURCES['wood'], 
-						'iron': my.STARTRESOURCES['iron'], 'cheese': my.STARTRESOURCES['cheese']}
-		my.maxResources = {'wood': my.STARTMAXRESOURCES['wood'], 
-						'iron': my.STARTMAXRESOURCES['iron'], 'cheese': my.STARTMAXRESOURCES['cheese']}
+		my.resources = {'wood': my.STARTRESOURCES['wood'], 'iron': my.STARTRESOURCES['iron'], 
+						'coal': my.STARTRESOURCES['coal'], 'cheese': my.STARTRESOURCES['cheese']}
 		my.updateSurf = True
 		my.gameRunning = True
 		self.sunx = int(my.MAPWIDTH / 2)
 		my.sunPos = (self.sunx, my.MAPHEIGHT + 10)
 		# HUMANS FOR TESTING
-		for i in range(0):
+		for i in range(3):
 			mob.Human((random.randint(int(my.MAPXCELLS / 2) - 5, int(my.MAPXCELLS / 2) + 5),
 					   random.randint(int(my.MAPYCELLS / 2) - 5, int(my.MAPYCELLS / 2) + 5)), None)
-		for i in range(0):
+		for i in range(2):
 			mob.Human((random.randint(int(my.MAPXCELLS / 2) - 5, int(my.MAPXCELLS / 2) + 5),
 					   random.randint(int(my.MAPYCELLS / 2) - 5, int(my.MAPYCELLS / 2) + 5)), 'woodcutter')
-		for i in range(0):
+		for i in range(4):
 			mob.Human((random.randint(int(my.MAPXCELLS / 2) - 5, int(my.MAPXCELLS / 2) + 5),
 					   random.randint(int(my.MAPYCELLS / 2) - 5, int(my.MAPYCELLS / 2) + 5)), 'builder')
-		for i in range(1):
+		for i in range(2):
 			mob.Human((random.randint(int(my.MAPXCELLS / 2) - 5, int(my.MAPXCELLS / 2) + 5),
 					   random.randint(int(my.MAPYCELLS / 2) - 5, int(my.MAPYCELLS / 2) + 5)), 'miner')
 

@@ -54,8 +54,7 @@ class Hud:
 		i = 0
 		currentWidth = 0
 		for key in my.resources.keys():
-			currentWidth += resourceText('%s: %s/%s' % (key, my.resources[key], my.maxResources[key]), 
-																  (GAP * (i + 1) + currentWidth, GAP))
+			currentWidth += resourceText('%s: %s' % (key, my.resources[key]), (GAP * (i + 1) + currentWidth, GAP))
 			i += 1
 
 

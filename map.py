@@ -399,6 +399,7 @@ class Ore(pygame.sprite.Sprite):
 		x, y = self.coords
 		if my.map.map[x][y] != self.mineral or self.durability < 1:
 			my.map.map[x][y] = 'rock'
+			if self.durability < 1: my.map.genSurf()
 			self.kill()
 		if my.allOres.has(self):
 			if self.rect.colliderect(my.camera.viewArea):
