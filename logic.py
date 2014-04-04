@@ -35,6 +35,9 @@ class Handler:
 			mob.Human((random.randint(int(my.MAPXCELLS / 2) - 5, int(my.MAPXCELLS / 2) + 5),
 					   random.randint(int(my.MAPYCELLS / 2) - 5, int(my.MAPYCELLS / 2) + 5)), 'miner')
 
+		for i in range(50):
+			mob.Rabbit()
+
 
 	def update(self):
 		my.surf.blit(my.map.surf, (0, 0))

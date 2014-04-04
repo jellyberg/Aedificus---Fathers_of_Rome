@@ -4,15 +4,18 @@ from random import randint
 
 my.allMobs = pygame.sprite.Group()
 my.allHumans = pygame.sprite.Group()
+my.animals = pygame.sprite.Group()
 my.corpses = pygame.sprite.Group()
 
 def updateMobs():
 	for mob in my.allMobs.sprites():
 		mob.handleShadow()
-	for mob in my.allMobs.sprites():
-		mob.update()
 	for corpse in my.corpses.sprites():
 		corpse.update()
+	for mob in my.animals.sprites():
+		mob.update()
+	for mob in my.allHumans.sprites():
+		mob.update()
 	for mob in my.allMobs.sprites():
 		mob.handleTooltip()
 	for corpse in my.corpses.sprites():
@@ -25,7 +28,7 @@ def loadAnimationFiles(directory):
 	"""Load images from directory into a list of surfaces"""
 	animation = []
 	for frame in os.listdir(directory):
-		name,extension = os.path.splitext(frame)
+		name, extension = os.path.splitext(frame)
 		if extension == ".png":
 			path = os.path.join(directory, frame)
 			img = pygame.image.load(path).convert_alpha()
@@ -80,6 +83,7 @@ class Mob(pygame.sprite.Sprite):
 		else:
 			self.image = img
 			self.animation = None
+		self.direction = 'right'
 		self.rect = pygame.Rect(my.map.cellsToPixels(coords), size)
 		self.destination = None
 		self.baseMoveSpeed = baseMoveSpeed
@@ -125,7 +129,12 @@ class Mob(pygame.sprite.Sprite):
 			self.rect.move_ip(movex, movey)
 			if self.animation == self.idleAnim:
 				self.animation = self.moveAnim
-				self.animFrame = 0
+				if self.animFrame > len(self.idleAnim) - 1:
+					self.animFrame = 0
+			if movex > 0:
+				self.direction = 'right'
+			elif movex < 0:
+				self.direction = 'left'
 		if randint(0, 100) == 0:
 			self.moveSpeed = randint(self.baseMoveSpeed - 1, self.baseMoveSpeed + 1)
 
@@ -151,7 +160,8 @@ class Mob(pygame.sprite.Sprite):
 		"""If has animation, update self.image"""
 		if self.animation:
 			if self.animation != self.lastAnimation:
-				self.animFrame = 0
+				if self.animFrame > len(self.animation) - 1:
+					self.animFrame = 0
 			self.image = self.animation[self.animFrame]
 			if my.ticks % 6 == 0:
 				self.animFrame += 1
@@ -217,6 +227,7 @@ class Human(Mob):
 		self.lastDestItem = None
 		self.destinationItem = None
 		self.destinationSite = None
+		self.add(my.allHumans)
 
 
 	def update(self):
@@ -347,7 +358,7 @@ class Human(Mob):
 			items = my.map.findNearestBuildings(self.coords, my.itemsOnTheFloor)
 			if items:
 				for item in items:
-					if item.name == 'fish' and not item.reserved:
+					if item.name == 'fish' and (not item.reserved or item.reserved == self):
 						if self.isStorageSpace(my.fishMongers, item.quantity):
 							self.destination = item.coords
 							self.destinationItem = item
@@ -356,7 +367,7 @@ class Human(Mob):
 							done = True
 						else:
 							my.statusMessage = "No storage space for %s" %(item.name)
-					elif not item.reserved:
+					elif not item.reserved or item.reserved == self:
 						if self.isStorageSpace(my.storageBuildingsWithSpace, item.quantity):
 							self.destination = item.coords
 							self.destinationItem = item
@@ -697,6 +708,9 @@ class Human(Mob):
 				if done: return
 		self.thought = None
 		self.intention = None
+		if self.animation not in [self.idleAnim, self.moveAnim]:
+			self.animation = self.idleAnim
+			self.animCount = 0
 
 
 	def mine(self):
@@ -706,7 +720,6 @@ class Human(Mob):
 				self.animation = Human.mineAnim
 				self.animCount = 0
 			self.destinationSeam.durability -= my.OREMINESPEED
-			print(str(self.destinationSeam.durability))
 			if self.destinationSeam.durability < 1:
 				self.destinationSeam = None
 				self.mining = False
@@ -727,7 +740,6 @@ class Human(Mob):
 		if self.destinationSeam:
 			self.destinationSeam.reserved = False
 			self.destinationSeam = None
-
 
 
 
@@ -822,3 +834,39 @@ class Corpse(pygame.sprite.Sprite):
 			isHovered = False
 		self.tooltip.simulate(isHovered, True)
 
+
+
+class PassiveAnimal(Mob):
+	"""Base class for animals that do not interact with humans"""
+	def __init__(self, baseMoveSpeed, img, coords, size):
+		Mob.__init__(self, baseMoveSpeed, img, coords, size)
+		self.add(my.animals)
+
+
+	def animalUpdate(self):
+		if randint(0, 50) == 0:
+			x, y = self.coords
+			self.destination = (x + randint(-2, 2), y + randint(-2, 2))
+		self.baseUpdate()
+
+
+class Rabbit(PassiveAnimal):
+	"""Hop, hop, hop"""
+	def __init__(self):
+		coords = (randint(0, my.MAPXCELLS), randint(0, my.MAPYCELLS))
+		self.animLeft = loadAnimationFiles('assets/mobs/rabbit')
+		self.animRight = []
+		for frame in self.animLeft:
+			self.animRight.append(pygame.transform.flip(frame.copy(), 1, 0))
+		self.idleAnim = self.animLeft
+		self.moveAnim = self.idleAnim
+		self.moveSpeed = 1
+		PassiveAnimal.__init__(self, 1, self.idleAnim, coords, (10, 10))
+
+
+	def update(self):
+		self.animalUpdate()
+		if self.direction == 'left':
+			self.idleAnim, self.moveAnim = self.animLeft, self.animLeft
+		else:
+			self.idleAnim, self.moveAnim = self.animRight, self.animRight
