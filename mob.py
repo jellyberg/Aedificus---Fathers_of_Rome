@@ -857,12 +857,34 @@ class Rabbit(PassiveAnimal):
 		self.animLeft = loadAnimationFiles('assets/mobs/rabbit')
 		self.animRight = []
 		for frame in self.animLeft:
-			self.animRight.append(pygame.transform.flip(frame.copy(), 1, 0))
+			self.animRight.append(pygame.transform.flip(frame, 1, 0))
 		self.idleAnim = self.animLeft
 		self.moveAnim = self.idleAnim
 		self.moveSpeed = 1
 		PassiveAnimal.__init__(self, 1, self.idleAnim, coords, (10, 10))
 
+
+	def update(self):
+		self.animalUpdate()
+		if self.direction == 'left':
+			self.idleAnim, self.moveAnim = self.animLeft, self.animLeft
+		else:
+			self.idleAnim, self.moveAnim = self.animRight, self.animRight
+
+
+class Deer(PassiveAnimal):
+	"""Silent but deadly. But not deadly."""
+	def __init__(self):
+		coords = (randint(0, my.MAPXCELLS), randint(0, my.MAPYCELLS))
+		self.animLeft = loadAnimationFiles('assets/mobs/deer')
+		self.animRight = []
+		for frame in self.animLeft:
+			img = pygame.transform.flip(frame, 1, 0)
+			self.animRight.append(img)
+		self.idleAnim = self.animLeft
+		self.moveAnim = self.idleAnim
+		self.moveSpeed = 1
+		PassiveAnimal.__init__(self, 1, self.idleAnim, coords, (15, 15))
 
 	def update(self):
 		self.animalUpdate()

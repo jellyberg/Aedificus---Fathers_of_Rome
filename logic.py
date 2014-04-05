@@ -35,8 +35,9 @@ class Handler:
 			mob.Human((random.randint(int(my.MAPXCELLS / 2) - 5, int(my.MAPXCELLS / 2) + 5),
 					   random.randint(int(my.MAPYCELLS / 2) - 5, int(my.MAPYCELLS / 2) + 5)), 'miner')
 
-		for i in range(50):
+		for i in range(20):
 			mob.Rabbit()
+			mob.Deer()
 
 
 	def update(self):

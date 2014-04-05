@@ -41,6 +41,7 @@ class Hud:
 		for colour in Highlight.IMGS.keys():
 			self.HIGHLIGHTS[colour] = Highlight(colour)
 		self.bottomBar = BottomBar()
+		self.designator = Designator()
 		self.statusText = StatusText()
 		my.surf = pygame.Surface(my.map.surf.get_size())
 		self.regenSurf = False
@@ -49,6 +50,7 @@ class Hud:
 	def updateHUD(self):
 		"""Updates elements that are blitted to screen"""
 		self.bottomBar.update()
+		self.designator.update()
 		self.statusText.update()
 		# RESOURCE AMOUNTS
 		i = 0
@@ -81,7 +83,8 @@ class Hud:
 
 	def genSurf(self):
 		"""Regenerates my.surf next frame to prevent blank frames"""
-		self.regenSurf = True
+		#self.regenSurf = True
+		self.genBlankSurf()
 
 
 	def genBlankSurf(self):
@@ -183,7 +186,7 @@ class Tooltip:
 	def simulate(self, isHovered, blitToLand=False):
 		if self.text != self.lastText:
 			self.newTooltip()
-		if isHovered:
+		if isHovered and self.text != 'BLANK TOOLTIP':
 			if self.alpha < 200: self.alpha += 20
 		elif self.alpha > 0 and not self.lockAlpha:
 			self.alpha -= self.fadeRate
@@ -349,6 +352,57 @@ class BottomBar:
 					self.clickedCell = i
 		self.lastClicked, self.lastHovered = self.clickedCell, self.hovered
 
+
+
+class Designator:
+	"""A menu to select the kind of SelectionBox created when RMB is pressed. Can be collapsed when the icon is clicked"""
+	def __init__(self):
+		self.baseSurf = pygame.image.load('assets/ui/designator/background.png')
+		self.surf = self.baseSurf
+		self.COLLAPSEDTOPLEFT = (my.WINDOWWIDTH - 10, int(my.WINDOWHEIGHT / 3))
+		self.OPENTOPLEFT      = (my.WINDOWWIDTH - self.surf.get_width(), int(my.WINDOWHEIGHT / 3))
+		self.rect = self.surf.get_rect()
+		self.rect.topleft = self.COLLAPSEDTOPLEFT
+		self.tabRect = pygame.Rect((self.rect.left, self.rect.top + 12), (10, 50))
+
+		self.highlight = pygame.image.load('assets/ui/designator/hover.png')
+		self.tabHighlight = pygame.image.load('assets/ui/designator/tabHover.png')
+		self.tabHoveredSurf = self.baseSurf.copy().blit(self.tabHighlight, (0, 12))
+
+		self.collapsed = True
+		self.animate = None
+
+
+	def update(self):
+		self.tabRect.topleft = (self.rect.left, self.rect.top + 12)
+		if self.collapsed and self.animate is None:
+			if self.tabRect.collidepoint(my.input.mousePos):
+				self.surf = self.tabHoveredSurf
+				if my.input.mousePressed == 1:
+					self.collapsed = False
+					self.animate = 'open'
+			else:
+				self.surf = self.baseSurf
+		elif not self.collapsed and self.animate is None:
+			if self.tabRect.collidepoint(my.input.mousePos):
+				self.surf = self.tabHoveredSurf
+				if my.input.mousePressed == 1:
+					self.collapsed = False
+					self.animate = 'close'
+			#elif: designation buttons clicked??
+			else:
+				self.surf = self.baseSurf
+		if self.animate == 'open':
+			if self.rect.topleft == self.OPENTOPLEFT:
+				self.animate = None
+			else:
+				self.rect.left -= 1
+		elif self.animate == 'close':
+			if self.rect.topleft == self.COLLAPSEDTOPLEFT:
+				self.animate = None
+			else:
+				self.rect.left += 1
+		my.screen.blit(self.surf, self.rect)
 
 
 class Highlight:

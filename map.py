@@ -374,7 +374,7 @@ class Mountain:
 
 	def genOre(self):
 		for coord in self.allCoords:
-			num = randint(0, 100)
+			num = randint(0, my.MASTEROREFREQ)
 			if num < my.IRONFREQ:
 				Ore('iron', coord)
 			elif num < my.COALFREQ:
