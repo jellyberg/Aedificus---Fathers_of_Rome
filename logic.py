@@ -52,9 +52,6 @@ class Handler:
 		if self.sunx > my.MAPWIDTH: self.sunx = -30
 		my.sunPos = (self.sunx, my.MAPHEIGHT + 10)
 		my.input.get()
-		if my.hud.regenSurf:
-			my.hud.genBlankSurf()
-			my.hud.regenSurf = False
 		my.map.update()
 		building.updateBuildings()
 		item.update()

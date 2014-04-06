@@ -109,6 +109,14 @@ class Map:
 		x, y = coords
 		return self.map[x][y]
 
+
+	def inBounds(self, coords):
+		"""Check if the coords are within the map boundaries"""
+		x, y =  coords
+		if 0 < x < my.MAPXCELLS and 0 < y < my.MAPYCELLS:
+			return True
+		return False
+
 #   PATHFINDING
 	def distanceTo(self, start, end):
 		"""Distance from cell A to cell B. Look at me, using PYTHAGORUS like a real man."""
@@ -398,8 +406,9 @@ class Ore(pygame.sprite.Sprite):
 	def update(self):
 		x, y = self.coords
 		if my.map.map[x][y] != self.mineral or self.durability < 1:
-			my.map.map[x][y] = 'rock'
-			if self.durability < 1: my.map.genSurf()
+			if self.durability < 1:
+				my.map.map[x][y] = 'rock'
+				my.map.genSurf()
 			self.kill()
 		if my.allOres.has(self):
 			if self.rect.colliderect(my.camera.viewArea):

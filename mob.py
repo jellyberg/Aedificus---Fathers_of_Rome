@@ -836,9 +836,16 @@ class Corpse(pygame.sprite.Sprite):
 
 
 
+
 class PassiveAnimal(Mob):
 	"""Base class for animals that do not interact with humans"""
 	def __init__(self, baseMoveSpeed, img, coords, size):
+		if coords == 'randomGrass':
+			while True:
+				x, y = (randint(0, my.MAPXCELLS - 1), randint(0, my.MAPYCELLS - 1))
+				if my.map.map[x][y] == 'grass':
+					coords = (x, y)
+					break
 		Mob.__init__(self, baseMoveSpeed, img, coords, size)
 		self.add(my.animals)
 
@@ -846,14 +853,17 @@ class PassiveAnimal(Mob):
 	def animalUpdate(self):
 		if randint(0, 50) == 0:
 			x, y = self.coords
-			self.destination = (x + randint(-2, 2), y + randint(-2, 2))
+			for i in range(5): # prefer walking onto grass tiles
+				newx, newy =  x + randint(-2, 2), y + randint(-2, 2)
+				if my.map.inBounds((newx, newy)) and my.map.map[newx][newy] == 'grass' or i == 5:
+					self.destination = (newx, newy)
+					break
 		self.baseUpdate()
 
 
 class Rabbit(PassiveAnimal):
 	"""Hop, hop, hop"""
 	def __init__(self):
-		coords = (randint(0, my.MAPXCELLS), randint(0, my.MAPYCELLS))
 		self.animLeft = loadAnimationFiles('assets/mobs/rabbit')
 		self.animRight = []
 		for frame in self.animLeft:
@@ -861,7 +871,7 @@ class Rabbit(PassiveAnimal):
 		self.idleAnim = self.animLeft
 		self.moveAnim = self.idleAnim
 		self.moveSpeed = 1
-		PassiveAnimal.__init__(self, 1, self.idleAnim, coords, (10, 10))
+		PassiveAnimal.__init__(self, 1, self.idleAnim, 'randomGrass', (10, 10))
 
 
 	def update(self):
@@ -875,7 +885,6 @@ class Rabbit(PassiveAnimal):
 class Deer(PassiveAnimal):
 	"""Silent but deadly. But not deadly."""
 	def __init__(self):
-		coords = (randint(0, my.MAPXCELLS), randint(0, my.MAPYCELLS))
 		self.animLeft = loadAnimationFiles('assets/mobs/deer')
 		self.animRight = []
 		for frame in self.animLeft:
@@ -884,7 +893,7 @@ class Deer(PassiveAnimal):
 		self.idleAnim = self.animLeft
 		self.moveAnim = self.idleAnim
 		self.moveSpeed = 1
-		PassiveAnimal.__init__(self, 1, self.idleAnim, coords, (15, 15))
+		PassiveAnimal.__init__(self, 1, self.idleAnim, 'randomGrass', (15, 15))
 
 	def update(self):
 		self.animalUpdate()

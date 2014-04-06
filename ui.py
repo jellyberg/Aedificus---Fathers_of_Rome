@@ -71,9 +71,9 @@ class Hud:
 					currentHighlight = self.HIGHLIGHTS['blue']
 			currentHighlight.update(my.input.hoveredCell)
 		# SELECTION BOX
-		#if my.input.mousePressed == 3 and not my.selectionBoxGroup.sprite:
-		#	SelectionBox('trees', False)
-		if my.input.mousePressed == 3 and not my.selectionBoxGroup.sprite:
+		if my.input.mousePressed == 3 and not my.selectionBoxGroup.sprite and my.designationMode == 'tree':
+			SelectionBox('trees', False)
+		if my.input.mousePressed == 3 and not my.selectionBoxGroup.sprite and my.designationMode == 'ore':
 			SelectionBox(False, 'ores')
 		if my.selectionBoxGroup.sprite:
 			my.selectionBoxGroup.sprite.update()
@@ -357,23 +357,39 @@ class BottomBar:
 class Designator:
 	"""A menu to select the kind of SelectionBox created when RMB is pressed. Can be collapsed when the icon is clicked"""
 	def __init__(self):
+		my.designationMode = None
 		self.baseSurf = pygame.image.load('assets/ui/designator/background.png')
-		self.surf = self.baseSurf
-		self.COLLAPSEDTOPLEFT = (my.WINDOWWIDTH - 10, int(my.WINDOWHEIGHT / 3))
-		self.OPENTOPLEFT      = (my.WINDOWWIDTH - self.surf.get_width(), int(my.WINDOWHEIGHT / 3))
+		self.surf = self.baseSurf.copy()
+		self.COLLAPSEDTOPLEFT = (my.WINDOWWIDTH - 10, int(my.WINDOWHEIGHT / 5))
+		self.OPENTOPLEFT      = (my.WINDOWWIDTH - self.surf.get_width(), int(my.WINDOWHEIGHT / 5))
 		self.rect = self.surf.get_rect()
 		self.rect.topleft = self.COLLAPSEDTOPLEFT
 		self.tabRect = pygame.Rect((self.rect.left, self.rect.top + 12), (10, 50))
 
 		self.highlight = pygame.image.load('assets/ui/designator/hover.png')
 		self.tabHighlight = pygame.image.load('assets/ui/designator/tabHover.png')
-		self.tabHoveredSurf = self.baseSurf.copy().blit(self.tabHighlight, (0, 12))
-
+		self.tabHoveredSurf = self.baseSurf.copy()
+		self.tabHoveredSurf.blit(self.tabHighlight, (0, 0))
 		self.collapsed = True
 		self.animate = None
 
+		self.buttonRects = []
+		x, y = self.OPENTOPLEFT
+		for i in range(y, y + 100, 50):
+			self.buttonRects.append(pygame.Rect((x + 10, i), (50, 50)))
+		print(str(self.buttonRects))
+
 
 	def update(self):
+		self.handleTab()
+		my.screen.blit(self.surf, self.rect)
+		if self.collapsed == False and not self.animate:
+			self.handleButtons()
+
+
+	def handleTab(self):
+		"""Opens or collapses the designator's tab when the icon is clicked"""
+		# OPEN TAB
 		self.tabRect.topleft = (self.rect.left, self.rect.top + 12)
 		if self.collapsed and self.animate is None:
 			if self.tabRect.collidepoint(my.input.mousePos):
@@ -381,28 +397,45 @@ class Designator:
 				if my.input.mousePressed == 1:
 					self.collapsed = False
 					self.animate = 'open'
+					self.surf = self.baseSurf
 			else:
 				self.surf = self.baseSurf
+		# COLLAPSE TAB
 		elif not self.collapsed and self.animate is None:
 			if self.tabRect.collidepoint(my.input.mousePos):
 				self.surf = self.tabHoveredSurf
 				if my.input.mousePressed == 1:
-					self.collapsed = False
+					self.collapsed = True
 					self.animate = 'close'
-			#elif: designation buttons clicked??
+					self.surf = self.baseSurf
 			else:
 				self.surf = self.baseSurf
+		# ANIMATE
 		if self.animate == 'open':
 			if self.rect.topleft == self.OPENTOPLEFT:
 				self.animate = None
 			else:
-				self.rect.left -= 1
+				self.rect.x -= 5
 		elif self.animate == 'close':
 			if self.rect.topleft == self.COLLAPSEDTOPLEFT:
 				self.animate = None
 			else:
-				self.rect.left += 1
-		my.screen.blit(self.surf, self.rect)
+				self.rect.x += 5
+
+
+	def handleButtons(self):
+		"""If a button (tree or ore) is clicked, change designation mode"""
+		i = 0
+		for rect in self.buttonRects:
+			if rect.collidepoint(my.input.mousePos):
+				my.screen.blit(self.highlight, rect)
+				if my.input.mouseUnpressed == 1:
+					if i == 0:
+						my.designationMode = 'tree'
+					elif i == 1:
+						my.designationMode = 'ore'
+			i += 1
+
 
 
 class Highlight:
