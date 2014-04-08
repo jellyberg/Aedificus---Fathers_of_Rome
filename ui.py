@@ -1,4 +1,4 @@
-import pygame, my, math, building
+import pygame, my, math, building, random
 
 my.selectionBoxGroup = pygame.sprite.GroupSingle()
 my.pulseLights = pygame.sprite.Group()
@@ -241,16 +241,22 @@ class BottomBar:
 	margin = 14 # at left hand side
 	cell   = 52 # width
 	def __init__(self):
-		self.bounds = pygame.Rect((0, my.WINDOWHEIGHT - BottomBar.height), (my.WINDOWWIDTH, BottomBar.height))
+		self.bounds = pygame.Rect((0, my.WINDOWHEIGHT - BottomBar.height), (BottomBar.margin + BottomBar.cell * 12, BottomBar.height))
 		self.tab = 0
-		self.backgroundImg = pygame.image.load('assets/ui/bottomBar/background.png').convert_alpha()
+		self.cellBackgrounds = []
+		bgImg = pygame.image.load('assets/ui/bottomBar/cellBg.png').convert_alpha()
+		flippedBgImg = pygame.transform.flip(bgImg, 1, 1)
+		for i in range(0, 360, 90):
+			self.cellBackgrounds.append(pygame.transform.rotate(bgImg, i))
+			self.cellBackgrounds.append(pygame.transform.rotate(flippedBgImg, i))
 		self.cellHighlight = pygame.image.load('assets/ui/bottomBar/cellHighlight.png').convert_alpha()
 		self.cellClick     = pygame.image.load('assets/ui/bottomBar/cellClick.png').convert_alpha()
+		self.genRects()
+		self.genBackgroundImg()
 		self.clickedCell, self.hovered, self.lastClicked, self.lastHovered = None, None, None, None
 		self.surf = pygame.Surface(self.bounds.size)
 		self.surf.blit(self.backgroundImg, (0, 0))
 		self.surf.set_colorkey(my.BLACK)
-		self.genRects()
 		self.genTooltips()
 		stats = my.BUILDINGSTATS # synctactic sugar
 		self.SURFS = [self.genSurf([stats['hut']['img'], stats['shed']['img'],
@@ -270,6 +276,14 @@ class BottomBar:
 									(BottomBar.cell, BottomBar.cell)))
 
 
+	def genBackgroundImg(self):
+		"""Generates a background image for the bottom bar"""
+		self.backgroundImg = pygame.Surface(self.bounds.size)
+		self.backgroundImg.set_colorkey(my.BLACK)
+		for rect in self.localRects:
+			self.backgroundImg.blit(random.choice(self.cellBackgrounds), rect)
+
+
 	def genSurf(self, imgs):
 		"""Generate a new surface with the imgs passed blitted onto it. These can be reused"""
 		surf = self.backgroundImg.copy()
@@ -278,11 +292,11 @@ class BottomBar:
 			# scale and blit preview image to BottomBar cell
 			width, height = imgs[i].get_rect().size
 			if width > height:
-				widthScale = 50
-				heightScale = int(height / width * 50)
+				widthScale = 40
+				heightScale = int(height / width * 40)
 			else:
-				heightScale = 50
-				widthScale = int(width / height * 50)
+				heightScale = 40
+				widthScale = int(width / height * 40)
 			img = pygame.transform.scale(imgs[i], (widthScale, heightScale))
 			imgRect = img.get_rect()
 			imgRect.center = self.localRects[i].center
@@ -294,8 +308,8 @@ class BottomBar:
 		self.tooltips = []
 		for i in range(len(my.BUILDINGSTATS)):
 			building = my.BUILDINGSTATS[my.BUILDINGNAMES[i]]
-			text = '%s Build time: %s, Build materials needed: %s' \
-					%(building['description'], building['buildTime'], building['buildMaterials'])
+			text = '%s: %s Build time: %s, Build materials needed: %s' \
+					%(my.BUILDINGNAMES[i].capitalize(), building['description'], building['buildTime'], building['buildMaterials'])
 			x = self.globalRects[i].right
 			x += GAP
 			tooltip = Tooltip(text, (x, 0))
@@ -377,7 +391,6 @@ class Designator:
 		x, y = self.OPENTOPLEFT
 		for i in range(y, y + 100, 50):
 			self.buttonRects.append(pygame.Rect((x + 10, i), (50, 50)))
-		print(str(self.buttonRects))
 
 
 	def update(self):

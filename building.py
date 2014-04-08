@@ -52,6 +52,7 @@ def updateBuildings():
 	"""To keep logic.update() nice and tidy"""
 	if my.input.mousePressed == 3: # right click
 		my.buildingBeingPlaced.empty()
+		my.mode = 'look'
 	for building in my.builtBuildings.sprites():
 		building.handleShadow()
 	my.buildingBeingPlaced.update()

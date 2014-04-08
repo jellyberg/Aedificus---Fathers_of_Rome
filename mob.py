@@ -851,14 +851,15 @@ class PassiveAnimal(Mob):
 
 
 	def animalUpdate(self):
-		if randint(0, 50) == 0:
-			x, y = self.coords
-			for i in range(5): # prefer walking onto grass tiles
-				newx, newy =  x + randint(-2, 2), y + randint(-2, 2)
-				if my.map.inBounds((newx, newy)) and my.map.map[newx][newy] == 'grass' or i == 5:
-					self.destination = (newx, newy)
-					break
-		self.baseUpdate()
+		if self.rect.colliderect(my.camera.viewArea):
+			if randint(0, 50) == 0:
+				x, y = self.coords
+				for i in range(5): # prefer walking onto grass tiles
+					newx, newy =  x + randint(-2, 2), y + randint(-2, 2)
+					if my.map.inBounds((newx, newy)) and my.map.map[newx][newy] == 'grass' or i == 5:
+						self.destination = (newx, newy)
+						break
+			self.baseUpdate()
 
 
 class Rabbit(PassiveAnimal):
