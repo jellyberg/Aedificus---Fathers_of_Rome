@@ -7,15 +7,15 @@ def loadImg(buildingName):
 	return pygame.image.load('assets/buildings/' + buildingName + '.png').convert_alpha()
 
 
-my.BUILDINGNAMES = ['hut', 'shed', 'orchard', 'fishing boat', 'fish mongers', 'town hall']
+my.BUILDINGNAMES = ['hut', 'shed', 'orchard', 'fishing boat', 'fish mongers','pool' , 'town hall']
 my.BUILDINGSTATS = {}
 my.BUILDINGSTATS['hut']       =  {'description':'Spawns a human when placed.',
 								'buildTime': 500, 'buildMaterials': {'wood': 25},
 								'img': loadImg('hut')}
-my.BUILDINGSTATS['shed']      = {'description':'Increases wood max amount by 30.',
+my.BUILDINGSTATS['shed']      = {'description':'Store all sorts of goods here.',
 								'buildTime': 2000, 'buildMaterials': {'wood': 75},
 								'img': loadImg('shed')}
-my.BUILDINGSTATS['orchard']   = {'description':'Feeds nearby humans.',
+my.BUILDINGSTATS['orchard']   = {'description':'Feeds up to 5 nearby humans.',
 								'buildTime': 500, 'buildMaterials': {'wood': 150},
 								'img': loadImg('orchard')}
 my.BUILDINGSTATS['fishing boat'] = {'description':'Fishermen fish fish here. Kinda fishy.',
@@ -24,6 +24,9 @@ my.BUILDINGSTATS['fishing boat'] = {'description':'Fishermen fish fish here. Kin
 my.BUILDINGSTATS['fish mongers'] = {'description':'Feeds nearby people when fish is brought here.',
 								'buildTime': 2000, 'buildMaterials': {'wood': 150},
 								'img': loadImg('fishMongers')}
+my.BUILDINGSTATS['pool']       =  {'description':'UNDER DEVELOPMENT.',
+								'buildTime': 2000, 'buildMaterials': {'wood': 100, 'iron': 10},
+								'img': loadImg('pool')}
 my.BUILDINGSTATS['town hall'] = {'description':'Control town legislation and all that jazz.',
 								'buildTime': 10000, 'buildMaterials': {'wood': 500, 'iron': 10},
 								'img': loadImg('townHall')}
@@ -43,6 +46,7 @@ my.sheds = pygame.sprite.Group()
 my.orchards = pygame.sprite.Group()
 my.fishingBoats = pygame.sprite.Group()
 my.fishMongers = pygame.sprite.Group()
+my.pools = pygame.sprite.Group()
 
 cross = pygame.image.load('assets/ui/cross.png').convert_alpha() # indicates invalid construction site
 unscaledConstructionImg = pygame.image.load('assets/buildings/underConstruction.png').convert_alpha()
@@ -210,6 +214,7 @@ class Building(pygame.sprite.Sprite):
 			for y in range(centrey - ydist, centrey + ydist):
 				self.AOEcoords.append((x, y))
 		self.AOEmobsAffected = pygame.sprite.Group()
+		self.AOEhumansAffected = pygame.sprite.Group()
 		self.AOEbuildingsAffected = pygame.sprite.Group()
 		self.AOEsurf = pygame.Surface((xdist * my.CELLSIZE * 2, ydist * my.CELLSIZE * 2))
 		self.AOEsurf.fill(my.YELLOW)
@@ -221,8 +226,12 @@ class Building(pygame.sprite.Sprite):
 		for mob in my.allMobs.sprites():
 			if mob.coords in self.AOEcoords:
 				self.AOEmobsAffected.add(mob)
+				if my.allHumans.has(mob):
+					self.AOEhumansAffected.add(mob)
 			elif self.AOEmobsAffected.has(mob):
 				self.AOEmobsAffected.remove(mob)
+				if my.allHumans.has(mob):
+					self.AOEhumansAffected.remove(mob)
 		done = False
 		for building in my.builtBuildings.sprites():
 			for coord in building.allCoords:
@@ -269,11 +278,11 @@ class FoodBuilding(Building):
 			self.currentCustomers = pygame.sprite.Group()
 			# keep feeding previous customers 
 			for customer in self.lastCustomers.sprites():
-				if customer in self.AOEmobsAffected.sprites() and customer.hunger < my.FULLMARGIN\
+				if customer in self.AOEhumansAffected.sprites() and customer.hunger < my.FULLMARGIN\
 							 and customer.intention  == 'find food':
 					self.feedCustomer(customer)
 			# if there's still space, feed any new customers
-			for customer in self.AOEmobsAffected.sprites():
+			for customer in self.AOEhumansAffected.sprites():
 				if customer.hunger < my.FULLMARGIN and customer.intention == 'find food'\
 						 and len(self.currentCustomers) < self.maxCustomers and customer not in self.currentCustomers:
 					self.feedCustomer(customer)
@@ -283,7 +292,7 @@ class FoodBuilding(Building):
 				self.remove(my.foodBuildingsWithSpace)
 			else:
 				self.add(my.foodBuildingsWithSpace)
-			for customer in self.AOEmobsAffected: # reset none eating customers thoughts
+			for customer in self.AOEhumansAffected: # reset none eating customers thoughts
 				if customer.thought == 'eating' and customer not in self.currentCustomers:
 					customer.thought = None
 			self.lastCustomers = self.currentCustomers.copy()
@@ -478,6 +487,24 @@ class FishMongers(FoodBuilding):
 		"""Add Fish().quantity to self.fish."""
 		assert resource == 'fish', "Serf is storing item other than fish in a fishmonger. Stupid serf."
 		self.totalStored += quantity
+
+
+
+class Pool(Building):
+	"""Splish splash"""
+	def __init__(self):
+		stats = my.BUILDINGSTATS['pool']
+		Building.__init__(self, 'pool', (3, 2), stats['buildMaterials'], stats['buildTime'])
+		self.add(my.pools)
+
+
+	def update(self):
+		self.updateBasic()
+
+
+	def onPlace(self):
+		pass
+
 
 
 class TownHall(Building):

@@ -56,7 +56,7 @@ FISHPERFISH = 100 # fish per Fish() caught by fishermen (+/- 20)
 FISHCONSUMEDPERTICK = 0.2 # fish consumed per frame by each person eating at the fishmongers
 MAXFISHONFLOOR = 10
 
-STARTRESOURCES    = {'wood': 300, 'iron': 0, 'coal': 0, 'cheese': 250}
+STARTRESOURCES    = {'wood': 300, 'iron': 10, 'coal': 0, 'cheese': 250}
 HUMANMOVESPEED = 2
 STARTINGHAPPINESS = 20
 STARTINGHUNGER = 1500

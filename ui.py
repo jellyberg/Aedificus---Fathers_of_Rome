@@ -261,7 +261,7 @@ class BottomBar:
 		stats = my.BUILDINGSTATS # synctactic sugar
 		self.SURFS = [self.genSurf([stats['hut']['img'], stats['shed']['img'],
 					  stats['orchard']['img'], stats['fishing boat']['img'], stats['fish mongers']['img'],
-					  stats['town hall']['img']])]
+					  stats['pool']['img'], stats['town hall']['img']])]
 		self.surf.blit(self.SURFS[self.tab], (0, 0))
 
 
@@ -308,8 +308,8 @@ class BottomBar:
 		self.tooltips = []
 		for i in range(len(my.BUILDINGSTATS)):
 			building = my.BUILDINGSTATS[my.BUILDINGNAMES[i]]
-			text = '%s: %s Build time: %s, Build materials needed: %s' \
-					%(my.BUILDINGNAMES[i].capitalize(), building['description'], building['buildTime'], building['buildMaterials'])
+			text = '%s: %s Building materials needed: %s' \
+					%(my.BUILDINGNAMES[i].capitalize(), building['description'], building['buildMaterials'])
 			x = self.globalRects[i].right
 			x += GAP
 			tooltip = Tooltip(text, (x, 0))
@@ -331,6 +331,8 @@ class BottomBar:
 			elif self.clickedCell == 4:
 				building.FishMongers()
 			elif self.clickedCell == 5:
+				building.Pool()
+			elif self.clickedCell == 6:
 				building.TownHall()
 		my.screen.blit(self.surf, self.bounds)
 		i=0
