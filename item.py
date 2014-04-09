@@ -47,6 +47,7 @@ class Item(pygame.sprite.Sprite):
 		if not imageName:
 			imageName = self.name
 		self.image = Item.IMG[imageName]
+		self.carryImage = pygame.transform.scale(self.image, (10, 10))
 		self.bob = 10 # item will float up and down on the spot
 		self.bobDir = 'up'
 		self.reserved = False

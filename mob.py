@@ -113,7 +113,8 @@ class Mob(pygame.sprite.Sprite):
 				self.destination = None
 				return
 			# IF NOT, SET UP MOVE DISTANCE
-			elif math.fabs(x - destx) < self.moveSpeed or math.fabs(y - desty) < self.moveSpeed:
+			elif (math.fabs(x - destx) < self.moveSpeed and desty - 5 < y < desty + 5)\
+							 or (math.fabs(y - desty) < self.moveSpeed and destx - 5 < x < destx + 5):
 				self.moveSpeed = 1
 			# If moving diagonally, only move half as far in x and half as far in y
 			movex, movey = 1, 1
@@ -270,11 +271,11 @@ class Human(Mob):
 		# HUNGER
 		self.hunger -= 1
 		if self.hunger < my.HUNGERWARNING:
+			self.thought = 'hungry'
 			if not self.intention == 'find food': # ^ is hungry or eating?
 				self.goGetFood()
 				self.thoughtIsUrgent = False
 			if self.hunger < my.HUNGERURGENT:
-				self.thought = 'hungry'
 				self.thoughtIsUrgent = True
 		elif self.thought == 'eating' and self.hunger > my.FULLMARGIN:
 			self.intention = None
@@ -345,10 +346,12 @@ class Human(Mob):
 		if self.carrying:
 			self.tooltip.text += ' and carrying %s %s' %(self.carrying.quantity, self.carrying.name)
 			self.carry()
+			if self.carrying:
+				x, y = self.rect.center
+				my.surf.blit(self.carrying.carryImage, (x - 3, y))
 		if self.lastDestItem and self.lastDestItem != self.destinationItem:
 			self.lastDestItem.reserved = False
-		if self.destinationItem:
-			self.lastDestItem = self.destinationItem
+		self.lastDestItem = self.destinationItem
 
 
 	def findItem(self):
@@ -367,7 +370,8 @@ class Human(Mob):
 							done = True
 						else:
 							my.statusMessage = "No storage space for %s" %(item.name)
-					elif not item.reserved or item.reserved == self:
+					if done: break
+					if not item.reserved or item.reserved == self:
 						if self.isStorageSpace(my.storageBuildingsWithSpace, item.quantity):
 							self.destination = item.coords
 							self.destinationItem = item

@@ -1,12 +1,12 @@
 import pygame, random
 from pygame.locals import *
 
-DEBUGMODE = True
+DEBUGMODE = False
 CHEATS = {'noHunger': 0, 'fastActions': 0, 'fastMoving': 0}
 
 pygame.init()
 
-FPS = 40
+FPS = 60
 FPSCLOCK = pygame.time.Clock()
 
 if DEBUGMODE:
@@ -33,6 +33,7 @@ SCROLLACCEL = 1 # map scroll
 SCROLLDRAG = 2 # bigger is less drag
 MAPEDGEBOUNCE = 10
 MAXSCROLLSPEED = 4
+MINIMAPUPDATESPEED = 3 # update x minimap rows per frame, so minimap is updated every YCELLS / x frames. reduces fps
 
 SUNMOVESPEED = 0.5
 TREEFREQUENCY = random.randint(50, 100)   # 1/xth of tiles are trees
@@ -67,7 +68,7 @@ HUNGERURGENT = 300 # UH OH CRAZY HUNGRY NEED FOOD REAL QUICK
 BUBBLEMARGIN = 3
 
 if CHEATS['noHunger']:
-	STARTINGHUNGER = 100000000000000000000000000000000000000
+	STARTINGHUNGER = 10000000000000000000000000000000000000000000000000000000000000
 if CHEATS['fastActions']:
 	TREECHOPSPEED = 100
 	CONSTRUCTIONSPEED = 100
@@ -79,14 +80,14 @@ if CHEATS['fastMoving']:
 # Colours     R    G    B  ALPHA
 WHITE     = (255, 255, 255, 255)
 BLACK     = (  0,   0,   0, 255)
-RED       = (255,   0,   0, 255)
+RED       = (230,  70,  70, 255)
 DARKRED   = (220,   0,   0, 255)
 BLUE      = (  0,   0, 255, 255)
 SKYBLUE   = (135, 206, 250, 255)
 YELLOW    = (255, 250,  17, 255)
-GREEN     = (  0, 255,   0, 255)
+GREEN     = (110, 255, 100, 255)
 ORANGE    = (255, 165,   0, 255)
-DARKGREEN = (  0, 155,   0, 255)
+DARKGREEN = ( 60, 160,  60, 255)
 DARKGREY  = ( 60,  60,  60, 255)
 LIGHTGREY = (180, 180, 180, 255)
 BROWN     = (139,  69,  19, 255)

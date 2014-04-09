@@ -370,7 +370,7 @@ class Mountain:
 
 
 	def modifyCircle(self, centre, radius):
-		"""Makes all my.map.map tiles in a circle rock"""
+		"""Makes all my.map.map tiles in a circle rock. WARNING: """
 		centrex, centrey = centre
 		for x in range( -radius, radius):
 			for y in range(-radius, radius):

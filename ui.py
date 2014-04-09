@@ -42,6 +42,7 @@ class Hud:
 			self.HIGHLIGHTS[colour] = Highlight(colour)
 		self.bottomBar = BottomBar()
 		self.designator = Designator()
+		self.minimap = Minimap()
 		self.statusText = StatusText()
 		my.surf = pygame.Surface(my.map.surf.get_size())
 		self.regenSurf = False
@@ -51,6 +52,7 @@ class Hud:
 		"""Updates elements that are blitted to screen"""
 		self.bottomBar.update()
 		self.designator.update()
+		self.minimap.update()
 		self.statusText.update()
 		# RESOURCE AMOUNTS
 		i = 0
@@ -607,3 +609,75 @@ class StatusText:
 			self.tooltip.simulate(False)
 		self.lastStatus = my.statusMessage
 
+
+class Minimap:
+	borderImg = pygame.image.load('assets/ui/minimapBorder.png')
+	"""A minimap displaying the world and the camera's viewarea, at the bottom right of the screen"""
+	def __init__(self):
+		self.rect = pygame.Rect((my.WINDOWWIDTH - my.MAPXCELLS - GAP * 4, my.WINDOWHEIGHT - my.MAPYCELLS - GAP * 4), (my.MAPXCELLS, my.MAPYCELLS))
+		self.surf = pygame.Surface(self.rect.size)
+		self.mapSurf = pygame.Surface(self.rect.size)
+		self.mapSurf.fill(my.DARKGREEN)
+		self.newSurf = pygame.Surface(self.rect.size)
+		self.newSurf.fill(my.DARKGREEN)
+		self.row = 0
+		self.updateMapsurf()
+
+
+	def update(self):
+		self.handleInput()
+		for i in range(my.MINIMAPUPDATESPEED):
+			self.updateRowOfSurf()
+		self.surf.blit(self.mapSurf, (0,0))
+		self.updateCameraRect()
+		my.screen.blit(self.surf, (self.rect))
+		my.screen.blit(Minimap.borderImg, (self.rect.left - 10, self.rect.top - 10))
+
+
+	def updateMapsurf(self):
+		"""Instantly regenerate the minimap"""
+		for i in range(my.MAPYCELLS):
+			self.updateRowOfSurf()
+
+
+	def updateRowOfSurf(self):
+		"""
+		Spread out the updating so there aren't massive FPS drops.
+		When updating is complete, make the newSurf the mapSurf.
+		"""
+		for y in range(my.MAPYCELLS):
+			tile = my.map.map[self.row][y]
+			if tile == 'grass': continue # background is already green
+			colour = None
+			if tile == 'rock': colour = my.DARKGREY
+			elif tile == 'tree': colour = my.GREEN
+			elif tile == 'coal': colour = my.BLACK
+			elif tile == 'iron': colour = my.ORANGE
+			elif tile == 'water': colour = my.BLUE
+			else:
+				colour = my.YELLOW
+			self.newSurf.fill(colour, (self.row, y, 1, 1))
+		self.row += 1
+		if self.row > my.MAPXCELLS - 1:
+			self.row = 0
+			self.mapSurf = self.newSurf.copy()
+			self.newSurf.fill(my.DARKGREEN)
+
+
+	def updateCameraRect(self):
+		"""Update a rect showing the camera's viewArea on the map"""
+		viewArea = my.camera.viewArea
+		lineCoords = []
+		for coord in [viewArea.topleft, viewArea.topright, viewArea.bottomright, viewArea.bottomleft]:
+			lineCoords.append(my.map.pixelsToCell(coord))
+		pygame.draw.lines(self.surf, my.RED, True, lineCoords, 2)
+
+
+	def handleInput(self):
+		"""Jump the camera to the clicked location"""
+		if my.input.mousePressed == 1 and self.rect.collidepoint(my.input.mousePos):
+			x, y = my.input.mousePos
+			x2, y2 = self.rect.topleft
+			x -= x2
+			y -= y2
+			my.camera.focus = my.map.cellsToPixels((x, y))
