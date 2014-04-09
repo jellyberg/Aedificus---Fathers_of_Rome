@@ -106,27 +106,32 @@ class Mob(pygame.sprite.Sprite):
 		if self.destination:
 			x, y = self.rect.topleft
 			destx, desty = my.map.cellsToPixels(self.destination)
-			destx += my.CELLSIZE / 4
+			destx += my.CELLSIZE / 4 # so mobs are less obviously gridlike
 			destx = int(destx)
+			xDistanceToDest = math.fabs(x - destx)
+			yDistanceToDest = math.fabs(y - desty)
 			# IS AT DESTINATION?
 			if x == destx and y == desty:
 				self.destination = None
 				return
 			# IF NOT, SET UP MOVE DISTANCE
-			elif (math.fabs(x - destx) < self.moveSpeed and desty - 5 < y < desty + 5)\
-							 or (math.fabs(y - desty) < self.moveSpeed and destx - 5 < x < destx + 5):
-				self.moveSpeed = 1
+			xMoveDist, yMoveDist = self.moveSpeed, self.moveSpeed
+			if xDistanceToDest < self.moveSpeed:
+				xMoveDist = xDistanceToDest
+			if yDistanceToDest < self.moveSpeed:
+				yMoveDist = yDistanceToDest
 			# If moving diagonally, only move half as far in x and half as far in y
-			movex, movey = 1, 1
-			if x == destx: movex = 0
-			if y == desty: movey = 0
-			if movex and movey: distance = int(self.moveSpeed / 2)
-			else: distance = self.moveSpeed
+			movex, movey = True, True
+			if x == destx: movex = False
+			if y == desty: movey = False
+			if (movex and movey) and xMoveDist == self.moveSpeed and yMoveDist == self.moveSpeed:
+				xMoveDist = math.ceil(self.moveSpeed / 2)
+				yMoveDist = math.ceil(self.moveSpeed / 2)
 			# AND MOVE
-			if x < destx:   movex =  self.moveSpeed
-			elif x > destx: movex = -self.moveSpeed
-			if y < desty:   movey =  self.moveSpeed
-			elif y > desty: movey = -self.moveSpeed
+			if x < destx:   movex = xMoveDist
+			elif x > destx: movex = -xMoveDist
+			if y < desty:   movey = yMoveDist
+			elif y > desty: movey = -yMoveDist
 			self.rect.move_ip(movex, movey)
 			if self.animation == self.idleAnim:
 				self.animation = self.moveAnim
@@ -138,6 +143,9 @@ class Mob(pygame.sprite.Sprite):
 				self.direction = 'left'
 		if randint(0, 100) == 0:
 			self.moveSpeed = randint(self.baseMoveSpeed - 1, self.baseMoveSpeed + 1)
+		if self.moveSpeed == 0:
+			self.moveSpeed = 1
+		print(str(self.moveSpeed))
 
 
 	def die(self):
@@ -401,8 +409,9 @@ class Human(Mob):
 					return
 				else:
 					my.statusMessage = 'Build a fishmongers!'
-			else:
-				sites = my.map.findNearestBuildings(self.coords, my.storageBuildingsWithSpace)
+				return
+			# item is not fish....
+			sites = my.map.findNearestBuildings(self.coords, my.storageBuildingsWithSpace)
 			done = False
 			for site in sites:
 				if site.totalStored + self.carrying.quantity < site.storageCapacity:
