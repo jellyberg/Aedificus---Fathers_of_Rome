@@ -1,7 +1,7 @@
 import pygame, random
 from pygame.locals import *
 
-DEBUGMODE = True
+DEBUGMODE = False
 CHEATS = {'noHunger': 0, 'fastActions': 0, 'fastMoving': 0}
 
 pygame.init()
@@ -32,6 +32,7 @@ MAPWIDTH = CELLSIZE * MAPXCELLS
 MAPHEIGHT = CELLSIZE * MAPYCELLS
 SCROLLACCEL = 1 # map scroll
 SCROLLDRAG = 2 # bigger is less drag
+MOUSESCROLL = 20 # size of mouse scrolling region in pixels
 MAPEDGEBOUNCE = 10
 MAXSCROLLSPEED = 4
 MINIMAPUPDATESPEED = 3 # update x minimap rows per frame, so minimap is updated every YCELLS / x frames. reduces fps
@@ -58,8 +59,8 @@ FISHPERFISH = 100 # fish per Fish() caught by fishermen (+/- 20)
 FISHCONSUMEDPERTICK = 0.2 # fish consumed per frame by each person eating at the fishmongers
 MAXFISHONFLOOR = 10
 
-STARTRESOURCES    = {'wood': 300, 'iron': 10, 'coal': 0, 'cheese': 250}
-HUMANMOVESPEED = 2
+STARTRESOURCES    = {'wood': 300, 'iron': 10, 'coal': 0}
+HUMANMOVESPEED = 3
 STARTINGHAPPINESS = 20
 STARTINGHUNGER = 1500
 MAXHUNGER = 1500

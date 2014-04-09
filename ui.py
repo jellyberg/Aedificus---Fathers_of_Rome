@@ -381,14 +381,14 @@ class Designator:
 		self.COLLAPSEDTOPLEFT = (my.WINDOWWIDTH - 10, int(my.WINDOWHEIGHT / 5))
 		self.OPENTOPLEFT      = (my.WINDOWWIDTH - self.surf.get_width(), int(my.WINDOWHEIGHT / 5))
 		self.rect = self.surf.get_rect()
-		self.rect.topleft = self.COLLAPSEDTOPLEFT
+		self.rect.topleft = self.OPENTOPLEFT
 		self.tabRect = pygame.Rect((self.rect.left, self.rect.top + 12), (10, 50))
 
 		self.highlight = pygame.image.load('assets/ui/designator/hover.png')
 		self.tabHighlight = pygame.image.load('assets/ui/designator/tabHover.png')
 		self.tabHoveredSurf = self.baseSurf.copy()
 		self.tabHoveredSurf.blit(self.tabHighlight, (0, 0))
-		self.collapsed = True
+		self.collapsed = False
 		self.animate = None
 
 		self.buttonRects = []
@@ -492,6 +492,12 @@ class SelectionBox(pygame.sprite.Sprite):
 		pygame.sprite.Sprite.__init__(self)
 		self.add(my.selectionBoxGroup)
 		self.designateTrees, self.designateOres = designateTrees, designateOres
+		if self.designateTrees:
+			self.colour = my.GREEN
+		elif self.designateOres:
+			self.colour = my.DARKGREY
+		else:
+			self.colour = my.BLUE
 		if my.input.hoveredCell:
 			self.origin = my.input.hoveredCell
 		else:
@@ -521,7 +527,10 @@ class SelectionBox(pygame.sprite.Sprite):
 				topy = oy
 				bottomy = ey
 			rect = pygame.Rect((leftx, topy), (rightx - leftx, bottomy - topy))
-			pygame.draw.rect(my.surf, my.BLUE, rect)
+			surf = pygame.Surface(rect.size)
+			surf.fill(self.colour)
+			surf.set_alpha(100)
+			my.surf.blit(surf, rect)
 
 
 	def finishSelection(self):

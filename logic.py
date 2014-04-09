@@ -16,7 +16,7 @@ class Handler:
 		my.hud = ui.Hud()
 		my.mode = 'look' 
 		my.resources = {'wood': my.STARTRESOURCES['wood'], 'iron': my.STARTRESOURCES['iron'], 
-						'coal': my.STARTRESOURCES['coal'], 'cheese': my.STARTRESOURCES['cheese']}
+						'coal': my.STARTRESOURCES['coal']}
 		my.updateSurf = True
 		my.gameRunning = True
 		self.sunx = int(my.MAPWIDTH / 2)

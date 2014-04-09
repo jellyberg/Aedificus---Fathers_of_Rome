@@ -17,13 +17,13 @@ def loadTerrainImgs(terrainNames):
 	"""Load terrain .png's from assets/buildings/ when given a ist of names"""
 	imgs = {}
 	for name in terrainNames:
-		imgs[name] = (pygame.image.load('assets/buildings/' + name + '.png').convert_alpha())
+		imgs[name] = (pygame.image.load('assets/terrain/' + name + '.png').convert_alpha())
 	return imgs
 
 
 class Map:
 #   WORLD GEN
-	TERRAIN = ['tree', 'water', 'grass', 'rock', 'iron', 'coal']
+	TERRAIN = ['water', 'grass', 'rock', 'iron', 'coal']
 	IMGS = loadTerrainImgs(TERRAIN)
 	def __init__(self):
 		self.genBlankStructure()
@@ -184,17 +184,23 @@ class Camera:
 		self.shake = 0
 		self.focus = (int(my.MAPWIDTH / 2), int(my.MAPHEIGHT / 2))
 		self.xVel, self.yVel = 0, 0
+		self.boundRect = {'top':    pygame.Rect((0,0), (my.WINDOWWIDTH, my.MOUSESCROLL)), # for mouse camera movement
+				  'right':  pygame.Rect((my.WINDOWWIDTH - my.MOUSESCROLL,0), (my.MOUSESCROLL, my.WINDOWHEIGHT)),
+				  'bottom': pygame.Rect((0, my.WINDOWHEIGHT - my.MOUSESCROLL), (my.WINDOWWIDTH, my.MOUSESCROLL)),
+				  'left':   pygame.Rect((0, 0), (my.MOUSESCROLL, my.WINDOWHEIGHT))}
 
 
 	def update(self):
 		"""Updates camera pos and shake, and blits the to my.screen"""
 		x, y = self.focus
 		# ACELLERATE X
-		if K_RIGHT in my.input.pressedKeys or K_d in my.input.pressedKeys:
+		if K_RIGHT in my.input.pressedKeys or K_d in my.input.pressedKeys \
+					or self.boundRect['right'].collidepoint(my.input.mousePos):
 			if self.xVel < 0: self.xVel = 0
 			self.xVel += my.SCROLLACCEL
 			if self.xVel > my.MAXSCROLLSPEED: xVel = my.MAXSCROLLSPEED
-		elif K_LEFT in my.input.pressedKeys or K_a in my.input.pressedKeys:
+		elif K_LEFT in my.input.pressedKeys or K_a in my.input.pressedKeys\
+					or self.boundRect['left'].collidepoint(my.input.mousePos):
 			if self.xVel > 0: self.xVel = 0
 			self.xVel -= my.SCROLLACCEL
 			if self.xVel < -my.MAXSCROLLSPEED: xVel = -my.MAXSCROLLSPEED
@@ -207,11 +213,13 @@ class Camera:
 			self.xVel += my.SCROLLDRAG
 		x += self.xVel
 		# ACELLERATE Y
-		if K_DOWN in my.input.pressedKeys or K_s in my.input.pressedKeys:
+		if K_DOWN in my.input.pressedKeys or K_s in my.input.pressedKeys\
+					or self.boundRect['bottom'].collidepoint(my.input.mousePos):
 			if self.yVel < 0: self.yVel = 0
 			self.yVel += my.SCROLLACCEL
 			if self.yVel > my.MAXSCROLLSPEED: yVel = my.MAXSCROLLSPEED
-		elif K_UP in my.input.pressedKeys or K_w in my.input.pressedKeys:
+		elif K_UP in my.input.pressedKeys or K_w in my.input.pressedKeys\
+					or self.boundRect['top'].collidepoint(my.input.mousePos):
 			if self.yVel > 0: self.yVel = 0
 			self.yVel -= my.SCROLLACCEL
 			if self.yVel < -my.MAXSCROLLSPEED: yVel = -my.MAXSCROLLSPEED
@@ -248,13 +256,17 @@ class Camera:
 
 class Tree(pygame.sprite.Sprite):
 	"""A simple tree class that allows for saplings and woodcutting"""
-	stumpImg = pygame.image.load('assets/buildings/treestump.png').convert_alpha()
+	treeImgs = []
+	for i in range(2):
+		treeImgs.append(pygame.image.load('assets/terrain/tree%s.png' %(i)).convert_alpha())
+	stumpImg = pygame.image.load('assets/terrain/treestump.png').convert_alpha()
 	def __init__(self, coords, isSapling=False):
 		pygame.sprite.Sprite.__init__(self)
 		self.add(my.allTrees)
 		self.coords, self.isSapling = coords, isSapling
 		x, y = coords
 		my.map.map[x][y] = 'tree'
+		self.image = random.choice(Tree.treeImgs)
 		self.health = my.TREEMAXHEALTH
 		self.isDead, self.justDied = False, True
 		self.pos = my.map.cellsToPixels(self.coords)
@@ -266,7 +278,7 @@ class Tree(pygame.sprite.Sprite):
 		x, y = self.coords
 		if self.rect.colliderect(my.camera.viewArea):
 			if not self.isDead:
-				my.surf.blit(Map.IMGS['tree'], self.pos)
+				my.surf.blit(self.image, self.pos)
 			elif my.map.map[x][y] == 'grass':
 				my.surf.blit(Tree.stumpImg, my.map.cellsToPixels(self.coords))
 			else:

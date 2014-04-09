@@ -145,7 +145,6 @@ class Mob(pygame.sprite.Sprite):
 			self.moveSpeed = randint(self.baseMoveSpeed - 1, self.baseMoveSpeed + 1)
 		if self.moveSpeed == 0:
 			self.moveSpeed = 1
-		print(str(self.moveSpeed))
 
 
 	def die(self):
