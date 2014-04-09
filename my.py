@@ -1,7 +1,7 @@
 import pygame, random
 from pygame.locals import *
 
-DEBUGMODE = False
+DEBUGMODE = True
 CHEATS = {'noHunger': 0, 'fastActions': 0, 'fastMoving': 0}
 
 pygame.init()
@@ -10,8 +10,9 @@ FPS = 60
 FPSCLOCK = pygame.time.Clock()
 
 if DEBUGMODE:
-	WINDOWWIDTH = 1080
-	WINDOWHEIGHT = 720
+	screenfo = pygame.display.Info()
+	WINDOWWIDTH = screenfo.current_w
+	WINDOWHEIGHT = screenfo.current_h
 	screen = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
 	loadingScreen = pygame.transform.scale(pygame.image.load('assets/ui/loadingScreen.png'), (WINDOWWIDTH, WINDOWHEIGHT))
 if not DEBUGMODE:
