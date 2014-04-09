@@ -31,9 +31,12 @@ class Handler:
 		for i in range(4):
 			mob.Human((random.randint(int(my.MAPXCELLS / 2) - 5, int(my.MAPXCELLS / 2) + 5),
 					   random.randint(int(my.MAPYCELLS / 2) - 5, int(my.MAPYCELLS / 2) + 5)), 'builder')
-		for i in range(2):
+		for i in range(3):
 			mob.Human((random.randint(int(my.MAPXCELLS / 2) - 5, int(my.MAPXCELLS / 2) + 5),
 					   random.randint(int(my.MAPYCELLS / 2) - 5, int(my.MAPYCELLS / 2) + 5)), 'miner')
+		for i in range(2):
+			mob.Human((random.randint(int(my.MAPXCELLS / 2) - 5, int(my.MAPXCELLS / 2) + 5),
+					   random.randint(int(my.MAPYCELLS / 2) - 5, int(my.MAPYCELLS / 2) + 5)), 'fisherman')
 
 		for i in range(20):
 			mob.Rabbit()
