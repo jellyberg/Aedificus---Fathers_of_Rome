@@ -10,14 +10,14 @@ FPS = 60
 FPSCLOCK = pygame.time.Clock()
 
 if DEBUGMODE:
-	screenfo = pygame.display.Info()
-	WINDOWWIDTH = screenfo.current_w
-	WINDOWHEIGHT = screenfo.current_h
+	WINDOWWIDTH = 1080
+	WINDOWHEIGHT = 720
 	screen = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
 	loadingScreen = pygame.transform.scale(pygame.image.load('assets/ui/loadingScreen.png'), (WINDOWWIDTH, WINDOWHEIGHT))
 if not DEBUGMODE:
-	WINDOWWIDTH = 1920
-	WINDOWHEIGHT = 1080
+	screenfo = pygame.display.Info()
+	WINDOWWIDTH = screenfo.current_w
+	WINDOWHEIGHT = screenfo.current_h
 	screen = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT), FULLSCREEN)
 	loadingScreen = pygame.image.load('assets/ui/fullscreenLoadingScreen.png')
 HALFWINDOWWIDTH = int(WINDOWWIDTH / 2)
