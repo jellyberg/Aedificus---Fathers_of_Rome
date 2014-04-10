@@ -18,8 +18,6 @@ if not DEBUGMODE:
 	screenfo = pygame.display.Info()
 	WINDOWWIDTH = screenfo.current_w
 	WINDOWHEIGHT = screenfo.current_h
-	WINDOWWIDTH = 640
-	WINDOWHEIGHT = 480
 	screen = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT), FULLSCREEN)
 	loadingScreen = pygame.transform.scale(pygame.image.load('assets/ui/fullscreenLoadingScreen.png'), (WINDOWWIDTH, WINDOWHEIGHT))
 HALFWINDOWWIDTH = int(WINDOWWIDTH / 2)
