@@ -1,4 +1,4 @@
-import pygame, my
+import pygame, my, ui
 
 my.allItems = pygame.sprite.Group()
 my.itemsOnTheFloor = pygame.sprite.Group()
@@ -50,33 +50,45 @@ class Item(pygame.sprite.Sprite):
 		self.carryImage = pygame.transform.scale(self.image, (10, 10))
 		self.bob = 10 # item will float up and down on the spot
 		self.bobDir = 'up'
-		self.reserved = False
+		self.reserved = None
 		self.beingCarried = False
 		self.lastCoords = None
+		#self.initTooltip()
 
 
 	def update(self):
-		if self.coords != self.lastCoords:
-			self.rect.topleft = my.map.cellsToPixels(self.coords)
-		if not self.beingCarried:
-			if my.ticks % 4 == 0:
-				if self.bobDir == 'up': move = 1
-				else: move = -1
-				self.rect.move_ip(0, move)		
-				if self.bobDir == 'up':
-					self.bob += 1
-				elif self.bobDir == 'down':
-					self.bob -= 1
-				if self.bob > 5:
-					self.bobDir = 'down'
-				elif self.bob < -5:
-					self.bobDir = 'up'
-			if not self.beingCarried and self.rect.colliderect(my.camera.viewArea):
-				my.surf.blit(self.image, self.rect)
-		if self.beingCarried:
-			self.coords = None
-			self.remove(my.itemsOnTheFloor)
-		self.lastCoords = self.coords
+		if my.allItems.has(self):
+			if self.coords != self.lastCoords:
+				self.rect.topleft = my.map.cellsToPixels(self.coords)
+			if not self.beingCarried:
+				if my.ticks % 4 == 0:
+					if self.bobDir == 'up': move = 1
+					else: move = -1
+					self.rect.move_ip(0, move)		
+					if self.bobDir == 'up':
+						self.bob += 1
+					elif self.bobDir == 'down':
+						self.bob -= 1
+					if self.bob > 5:
+						self.bobDir = 'down'
+					elif self.bob < -5:
+						self.bobDir = 'up'
+				if not self.beingCarried and self.rect.colliderect(my.camera.viewArea):
+					my.surf.blit(self.image, self.rect)
+			if self.beingCarried:
+				self.rect.topleft = (0, 0)
+				self.coords = None
+				self.remove(my.itemsOnTheFloor)
+			self.lastCoords = self.coords
+
+			#self.tooltip.text = 'reserved: %s' %(self.reserved)
+			#if not self.beingCarried:
+			#	self.tooltip.simulate(1, True)
+
+
+	def initTooltip(self):
+		"""For bugfixing"""
+		self.tooltip = ui.Tooltip('BLANK', (self.rect.left + 3, self.rect.top))
 
 
 

@@ -189,7 +189,7 @@ class Building(pygame.sprite.Sprite):
 				self.image = self.buildingImage
 				self.onPlace()
 				self.shadow = shadow.Shadow(self, self.buildingImage)
-				my.hud.genSurf()
+				#my.hud.genSurf()
 				return
 			else:
 				progress = self.buildProgress / self.totalBuildProgress
@@ -394,7 +394,7 @@ class Shed(StorageBuilding):
 	"""Basic storage building"""
 	def __init__(self):
 		stats = my.BUILDINGSTATS['shed']
-		StorageBuilding.__init__(self, 'shed', (3, 3), {'wood': 100}, 500, 150)
+		StorageBuilding.__init__(self, 'shed', (3, 3), {'wood': 100}, 500, 10000)
 		self.add(my.sheds)
 
 
@@ -478,7 +478,7 @@ class FishMongers(FoodBuilding):
 				self.remove(my.foodBuildingsWithSpace)
 				self.tooltip.text = 'This fishmongers has no fish!'
 				self.currentCustomers = None
-				for customer in self.AOEmobsAffected: # reset none eating customers thoughts
+				for customer in self.AOEhumansAffected: # reset none eating customers thoughts
 					if customer.thought == 'eating':
 						customer.thought = None
 

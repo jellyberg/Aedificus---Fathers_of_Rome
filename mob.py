@@ -113,6 +113,9 @@ class Mob(pygame.sprite.Sprite):
 			# IS AT DESTINATION?
 			if x == destx and y == desty:
 				self.destination = None
+				if self.animation == self.moveAnim:
+					self.animation = self.idleAnim
+					self.animCount = 0
 				return
 			# IF NOT, SET UP MOVE DISTANCE
 			xMoveDist, yMoveDist = self.moveSpeed, self.moveSpeed
@@ -363,7 +366,12 @@ class Human(Mob):
 
 	def findItem(self):
 		"""Find the nearest unreserved item"""
-		if self.intention in [None, 'working']: # find item
+		if self.intention in [None, 'working']:
+			if self.destinationItem and self.destinationItem.reserved not in [self, None]:
+				if self.destination == self.destinationItem.coords:
+					self.destination = None
+				self.destinationItem = None
+			# find item
 			done = False
 			items = my.map.findNearestBuildings(self.coords, my.itemsOnTheFloor)
 			if items:
@@ -377,7 +385,7 @@ class Human(Mob):
 							done = True
 						else:
 							my.statusMessage = "No storage space for %s" %(item.name)
-					if done: break
+						if done: break
 					if not item.reserved or item.reserved == self:
 						if self.isStorageSpace(my.storageBuildingsWithSpace, item.quantity):
 							self.destination = item.coords
@@ -388,7 +396,7 @@ class Human(Mob):
 						else:
 							my.statusMessage = "No storage space for %s" %(item.name)
 					if done: break
-		if self.destinationItem and self.coords == self.destinationItem.coords \
+		if self.destinationItem and self.rect.colliderect(self.destinationItem.rect) \
 				and self.destinationItem.reserved == self: # pick up item
 			self.carrying = self.destinationItem
 			self.destinationItem = None
@@ -422,6 +430,8 @@ class Human(Mob):
 				my.statusMessage = "No storage space for %s" %(self.carrying.name)
 				self.intention = None
 				self.stopCarryingJob()
+				return
+		self.carrying.reserved = self
 		# STORE ITEM
 		if self.destinationSite and self.coords == self.destinationSite.coords:
 			self.destinationSite.storeResource(self.carrying.name, self.carrying.quantity)
@@ -818,12 +828,12 @@ class Corpse(pygame.sprite.Sprite):
 		pygame.sprite.Sprite.__init__(self)
 		self.add(my.corpses)
 		self.pos, self.name, self.causeOfDeath = pos, name, causeOfDeath
-		self.animCount = 0 # count up to 90
+		self.animCount = 0 # count down to -90 to animate falling over
 		self.livingImage = livingImage
 		self.initTooltip()
 
 	def update(self):
-		if self.animCount > -90:
+		if self.animCount > -90: # fall over
 			self.img = pygame.transform.rotate(self.livingImage, self.animCount)
 			self.animCount -= 5
 		else: self.img = Corpse.image
