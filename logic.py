@@ -21,7 +21,7 @@ class Handler:
 		my.gameRunning = True
 		self.sunx = int(my.MAPWIDTH / 2)
 		my.sunPos = (self.sunx, my.MAPHEIGHT + 10)
-		# HUMANS FOR TESTING
+# HUMANS FOR TESTING
 		for i in range(4):
 			mob.Human((random.randint(int(my.MAPXCELLS / 2) - 5, int(my.MAPXCELLS / 2) + 5),
 					   random.randint(int(my.MAPYCELLS / 2) - 5, int(my.MAPYCELLS / 2) + 5)), None)
