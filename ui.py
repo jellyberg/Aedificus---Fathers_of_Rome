@@ -384,6 +384,7 @@ class Designator:
 		self.rect.topleft = self.OPENTOPLEFT
 		self.tabRect = pygame.Rect((self.rect.left, self.rect.top + 12), (10, 50))
 
+		self.selected = pygame.image.load('assets/ui/designator/selected.png')
 		self.highlight = pygame.image.load('assets/ui/designator/hover.png')
 		self.tabHighlight = pygame.image.load('assets/ui/designator/tabHover.png')
 		self.tabHoveredSurf = self.baseSurf.copy()
@@ -442,10 +443,18 @@ class Designator:
 
 	def handleButtons(self):
 		"""If a button (tree or ore) is clicked, change designation mode"""
+		if my.designationMode:
+			if my.designationMode == 'tree':
+				selectedRect = self.buttonRects[0]
+			elif my.designationMode == 'ore':
+				selectedRect = self.buttonRects[1]
+			my.screen.blit(self.selected, selectedRect)
 		i = 0
 		for rect in self.buttonRects:
 			if rect.collidepoint(my.input.mousePos):
 				my.screen.blit(self.highlight, rect)
+				if my.input.mousePressed == 1:
+					my.screen.blit(self.highlight, rect)
 				if my.input.mouseUnpressed == 1:
 					if i == 0:
 						my.designationMode = 'tree'
