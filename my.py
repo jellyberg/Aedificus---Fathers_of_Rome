@@ -83,6 +83,7 @@ if CHEATS['fastMoving']:
 WHITE     = (255, 255, 255, 255)
 BLACK     = (  0,   0,   0, 255)
 RED       = (230,  70,  70, 255)
+BRIGHTRED = (255,   0,   0, 255)
 DARKRED   = (220,   0,   0, 255)
 BLUE      = (  0,   0, 255, 255)
 SKYBLUE   = (135, 206, 250, 255)

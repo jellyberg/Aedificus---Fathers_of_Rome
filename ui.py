@@ -619,6 +619,7 @@ class StatusText:
 		self.lastStatus = my.statusMessage
 
 
+
 class Minimap:
 	borderImg = pygame.image.load('assets/ui/minimapBorder.png')
 	"""A minimap displaying the world and the camera's viewarea, at the bottom right of the screen"""
@@ -627,10 +628,13 @@ class Minimap:
 		self.surf = pygame.Surface(self.rect.size)
 		self.mapSurf = pygame.Surface(self.rect.size)
 		self.mapSurf.fill(my.DARKGREEN)
+		self.blipSurf = pygame.Surface(self.rect.size)
+		self.blipSurf.set_colorkey(my.COLOURKEY)
 		self.newSurf = pygame.Surface(self.rect.size)
 		self.newSurf.fill(my.DARKGREEN)
 		self.row = 0
 		self.updateMapsurf()
+		self.updateMobBlips()
 
 
 	def update(self):
@@ -638,8 +642,14 @@ class Minimap:
 		for i in range(my.MINIMAPUPDATESPEED):
 			self.updateRowOfSurf()
 		self.surf.blit(self.mapSurf, (0,0))
+		if my.ticks % 10 == 0:
+			self.updateMobBlips()
+		if my.ticks % 4 == 0 or (my.ticks + 1) % 6 == 0 or (my.ticks + 2) % 6 == 0:
+			self.surf.blit(self.blipSurf, (0,0))
+		else:
+			self.surf = self.mapSurf.copy()
 		self.updateCameraRect()
-		my.screen.blit(self.surf, (self.rect))
+		my.screen.blit(self.surf, self.rect)
 		my.screen.blit(Minimap.borderImg, (self.rect.left - 10, self.rect.top - 10))
 
 
@@ -671,6 +681,15 @@ class Minimap:
 			self.row = 0
 			self.mapSurf = self.newSurf.copy()
 			self.newSurf.fill(my.DARKGREEN)
+
+
+	def updateMobBlips(self):
+		"""Blits dots to self.surf where certain mobs are"""
+		self.blipSurf.fill(my.COLOURKEY)
+		dotSurf = pygame.Surface((1, 1))
+		dotSurf.fill(my.BRIGHTRED)
+		for human in my.allHumans:
+			self.blipSurf.blit(dotSurf, human.coords)
 
 
 	def updateCameraRect(self):
