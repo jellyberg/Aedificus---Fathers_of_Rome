@@ -266,6 +266,47 @@ class Human(Mob):
 				self.animation = self.idleAnim
 
 
+	def changeOccupation(self, newOccupation):
+		"""Change occupation and stop any previous jobs"""
+		try:
+			if self.occupation is not 'ARBRITARY STRING': # <<< PROgramming <<<
+				self.stopJob()
+		except AttributeError:
+			pass
+		for job in OCCUPATIONS:
+			self.remove(OCCUPATIONGROUPS[job])
+		self.add(OCCUPATIONGROUPS[str(newOccupation)])
+		self.occupation = newOccupation
+		if self.occupation is None:
+			print('jimbles')
+			self.initSerf()
+		if self.occupation == 'builder':
+			self.initBuilder()
+		elif self.occupation == 'woodcutter':
+			self.initWoodcutter()
+		elif self.occupation == 'fisherman':
+			self.initFisherman()
+		elif self.occupation == 'miner':
+			self.initMiner()
+
+
+	def stopJob(self):
+		"""Stop the current job, for any occupation"""
+		if self.intention == 'working':
+			self.intention, self.thought, self.destination = None, None, None
+		if self.occupation is None:
+			self.stopCarryingJob()
+		if self.occupation == 'builder':
+			self.removeSiteReservation()
+			self.building, self.destinationSite = None, None
+		elif self.occupation == 'woodcutter':
+			self.stopWoodcutterJob()
+		elif self.occupation == 'fisherman':
+			self.stopFishingJob()
+		elif self.occupation == 'miner':
+			self.stopMiningJob()
+
+
 	def initEmotions(self):
 		"""Initialise the human's wants and needs"""
 		self.happiness = my.STARTINGHAPPINESS
@@ -327,46 +368,18 @@ class Human(Mob):
 			self.stopJob()
 
 
-	def changeOccupation(self, newOccupation):
-		"""Change occupation and stop any previous jobs"""
-		try:
-			if self.occupation:
-				self.stopJob()
-				self.remove(OCCUPATIONGROUPS[str(self.occupation)])
-		except AttributeError:
-			pass
-		self.add(OCCUPATIONGROUPS[str(newOccupation)])
-		self.occupation = newOccupation
-		if self.occupation == 'builder':
-			self.initBuilder()
-		elif self.occupation == 'woodcutter':
-			self.initWoodcutter()
-		elif self.occupation == 'fisherman':
-			self.initFisherman()
-		elif self.occupation == 'miner':
-			self.initMiner()
-
-
-	def stopJob(self):
-		"""Stop the current job, for any occupation"""
-		if self.intention == 'working':
-			self.intention, self.thought, self.destination = None, None, None
-		if self.occupation is None:
-			self.stopCarryingJob()
-		if self.occupation == 'builder':
-			self.removeSiteReservation()
-			self.building, self.destinationSite = None, None
-		elif self.occupation == 'woodcutter':
-			self.stopWoodcutterJob()
-		elif self.occupation == 'fisherman':
-			self.stopFishingJob()
-		elif self.occupation == 'miner':
-			self.stopMiningJob()
-
-
 #   SERF
-	def updateSerf(self):
+	def initSerf(self):
 		"""A human without an occupation who carries items around"""
+		self.idleAnim = Human.idleAnimation
+		self.moveAnim = Human.moveAnimation
+		self.swimAnim = Human.swimAnim
+		self.animation = self.idleAnim
+		self.animCount = 0
+
+
+	def updateSerf(self):
+		self.add(my.serfs)
 		if not self.carrying and my.tick[self.tick]:
 			self.findItem()
 		if self.carrying:
@@ -480,6 +493,7 @@ class Human(Mob):
 #	BUILDER
 	def initBuilder(self):
 		"""Finds the nearest construction site and constructs it."""
+		self.add(my.builders)
 		self.idleAnim = Human.builderIdleAnim
 		self.moveAnim = Human.builderMoveAnim
 		self.swimAnim = Human.builderSwimAnim
@@ -572,6 +586,7 @@ class Human(Mob):
 #	WOODCUTTER
 	def initWoodcutter(self):
 		"""Chops down the nearest tree in my.designatedTrees"""
+		self.add(my.woodcutters)
 		self.occupation = 'woodcutter'
 		self.idleAnim = Human.woodcutterIdleAnim
 		self.moveAnim = Human.woodcutterMoveAnim
@@ -588,6 +603,7 @@ class Human(Mob):
 			self.findTree()
 		if self.destinationSite and self.coords == self.destinationSite.coords:
 			self.chopping = True
+			self.thought = 'working'
 			self.destinationSite.chop()
 			if self.destinationSite.isDead:
 				self.destinationSite = None
@@ -630,80 +646,10 @@ class Human(Mob):
 		self.chopping = False
 
 
-#   FISHERMAN
-	def initFisherman(self):
-		"""Goes to the nearest free fishing boat seat and occasionally spawns a Fish() item"""
-		self.occupation = 'fisherman'
-		self.idleAnim = Human.fishermanIdleAnim
-		self.moveAnim = Human.fishermanMoveAnim
-		self.swimAnim = Human.fishermanSwimAnim
-		self.animation = self.idleAnim
-		self.destinationSite = None
-		self.fishing = None
-		self.lastSite = None
-		self.seatCoords = None
-
-
-	def updateFisherman(self):
-		if not self.destinationSite and len(my.fishOnTheFloor) < my.MAXFISHONFLOOR\
-										and self.intention in ['working', None] and my.tick[self.tick]:
-			self.findFishingSpot()
-		elif self.destinationSite and len(my.fishOnTheFloor) < my.MAXFISHONFLOOR:
-			self.fish()
-		if len(my.fishOnTheFloor) >= my.MAXFISHONFLOOR:
-			self.stopFishingJob()
-		self.lastSite = self.destinationSite
-
-
-	def findFishingSpot(self):
-		"""Find nearest unreserved fishing boat seat and go there"""
-		sites = my.map.findNearestBuildings(self.coords, my.fishingBoats)
-		if sites:
-			done = False
-			for site in sites:
-				for seatCoords in site.seats.keys():
-					if not site.seats[seatCoords] or site.seats[seatCoords] == self:
-						self.destinationSite = site
-						self.destination = seatCoords
-						self.seatCoords = seatCoords
-						site.seats[seatCoords] = self
-						self.intention = 'working'
-						if self.lastSite and self.lastSite != self.destinationSite:
-							self.lastSite.reserved = False
-						done = True
-					if done: return
-		self.thought = None
-		self.intention = None
-		
-
-	def fish(self):
-		"""If on seat, fish (occasionally spawn a Fish() item)"""
-		if self.intention == 'working' and self.coords == self.seatCoords:
-			if not self.animation == Human.fishAnim:
-				self.animation = Human.fishAnim
-				self.animCount = 0
-			if randint(0, my.FISHFREQUENCY) == 0:
-				x, y = self.coords
-				item.Fish(randint(my.FISHPERFISH - 20, my.FISHPERFISH + 20),
-						  (randint(x - 1, x + 1), randint(y - 1, y + 1)))
-		elif self.animation == Human.fishAnim:
-			self.animation = self.idleAnim
-			self.animCount = 0
-
-
-	def stopFishingJob(self):
-		if self.destinationSite:
-			self.destinationSite.seats[self.seatCoords] = None
-			self.destinationSite = None
-		self.seatCoords = None
-		if self.animation == Human.fishAnim:
-			self.animation = self.idleAnim
-			self.animCount = 0
-
-
 #   MINER
 	def initMiner(self):
 		"""Mines designated stone and ore, dropping Stone() and Ore() items"""
+		self.add(my.miners)
 		self.occupation = 'miner'
 		self.idleAnim = Human.minerIdleAnim
 		self.moveAnim = Human.minerMoveAnim
@@ -778,6 +724,78 @@ class Human(Mob):
 		if self.destinationSeam:
 			self.destinationSeam.reserved = False
 			self.destinationSeam = None
+
+
+#   FISHERMAN
+	def initFisherman(self):
+		"""Goes to the nearest free fishing boat seat and occasionally spawns a Fish() item"""
+		self.add(my.fishermen)
+		self.occupation = 'fisherman'
+		self.idleAnim = Human.fishermanIdleAnim
+		self.moveAnim = Human.fishermanMoveAnim
+		self.swimAnim = Human.fishermanSwimAnim
+		self.animation = self.idleAnim
+		self.destinationSite = None
+		self.fishing = None
+		self.lastSite = None
+		self.seatCoords = None
+
+
+	def updateFisherman(self):
+		if not self.destinationSite and len(my.fishOnTheFloor) < my.MAXFISHONFLOOR\
+										and self.intention in ['working', None] and my.tick[self.tick]:
+			self.findFishingSpot()
+		elif self.destinationSite and len(my.fishOnTheFloor) < my.MAXFISHONFLOOR:
+			self.fish()
+		if len(my.fishOnTheFloor) >= my.MAXFISHONFLOOR:
+			self.stopFishingJob()
+		self.lastSite = self.destinationSite
+
+
+	def findFishingSpot(self):
+		"""Find nearest unreserved fishing boat seat and go there"""
+		sites = my.map.findNearestBuildings(self.coords, my.fishingBoats)
+		if sites:
+			done = False
+			for site in sites:
+				for seatCoords in site.seats.keys():
+					if not site.seats[seatCoords] or site.seats[seatCoords] == self:
+						self.destinationSite = site
+						self.destination = seatCoords
+						self.seatCoords = seatCoords
+						site.seats[seatCoords] = self
+						self.intention = 'working'
+						if self.lastSite and self.lastSite != self.destinationSite:
+							self.lastSite.reserved = False
+						done = True
+					if done: return
+		self.thought = None
+		self.intention = None
+		
+
+	def fish(self):
+		"""If on seat, fish (occasionally spawn a Fish() item)"""
+		if self.intention == 'working' and self.coords == self.seatCoords:
+			if not self.animation == Human.fishAnim:
+				self.animation = Human.fishAnim
+				self.animCount = 0
+			if randint(0, my.FISHFREQUENCY) == 0:
+				x, y = self.coords
+				item.Fish(randint(my.FISHPERFISH - 20, my.FISHPERFISH + 20),
+						  (randint(x - 1, x + 1), randint(y - 1, y + 1)))
+		elif self.animation == Human.fishAnim:
+			self.animation = self.idleAnim
+			self.animCount = 0
+
+
+	def stopFishingJob(self):
+		if self.destinationSite:
+			self.destinationSite.seats[self.seatCoords] = None
+			self.destinationSite = None
+		self.seatCoords = None
+		if self.animation == Human.fishAnim:
+			self.animation = self.idleAnim
+			self.animCount = 0
 
 
 

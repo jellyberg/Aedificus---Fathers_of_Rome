@@ -469,7 +469,7 @@ class Designator:
 class OccupationAssigner:
 	"""A dialogue box to +/- the number of each occupation"""
 	IMGS = {}
-	for name in ['background', 'plus', 'plusHover', 'minus', 'minusHover']:
+	for name in ['background', 'plus', 'plusHover', 'plusClick', 'minus', 'minusHover', 'minusClick']:
 		IMGS[name] = pygame.image.load('assets/ui/occupationAssigner/%s.png' %(name)).convert_alpha()
 	OCCUPATIONIMGS = [mob.Human.idleAnimation[0], mob.Human.builderIdleAnim[0], mob.Human.woodcutterIdleAnim[0],
 					  mob.Human.minerIdleAnim[0], mob.Human.fishermanIdleAnim[0]]
@@ -554,14 +554,29 @@ class OccupationAssigner:
 			if self.humanRectsGlobal[i].collidepoint(my.input.mousePos):
 				self.displayTooltip = True
 				self.tooltip.text = mob.OCCUPATIONS[i].capitalize()
+
 			elif self.plusRectsGlobal[i].collidepoint(my.input.mousePos):
 				my.screen.blit(OccupationAssigner.IMGS['plusHover'], self.plusRectsGlobal[i])
+				if my.input.mousePressed == 1:
+					my.screen.blit(OccupationAssigner.IMGS['plusClick'], self.plusRectsGlobal[i])
 				if my.input.mouseUnpressed == 1:
-					pass # DO THE THING
+					if my.serfs and mob.OCCUPATIONS[i] is not 'None':
+						for serf in my.serfs:
+							serf.changeOccupation(mob.OCCUPATIONS[i])
+							print(serf.name)
+							break
+
 			if self.minusRectsGlobal[i].collidepoint(my.input.mousePos):
 				my.screen.blit(OccupationAssigner.IMGS['minusHover'], self.minusRectsGlobal[i])
+				if my.input.mousePressed == 1:
+					my.screen.blit(OccupationAssigner.IMGS['minusClick'], self.minusRectsGlobal[i])
 				if my.input.mouseUnpressed == 1:
-					pass # DO THE THING
+					if mob.OCCUPATIONGROUPS[mob.OCCUPATIONS[i]]:
+						for human in mob.OCCUPATIONGROUPS[mob.OCCUPATIONS[i]].sprites(): # change one persons job
+							human.changeOccupation(None)
+							print(human.name)
+							print(str(human.occupation))
+							break
 
 
 
