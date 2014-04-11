@@ -553,7 +553,11 @@ class OccupationAssigner:
 		for i in range(len(self.humanRectsGlobal)):
 			if self.humanRectsGlobal[i].collidepoint(my.input.mousePos):
 				self.displayTooltip = True
-				self.tooltip.text = mob.OCCUPATIONS[i].capitalize()
+				if mob.OCCUPATIONS[i] == 'None':
+					job = 'No job'
+				else:
+					job = mob.OCCUPATIONS[i].capitalize()
+				self.tooltip.text = job + ' - ' + str(len(mob.OCCUPATIONGROUPS[mob.OCCUPATIONS[i]]))
 
 			elif self.plusRectsGlobal[i].collidepoint(my.input.mousePos):
 				my.screen.blit(OccupationAssigner.IMGS['plusHover'], self.plusRectsGlobal[i])
@@ -561,9 +565,8 @@ class OccupationAssigner:
 					my.screen.blit(OccupationAssigner.IMGS['plusClick'], self.plusRectsGlobal[i])
 				if my.input.mouseUnpressed == 1:
 					if my.serfs and mob.OCCUPATIONS[i] is not 'None':
-						for serf in my.serfs:
+						for serf in my.serfs.sprites():
 							serf.changeOccupation(mob.OCCUPATIONS[i])
-							print(serf.name)
 							break
 
 			if self.minusRectsGlobal[i].collidepoint(my.input.mousePos):
@@ -574,8 +577,6 @@ class OccupationAssigner:
 					if mob.OCCUPATIONGROUPS[mob.OCCUPATIONS[i]]:
 						for human in mob.OCCUPATIONGROUPS[mob.OCCUPATIONS[i]].sprites(): # change one persons job
 							human.changeOccupation(None)
-							print(human.name)
-							print(str(human.occupation))
 							break
 
 

@@ -278,7 +278,6 @@ class Human(Mob):
 		self.add(OCCUPATIONGROUPS[str(newOccupation)])
 		self.occupation = newOccupation
 		if self.occupation is None:
-			print('jimbles')
 			self.initSerf()
 		if self.occupation == 'builder':
 			self.initBuilder()
@@ -376,10 +375,10 @@ class Human(Mob):
 		self.swimAnim = Human.swimAnim
 		self.animation = self.idleAnim
 		self.animCount = 0
+		self.add(my.serfs)
 
 
 	def updateSerf(self):
-		self.add(my.serfs)
 		if not self.carrying and my.tick[self.tick]:
 			self.findItem()
 		if self.carrying:
