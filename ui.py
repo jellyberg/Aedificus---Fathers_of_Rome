@@ -1,4 +1,4 @@
-import pygame, my, math, building, random
+import pygame, my, math, random, building, mob
 
 my.selectionBoxGroup = pygame.sprite.GroupSingle()
 my.pulseLights = pygame.sprite.Group()
@@ -41,6 +41,7 @@ class Hud:
 		for colour in Highlight.IMGS.keys():
 			self.HIGHLIGHTS[colour] = Highlight(colour)
 		self.bottomBar = BottomBar()
+		self.occupationAssigner = OccupationAssigner()
 		self.designator = Designator()
 		self.minimap = Minimap()
 		self.statusText = StatusText()
@@ -51,6 +52,7 @@ class Hud:
 	def updateHUD(self):
 		"""Updates elements that are blitted to screen"""
 		self.bottomBar.update()
+		self.occupationAssigner.update()
 		self.designator.update()
 		self.minimap.update()
 		self.statusText.update()
@@ -461,6 +463,105 @@ class Designator:
 					elif i == 1:
 						my.designationMode = 'ore'
 			i += 1
+
+
+
+class OccupationAssigner:
+	"""A dialogue box to +/- the number of each occupation"""
+	IMGS = {}
+	for name in ['background', 'plus', 'plusHover', 'minus', 'minusHover']:
+		IMGS[name] = pygame.image.load('assets/ui/occupationAssigner/%s.png' %(name)).convert_alpha()
+	OCCUPATIONIMGS = [mob.Human.idleAnimation[0], mob.Human.builderIdleAnim[0], mob.Human.woodcutterIdleAnim[0],
+					  mob.Human.minerIdleAnim[0], mob.Human.fishermanIdleAnim[0]]
+	MAXCOLUMNS = 3
+	def __init__(self):
+		self.leftx = my.WINDOWWIDTH - OccupationAssigner.IMGS['background'].get_width() - GAP
+		self.topy = int(my.WINDOWHEIGHT / 6) * 3
+		self.rect = pygame.Rect((self.leftx, self.topy), OccupationAssigner.IMGS['background'].get_size())
+		self.genSurf()
+		self.tooltip = Tooltip('BLANK TOOLTIP', (self.rect.left + GAP, self.rect.bottom + GAP))
+		self.displayTooltip = False
+
+
+	def update(self):
+		my.screen.blit(self.surf, self.rect)
+		self.displayTooltip = False
+		self.handleInput()
+		self.tooltip.simulate(self.displayTooltip)
+
+
+	def genSurf(self):
+		"""Generate a new surf (blit human imgs and +/- imgs to the background) and rects for buttons"""
+		xMargin = 10
+		xInterval = 28
+		yMargin = 10
+		yInterval = 30
+		self.surf = OccupationAssigner.IMGS['background'].copy()
+		self.humanRectsLocal = []
+		self.humanRectsGlobal = []
+		self.plusRectsLocal = []
+		self.minusRectsLocal = []
+		self.plusRectsGlobal = []
+		self.minusRectsGlobal = []
+		numOccupations = len(OccupationAssigner.OCCUPATIONIMGS)
+		numColumns = math.ceil(numOccupations / OccupationAssigner.MAXCOLUMNS)
+		if numColumns < 3:
+			numRows = numColumns
+		else:
+			numRows = 3
+		currentColumn = 0
+		currentRow = 0
+		# SET UP SURFS AND RECTS
+		for i in range(len(OccupationAssigner.OCCUPATIONIMGS)):
+			# HUMAN IMGS
+			localHumanRect = pygame.Rect((xMargin + xInterval * currentColumn, yMargin + yInterval * currentRow), (10,20))
+			self.humanRectsLocal.append(localHumanRect)
+			self.surf.blit(OccupationAssigner.OCCUPATIONIMGS[i], localHumanRect)
+
+			globalHumanRect = localHumanRect.copy()
+			globalHumanRect.left += self.leftx
+			globalHumanRect.top += self.topy
+			self.humanRectsGlobal.append(globalHumanRect)
+
+			# +/- IMGS
+			localPlusRect = pygame.Rect(localHumanRect.topleft, OccupationAssigner.IMGS['plus'].get_size())
+			localMinusRect = localPlusRect.copy()
+			localPlusRect.top += 1
+			localPlusRect.left += 14
+			self.surf.blit(OccupationAssigner.IMGS['plus'], localPlusRect)
+			localMinusRect.top += 11
+			localMinusRect.left += 14
+			self.surf.blit(OccupationAssigner.IMGS['minus'], localMinusRect)
+
+			globalPlusRect = localPlusRect.copy()
+			globalPlusRect.left += self.leftx
+			globalPlusRect.top += self.topy
+			self.plusRectsGlobal.append(globalPlusRect)
+			globalMinusRect = localMinusRect.copy()
+			globalMinusRect.top += self.topy
+			globalMinusRect.left += self.leftx
+			self.minusRectsGlobal.append(globalMinusRect)
+
+			currentRow += 1
+			if currentRow >= 3:
+				currentColumn += 1
+				currentRow = 0
+
+
+	def handleInput(self):
+		"""Updates the hover and click images, and changes occupation counts"""
+		for i in range(len(self.humanRectsGlobal)):
+			if self.humanRectsGlobal[i].collidepoint(my.input.mousePos):
+				self.displayTooltip = True
+				self.tooltip.text = mob.OCCUPATIONS[i].capitalize()
+			elif self.plusRectsGlobal[i].collidepoint(my.input.mousePos):
+				my.screen.blit(OccupationAssigner.IMGS['plusHover'], self.plusRectsGlobal[i])
+				if my.input.mouseUnpressed == 1:
+					pass # DO THE THING
+			if self.minusRectsGlobal[i].collidepoint(my.input.mousePos):
+				my.screen.blit(OccupationAssigner.IMGS['minusHover'], self.minusRectsGlobal[i])
+				if my.input.mouseUnpressed == 1:
+					pass # DO THE THING
 
 
 

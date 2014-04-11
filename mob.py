@@ -7,6 +7,15 @@ my.allHumans = pygame.sprite.Group()
 my.animals = pygame.sprite.Group()
 my.corpses = pygame.sprite.Group()
 
+my.serfs = pygame.sprite.Group()
+my.builders = pygame.sprite.Group()
+my.woodcutters = pygame.sprite.Group()
+my.miners = pygame.sprite.Group()
+my.fishermen = pygame.sprite.Group()
+OCCUPATIONS = ['None', 'builder', 'woodcutter', 'miner', 'fisherman']
+OCCUPATIONGROUPS = {'None': my.serfs, 'builder': my.builders, 'woodcutter': my.woodcutters,
+					'miner': my.miners, 'fisherman': my.fishermen}
+
 def updateMobs():
 	for mob in my.allMobs.sprites():
 		mob.handleShadow()
@@ -215,21 +224,14 @@ class Human(Mob):
 	mineAnim = loadAnimationFiles('assets/mobs/mine')
 #   BASE CLASS
 	def __init__(self, coords, occupation=None):
-		self.occupation = occupation
+		pygame.sprite.Sprite.__init__(self)
 		self.idleAnim, self.moveAnim = Human.idleAnimation, Human.moveAnimation
-		if self.occupation is None:
+		if occupation is None:
 			self.animation = self.idleAnim
 		self.size = (10, 20)
 		self.baseMoveSpeed = my.HUMANMOVESPEED
 		self.moveSpeed = my.HUMANMOVESPEED
-		if self.occupation == 'builder':
-			self.initBuilder()
-		elif self.occupation == 'woodcutter':
-			self.initWoodcutter()
-		elif self.occupation == 'fisherman':
-			self.initFisherman()
-		elif occupation == 'miner':
-			self.initMiner()
+		self.changeOccupation(occupation)
 		Mob.__init__(self, self.baseMoveSpeed, self.animation, coords, self.size)
 		self.name = random.choice(my.FIRSTNAMES) + ' ' + random.choice(my.LASTNAMES)
 		self.tooltip.text = self.name
@@ -327,8 +329,22 @@ class Human(Mob):
 
 	def changeOccupation(self, newOccupation):
 		"""Change occupation and stop any previous jobs"""
-		self.stopJob()
+		try:
+			if self.occupation:
+				self.stopJob()
+				self.remove(OCCUPATIONGROUPS[str(self.occupation)])
+		except AttributeError:
+			pass
+		self.add(OCCUPATIONGROUPS[str(newOccupation)])
 		self.occupation = newOccupation
+		if self.occupation == 'builder':
+			self.initBuilder()
+		elif self.occupation == 'woodcutter':
+			self.initWoodcutter()
+		elif self.occupation == 'fisherman':
+			self.initFisherman()
+		elif self.occupation == 'miner':
+			self.initMiner()
 
 
 	def stopJob(self):
