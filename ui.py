@@ -528,10 +528,12 @@ class OccupationAssigner:
 			localMinusRect = localPlusRect.copy()
 			localPlusRect.top += 1
 			localPlusRect.left += 14
-			self.surf.blit(OccupationAssigner.IMGS['plus'], localPlusRect)
+			if i > 0: # no +/- for serfs
+				self.surf.blit(OccupationAssigner.IMGS['plus'], localPlusRect)
 			localMinusRect.top += 11
 			localMinusRect.left += 14
-			self.surf.blit(OccupationAssigner.IMGS['minus'], localMinusRect)
+			if i > 0: # no +/- for serfs
+				self.surf.blit(OccupationAssigner.IMGS['minus'], localMinusRect)
 
 			globalPlusRect = localPlusRect.copy()
 			globalPlusRect.left += self.leftx
@@ -557,25 +559,26 @@ class OccupationAssigner:
 					job = 'No job'
 				else:
 					job = mob.OCCUPATIONS[i].capitalize()
-				self.tooltip.text = job + ' - ' + str(len(mob.OCCUPATIONGROUPS[mob.OCCUPATIONS[i]]))
+				self.tooltip.text = job + ' - ' + 'INSERT NUM HERE'
 
 			elif self.plusRectsGlobal[i].collidepoint(my.input.mousePos):
 				my.screen.blit(OccupationAssigner.IMGS['plusHover'], self.plusRectsGlobal[i])
 				if my.input.mousePressed == 1:
 					my.screen.blit(OccupationAssigner.IMGS['plusClick'], self.plusRectsGlobal[i])
 				if my.input.mouseUnpressed == 1:
-					if my.serfs and mob.OCCUPATIONS[i] is not 'None':
-						for serf in my.serfs.sprites():
-							serf.changeOccupation(mob.OCCUPATIONS[i])
-							break
+					if mob.OCCUPATIONS[i] is not 'None':
+						for human in my.allHumans.sprites():
+							if human.occupation == None:
+								human.changeOccupation(mob.OCCUPATIONS[i])
+								break
 
 			if self.minusRectsGlobal[i].collidepoint(my.input.mousePos):
 				my.screen.blit(OccupationAssigner.IMGS['minusHover'], self.minusRectsGlobal[i])
 				if my.input.mousePressed == 1:
 					my.screen.blit(OccupationAssigner.IMGS['minusClick'], self.minusRectsGlobal[i])
 				if my.input.mouseUnpressed == 1:
-					if mob.OCCUPATIONGROUPS[mob.OCCUPATIONS[i]]:
-						for human in mob.OCCUPATIONGROUPS[mob.OCCUPATIONS[i]].sprites(): # change one persons job
+					for human in my.allHumans.sprites():
+						if human.occupation == mob.OCCUPATIONS[i]:
 							human.changeOccupation(None)
 							break
 

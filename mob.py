@@ -7,14 +7,7 @@ my.allHumans = pygame.sprite.Group()
 my.animals = pygame.sprite.Group()
 my.corpses = pygame.sprite.Group()
 
-my.serfs = pygame.sprite.Group()
-my.builders = pygame.sprite.Group()
-my.woodcutters = pygame.sprite.Group()
-my.miners = pygame.sprite.Group()
-my.fishermen = pygame.sprite.Group()
 OCCUPATIONS = ['None', 'builder', 'woodcutter', 'miner', 'fisherman']
-OCCUPATIONGROUPS = {'None': my.serfs, 'builder': my.builders, 'woodcutter': my.woodcutters,
-					'miner': my.miners, 'fisherman': my.fishermen}
 
 def updateMobs():
 	for mob in my.allMobs.sprites():
@@ -273,13 +266,10 @@ class Human(Mob):
 				self.stopJob()
 		except AttributeError:
 			pass
-		for job in OCCUPATIONS:
-			self.remove(OCCUPATIONGROUPS[job])
-		self.add(OCCUPATIONGROUPS[str(newOccupation)])
 		self.occupation = newOccupation
 		if self.occupation is None:
 			self.initSerf()
-		if self.occupation == 'builder':
+		elif self.occupation == 'builder':
 			self.initBuilder()
 		elif self.occupation == 'woodcutter':
 			self.initWoodcutter()
@@ -375,7 +365,6 @@ class Human(Mob):
 		self.swimAnim = Human.swimAnim
 		self.animation = self.idleAnim
 		self.animCount = 0
-		self.add(my.serfs)
 
 
 	def updateSerf(self):
@@ -492,7 +481,7 @@ class Human(Mob):
 #	BUILDER
 	def initBuilder(self):
 		"""Finds the nearest construction site and constructs it."""
-		self.add(my.builders)
+		self.occupation = 'builder'
 		self.idleAnim = Human.builderIdleAnim
 		self.moveAnim = Human.builderMoveAnim
 		self.swimAnim = Human.builderSwimAnim
@@ -585,7 +574,6 @@ class Human(Mob):
 #	WOODCUTTER
 	def initWoodcutter(self):
 		"""Chops down the nearest tree in my.designatedTrees"""
-		self.add(my.woodcutters)
 		self.occupation = 'woodcutter'
 		self.idleAnim = Human.woodcutterIdleAnim
 		self.moveAnim = Human.woodcutterMoveAnim
@@ -648,7 +636,6 @@ class Human(Mob):
 #   MINER
 	def initMiner(self):
 		"""Mines designated stone and ore, dropping Stone() and Ore() items"""
-		self.add(my.miners)
 		self.occupation = 'miner'
 		self.idleAnim = Human.minerIdleAnim
 		self.moveAnim = Human.minerMoveAnim
@@ -728,7 +715,6 @@ class Human(Mob):
 #   FISHERMAN
 	def initFisherman(self):
 		"""Goes to the nearest free fishing boat seat and occasionally spawns a Fish() item"""
-		self.add(my.fishermen)
 		self.occupation = 'fisherman'
 		self.idleAnim = Human.fishermanIdleAnim
 		self.moveAnim = Human.fishermanMoveAnim
