@@ -372,12 +372,13 @@ class Human(Mob):
 			self.findItem()
 		if self.carrying:
 			self.tooltip.text += ' and carrying %s %s' %(self.carrying.quantity, self.carrying.name)
-			self.carry()
+			if my.tick[self.tick]: # for performance
+				self.carry()
 			if self.carrying:
 				x, y = self.rect.center
 				my.surf.blit(self.carrying.carryImage, (x - 3, y))
 		if self.lastDestItem and self.lastDestItem != self.destinationItem:
-			self.lastDestItem.reserved = False
+			self.lastDestItem.reserved = None
 		self.lastDestItem = self.destinationItem
 
 
@@ -422,8 +423,10 @@ class Human(Mob):
 
 	def carry(self):
 		"""Carry the item to the nearest storage building with space"""
+		self.carrying.reserved = self
 		if self.intention in [None, 'working'] and not self.destinationSite:
-			if self.carrying.name == 'fish': # if fish, only send to fishmongers
+			# if fish, only send to fishmongers
+			if self.carrying.name == 'fish':
 				fishMongers = my.map.findNearestBuildings(self.coords, my.fishMongers)
 				if fishMongers:
 					site = fishMongers[0]
@@ -448,11 +451,11 @@ class Human(Mob):
 				self.intention = None
 				self.stopCarryingJob()
 				return
-		self.carrying.reserved = self
 		# STORE ITEM
 		if self.destinationSite and self.coords == self.destinationSite.coords:
 			self.destinationSite.storeResource(self.carrying.name, self.carrying.quantity)
 			self.carrying.kill()
+			self.carrying = None
 			self.stopCarryingJob()
 
 
@@ -461,7 +464,7 @@ class Human(Mob):
 			self.destinationItem.reserved = None
 			self.destinationItem = None
 		self.destinationSite = None
-		if self.carrying:
+		if self.carrying: # drop item
 			self.carrying.reserved = None
 			self.carrying.coords = self.coords
 			self.carrying.beingCarried = False
@@ -746,12 +749,12 @@ class Human(Mob):
 				for seatCoords in site.seats.keys():
 					if not site.seats[seatCoords] or site.seats[seatCoords] == self:
 						self.destinationSite = site
+						if self.lastSite and self.lastSite != self.destinationSite:
+							self.lastSite.seats[self.seatCoords] = None
 						self.destination = seatCoords
 						self.seatCoords = seatCoords
 						site.seats[seatCoords] = self
 						self.intention = 'working'
-						if self.lastSite and self.lastSite != self.destinationSite:
-							self.lastSite.reserved = False
 						done = True
 					if done: return
 		self.thought = None

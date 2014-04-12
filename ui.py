@@ -3,7 +3,7 @@ import pygame, my, math, random, building, mob
 my.selectionBoxGroup = pygame.sprite.GroupSingle()
 my.pulseLights = pygame.sprite.Group()
 
-BASICFONT = pygame.font.Font('freesansbold.ttf', 12)
+BASICFONT = pygame.font.Font('assets/fonts/olympus bold.ttf', 14)
 PRETTYFONT = pygame.font.Font('assets/fonts/fontTitle.ttf', 12)
 BIGFONT   = pygame.font.Font('assets/fonts/fontTitle.ttf', 25)
 MEGAFONT  = pygame.font.Font('assets/fonts/fontTitle.ttf', 42)
@@ -476,7 +476,7 @@ class OccupationAssigner:
 	MAXCOLUMNS = 3
 	def __init__(self):
 		self.leftx = my.WINDOWWIDTH - OccupationAssigner.IMGS['background'].get_width() - GAP
-		self.topy = int(my.WINDOWHEIGHT / 6) * 3
+		self.topy = int(my.WINDOWHEIGHT / 2)
 		self.rect = pygame.Rect((self.leftx, self.topy), OccupationAssigner.IMGS['background'].get_size())
 		self.genSurf()
 		self.tooltip = Tooltip('BLANK TOOLTIP', (self.rect.left + GAP, self.rect.bottom + GAP))
@@ -552,35 +552,43 @@ class OccupationAssigner:
 
 	def handleInput(self):
 		"""Updates the hover and click images, and changes occupation counts"""
-		for i in range(len(self.humanRectsGlobal)):
-			if self.humanRectsGlobal[i].collidepoint(my.input.mousePos):
-				self.displayTooltip = True
-				if mob.OCCUPATIONS[i] == 'None':
-					job = 'No job'
-				else:
-					job = mob.OCCUPATIONS[i].capitalize()
-				self.tooltip.text = job + ' - ' + 'INSERT NUM HERE'
-
-			elif self.plusRectsGlobal[i].collidepoint(my.input.mousePos):
-				my.screen.blit(OccupationAssigner.IMGS['plusHover'], self.plusRectsGlobal[i])
-				if my.input.mousePressed == 1:
-					my.screen.blit(OccupationAssigner.IMGS['plusClick'], self.plusRectsGlobal[i])
-				if my.input.mouseUnpressed == 1:
-					if mob.OCCUPATIONS[i] is not 'None':
-						for human in my.allHumans.sprites():
-							if human.occupation == None:
-								human.changeOccupation(mob.OCCUPATIONS[i])
-								break
-
-			if self.minusRectsGlobal[i].collidepoint(my.input.mousePos):
-				my.screen.blit(OccupationAssigner.IMGS['minusHover'], self.minusRectsGlobal[i])
-				if my.input.mousePressed == 1:
-					my.screen.blit(OccupationAssigner.IMGS['minusClick'], self.minusRectsGlobal[i])
-				if my.input.mouseUnpressed == 1:
+		if self.rect.collidepoint(my.input.mousePos): # avoid unnecessary collsion detection
+			for i in range(len(self.humanRectsGlobal)):
+				if self.humanRectsGlobal[i].collidepoint(my.input.mousePos):
+					self.displayTooltip = True
+					if mob.OCCUPATIONS[i] == 'None':
+						job = 'No job'
+						trueJob = None # because otherwise it checks for 'None' instead of None
+					else:
+						job = mob.OCCUPATIONS[i].capitalize()
+						trueJob = mob.OCCUPATIONS[i]
+					num = 0 # number of humans with hovered job
 					for human in my.allHumans.sprites():
-						if human.occupation == mob.OCCUPATIONS[i]:
-							human.changeOccupation(None)
-							break
+						if human.occupation == trueJob: num += 1
+					self.tooltip.text = '%s - %s' %(job, num)
+					if self.tooltip.rect.right > my.WINDOWWIDTH:
+						self.tooltip.rect.right = my.WINDOWWIDTH - 1
+
+				elif self.plusRectsGlobal[i].collidepoint(my.input.mousePos):
+					my.screen.blit(OccupationAssigner.IMGS['plusHover'], self.plusRectsGlobal[i])
+					if my.input.mousePressed == 1:
+						my.screen.blit(OccupationAssigner.IMGS['plusClick'], self.plusRectsGlobal[i])
+					if my.input.mouseUnpressed == 1:
+						if mob.OCCUPATIONS[i] is not 'None':
+							for human in my.allHumans.sprites():
+								if human.occupation == None:
+									human.changeOccupation(mob.OCCUPATIONS[i])
+									break
+
+				if self.minusRectsGlobal[i].collidepoint(my.input.mousePos):
+					my.screen.blit(OccupationAssigner.IMGS['minusHover'], self.minusRectsGlobal[i])
+					if my.input.mousePressed == 1:
+						my.screen.blit(OccupationAssigner.IMGS['minusClick'], self.minusRectsGlobal[i])
+					if my.input.mouseUnpressed == 1:
+						for human in my.allHumans.sprites():
+							if human.occupation == mob.OCCUPATIONS[i]:
+								human.changeOccupation(None)
+								break
 
 
 
