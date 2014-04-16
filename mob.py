@@ -1,4 +1,4 @@
-import my, pygame, map, ui, os, random, math, item, shadow
+import my, pygame, map, ui, os, random, math, item, sound, shadow
 from pygame.locals import *
 from random import randint
 
@@ -154,9 +154,11 @@ class Mob(pygame.sprite.Sprite):
 
 	def die(self):
 		"""Pretty self explanatory really. Kick the bucket."""
-		if self.occupation == None: self.stopCarryingJob()
-		elif self.occupation == 'builder': self.removeSiteReservation()
-		elif self.occupation == 'woodcutter': self.stopWoodcutterJob()
+		if my.allHumans.has(self):
+			sound.play('groan')
+			if self.occupation == None: self.stopCarryingJob()
+			elif self.occupation == 'builder': self.removeSiteReservation()
+			elif self.occupation == 'woodcutter': self.stopWoodcutterJob()
 		self.kill()
 		self.isDead = True
 		Corpse((self.rect.centerx, self.rect.bottom + 5), pygame.image.load('assets/mobs/dude.png'),
@@ -165,7 +167,7 @@ class Mob(pygame.sprite.Sprite):
 
 	def blit(self):
 		"""Blit to surf, which is overlayed onto my.map.map"""
-		if self.rect.colliderect(my.camera.viewArea):
+		if my.camera.isVisible(self.rect):
 			my.surf.blit(self.image, self.rect)
 
 
@@ -566,9 +568,14 @@ class Human(Mob):
 				self.animFrame = 0
 			self.building = None
 		else:
+			playSound = False
 			if self.animation != Human.buildAnim:
 				self.animation = Human.buildAnim
 				self.animFrame = 0
+				playSound = True
+			if randint(0, 250) == 0 or playSound and my.camera.isVisible(self.rect):
+				num = randint(1, 4)
+				sound.play('hammering%s' %(num))
 		if my.builtBuildings.has(self.building):
 			self.building = None
 			self.intention = None
@@ -585,6 +592,7 @@ class Human(Mob):
 		self.chopping = False
 		self.destinationSite = None
 		self.lastSite = self.destinationSite
+		self.chopSoundPlaying = False
 
 
 	def updateWoodcutter(self):
@@ -595,10 +603,18 @@ class Human(Mob):
 			self.chopping = True
 			self.thought = 'working'
 			self.destinationSite.chop()
+			if self.animFrame != 6:
+				self.chopSoundPlaying = False
+			if self.animFrame == 6 and my.camera.isVisible(self.rect) and not self.chopSoundPlaying:
+				num = randint(1, 2)
+				sound.play('chop%s' %(num), 0.4)
+				self.chopSoundPlaying = True
 			if self.destinationSite.isDead:
 				self.destinationSite = None
 				self.intention, self.thought = None, None
 				self.chopping = False
+				if my.camera.isVisible(self.rect):
+					sound.play('treeFalling', 0.2)
 		else:
 			self.chopping = False
 			if self.animation not in [self.idleAnim, self.moveAnim]:
@@ -647,6 +663,7 @@ class Human(Mob):
 		self.destinationSeam = None
 		self.mining = False
 		self.lastSeam = None
+		self.mineSoundPlaying = False
 
 
 	def updateMiner(self):
@@ -692,6 +709,11 @@ class Human(Mob):
 			if self.animation != Human.mineAnim:
 				self.animation = Human.mineAnim
 				self.animCount = 0
+			if self.animFrame != 0:
+				self.mineSoundPlaying = False
+			if self.animFrame == 0 and my.camera.isVisible(self.rect) and not self.mineSoundPlaying:
+				sound.play('mining%s' %(randint(1, 4)), 0.5)
+				self.mineSoundPlaying = True
 			self.destinationSeam.durability -= my.OREMINESPEED
 			if self.destinationSeam.durability < 1:
 				self.destinationSeam = None
@@ -895,7 +917,7 @@ class PassiveAnimal(Mob):
 
 
 	def animalUpdate(self):
-		if self.rect.colliderect(my.camera.viewArea):
+		if my.camera.isVisible(self.rect):
 			if randint(0, 50) == 0:
 				x, y = self.coords
 				for i in range(5): # prefer walking onto grass tiles

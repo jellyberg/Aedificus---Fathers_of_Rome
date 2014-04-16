@@ -2,8 +2,9 @@ import pygame, my, logic, os
 from pygame.locals import *
 
 os.environ['SDL_VIDEO_CENTERED'] = '1'
+pygame.mixer.pre_init(44100,-16,2, 1024)
 pygame.init()
-pygame.display.set_icon(pygame.image.load('assets/icon.png'))
+pygame.display.set_icon(pygame.image.load('assets/ui/icon.png'))
 pygame.display.set_caption('Real time strategy')
 
 my.screen.blit(my.loadingScreen, (0, 0))

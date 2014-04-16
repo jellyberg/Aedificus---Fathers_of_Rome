@@ -4,6 +4,7 @@ from pygame.locals import *
 DEBUGMODE = True
 CHEATS = {'noHunger': 0, 'fastActions': 0, 'fastMoving': 0}
 
+pygame.mixer.pre_init(44100,-16,2, 1024)
 pygame.init()
 
 FPS = 60
@@ -37,7 +38,7 @@ MAPEDGEBOUNCE = 10
 MAXSCROLLSPEED = 4
 MINIMAPUPDATESPEED = 3 # update x minimap rows per frame, so minimap is updated every YCELLS / x frames. reduces fps
 
-SUNMOVESPEED = 0.5
+SUNMOVESPEED = 0.1
 TREEFREQUENCY = random.randint(50, 100)   # 1/xth of tiles are trees
 TREEMAXHEALTH = 400
 WOODPERTREE = 50 # +/- a bit
@@ -54,7 +55,7 @@ TREECHOPSPEED = 1
 MAXTREESDESIGNATED = 30 # to help performance
 OREMINESPEED = 1
 CONSTRUCTIONSPEED = 3 # progress towards completion added per tick per builder
-FISHFREQUENCY = 200 # lower is higher chance of fish per frame
+FISHFREQUENCY = 400 # lower is higher chance of fish per frame
 FISHPERFISH = 100 # fish per Fish() caught by fishermen (+/- 20)
 FISHCONSUMEDPERTICK = 0.2 # fish consumed per frame by each person eating at the fishmongers
 MAXFISHONFLOOR = 10

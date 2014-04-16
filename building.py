@@ -1,4 +1,4 @@
-import pygame, my, copy, math, mob, ui, shadow, item
+import pygame, my, copy, math, mob, ui, shadow, item, sound
 from pygame.locals import *
 
 
@@ -165,6 +165,12 @@ class Building(pygame.sprite.Sprite):
 			self.initAOE(self.AOEsize)
 		self.initTooltip()
 
+		if my.camera.isVisible(self.rect):
+			if self.buildableTerrain == 'water':
+				sound.play('splash')
+			else:
+				sound.play('thud')
+
 
 	def canPlace(self, topLeftCoord):
 		"""Check if the building can be placed if its top left is at topLeftCoord"""
@@ -201,7 +207,8 @@ class Building(pygame.sprite.Sprite):
 
 
 	def blit(self):
-		my.surf.blit(self.image, self.rect)
+		if my.camera.isVisible(self.rect):
+			my.surf.blit(self.image, self.rect)
 
 
 	def initAOE(self, AOEsize):

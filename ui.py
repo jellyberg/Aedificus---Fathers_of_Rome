@@ -5,8 +5,8 @@ my.pulseLights = pygame.sprite.Group()
 
 BASICFONT = pygame.font.Font('assets/fonts/olympus bold.ttf', 14)
 PRETTYFONT = pygame.font.Font('assets/fonts/fontTitle.ttf', 12)
-BIGFONT   = pygame.font.Font('assets/fonts/fontTitle.ttf', 25)
-MEGAFONT  = pygame.font.Font('assets/fonts/fontTitle.ttf', 42)
+BIGFONT   = pygame.font.Font('assets/fonts/olympus thin.ttf', 25)
+MEGAFONT  = pygame.font.Font('assets/fonts/olympus thin.ttf', 42)
 GAP = 5
 TOOLTIPWORDSPERLINE = 6  # subtract 1!
 
@@ -554,7 +554,8 @@ class OccupationAssigner:
 		"""Updates the hover and click images, and changes occupation counts"""
 		if self.rect.collidepoint(my.input.mousePos): # avoid unnecessary collsion detection
 			for i in range(len(self.humanRectsGlobal)):
-				if self.humanRectsGlobal[i].collidepoint(my.input.mousePos):
+				if self.humanRectsGlobal[i].collidepoint(my.input.mousePos) or self.plusRectsGlobal[i].collidepoint(my.input.mousePos)\
+												or self.minusRectsGlobal[i].collidepoint(my.input.mousePos):
 					self.displayTooltip = True
 					if mob.OCCUPATIONS[i] == 'None':
 						job = 'No job'
@@ -569,7 +570,7 @@ class OccupationAssigner:
 					if self.tooltip.rect.right > my.WINDOWWIDTH:
 						self.tooltip.rect.right = my.WINDOWWIDTH - 1
 
-				elif self.plusRectsGlobal[i].collidepoint(my.input.mousePos):
+				if self.plusRectsGlobal[i].collidepoint(my.input.mousePos):
 					my.screen.blit(OccupationAssigner.IMGS['plusHover'], self.plusRectsGlobal[i])
 					if my.input.mousePressed == 1:
 						my.screen.blit(OccupationAssigner.IMGS['plusClick'], self.plusRectsGlobal[i])
@@ -580,7 +581,7 @@ class OccupationAssigner:
 									human.changeOccupation(mob.OCCUPATIONS[i])
 									break
 
-				if self.minusRectsGlobal[i].collidepoint(my.input.mousePos):
+				elif self.minusRectsGlobal[i].collidepoint(my.input.mousePos):
 					my.screen.blit(OccupationAssigner.IMGS['minusHover'], self.minusRectsGlobal[i])
 					if my.input.mousePressed == 1:
 						my.screen.blit(OccupationAssigner.IMGS['minusClick'], self.minusRectsGlobal[i])

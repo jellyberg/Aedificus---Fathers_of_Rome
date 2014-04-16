@@ -249,6 +249,14 @@ class Camera:
 		my.screen.blit(my.surf, (0,0), self.viewArea)
 
 
+	def isVisible(self, rect):
+		"""Checks if the rect collides with the visible area"""
+		if rect.colliderect(self.viewArea):
+			return True
+		else:
+			return False
+
+
 	def shake(self, intensity):
 		pass
 
