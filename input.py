@@ -15,6 +15,7 @@ class Input:
         """Update variables - mouse position, occupied cell and click state, and pressed keys"""
         self.checkForQuit()
         self.mouseUnpressed = False
+        self.unpressedKeys = []
         self.lastCell = self.hoveredCell
         for event in pygame.event.get():
             if event.type == QUIT or (event.type == KEYUP and event.key == K_ESCAPE):
@@ -25,6 +26,7 @@ class Input:
                 for key in self.pressedKeys:
                     if event.key == key:
                         self.pressedKeys.remove(key)
+                    self.unpressedKeys.append(key)
             elif event.type == MOUSEMOTION:
                 self.mousePos = event.pos
             elif event.type == MOUSEBUTTONDOWN:

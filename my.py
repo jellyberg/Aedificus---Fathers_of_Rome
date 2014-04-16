@@ -7,7 +7,7 @@ CHEATS = {'noHunger': 0, 'fastActions': 0, 'fastMoving': 0}
 pygame.mixer.pre_init(44100,-16,2, 1024)
 pygame.init()
 
-FPS = 60
+FPS = 40
 FPSCLOCK = pygame.time.Clock()
 
 if DEBUGMODE:

@@ -1,4 +1,4 @@
-import pygame, my, math, random, building, mob
+import pygame, my, math, random, building, mob, sound
 
 my.selectionBoxGroup = pygame.sprite.GroupSingle()
 my.pulseLights = pygame.sprite.Group()
@@ -157,6 +157,7 @@ class Button:
 			self.currentSurf = self.buttonSurf
 		if userInput.mouseUnpressed == True and self.rect.collidepoint(my.input.mousePos):
 			self.isClicked = True
+			sound.play('click')
 
 
 
@@ -370,6 +371,7 @@ class BottomBar:
 					self.surf.blit(self.cellClick, self.localRects[i])
 				if my.input.mouseUnpressed == 1:
 					self.clickedCell = i
+					sound.play('click')
 		self.lastClicked, self.lastHovered = self.clickedCell, self.hovered
 
 
@@ -418,6 +420,7 @@ class Designator:
 					self.collapsed = False
 					self.animate = 'open'
 					self.surf = self.baseSurf
+					sound.play('click')
 			else:
 				self.surf = self.baseSurf
 		# COLLAPSE TAB
@@ -428,6 +431,7 @@ class Designator:
 					self.collapsed = True
 					self.animate = 'close'
 					self.surf = self.baseSurf
+					sound.play('click')
 			else:
 				self.surf = self.baseSurf
 		# ANIMATE
@@ -462,6 +466,7 @@ class Designator:
 						my.designationMode = 'tree'
 					elif i == 1:
 						my.designationMode = 'ore'
+					sound.play('click')
 			i += 1
 
 
@@ -579,6 +584,7 @@ class OccupationAssigner:
 							for human in my.allHumans.sprites():
 								if human.occupation == None:
 									human.changeOccupation(mob.OCCUPATIONS[i])
+									sound.play('click')
 									break
 
 				elif self.minusRectsGlobal[i].collidepoint(my.input.mousePos):
@@ -589,6 +595,7 @@ class OccupationAssigner:
 						for human in my.allHumans.sprites():
 							if human.occupation == mob.OCCUPATIONS[i]:
 								human.changeOccupation(None)
+								sound.play('click')
 								break
 
 
@@ -847,3 +854,4 @@ class Minimap:
 			x -= x2
 			y -= y2
 			my.camera.focus = my.map.cellsToPixels((x, y))
+			sound.play('click')

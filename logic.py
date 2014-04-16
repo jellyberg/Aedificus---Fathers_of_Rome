@@ -8,6 +8,7 @@ class Handler:
 		my.tick = []
 		for i in range(20):
 			my.tick.append(False)
+		my.paused = False
 		my.statusMessage = 'None'
 		my.map = map.Map()
 		my.map.completeGen()
@@ -44,28 +45,47 @@ class Handler:
 
 
 	def update(self):
-		my.surf.blit(my.map.surf, (0, 0))
-		my.ticks += 1
-		for i in range(1, 20):
-			if my.ticks % i == 0:
-				my.tick[i] = True
-			else:
-				my.tick[i] = False
-		self.sunx += my.SUNMOVESPEED
-		if self.sunx > my.MAPWIDTH: self.sunx = -30
-		my.sunPos = (self.sunx, my.MAPHEIGHT + 10)
 		my.input.get()
-		my.map.update()
-		building.updateBuildings()
-		item.update()
-		mob.updateMobs()
-		my.hud.updateWorldUI()
-		my.camera.update()
-		my.hud.updateHUD()
+		pauseText = ''
+		if pygame.locals.K_SPACE in my.input.unpressedKeys:
+			my.paused = not my.paused
+			self.screenCache = my.screen.copy()
+			self.pauseSurf = pygame.Surface((my.WINDOWWIDTH, my.WINDOWHEIGHT))
+			self.pauseTextSurf, self.pauseTextRect = ui.genText('PAUSED (press space to unpause)', (10, 10), my.WHITE, ui.MEGAFONT)
+			self.pauseTextRect.center = (int(my.WINDOWWIDTH / 2), int(my.WINDOWHEIGHT / 2))
+
+		if not my.paused:
+			self.pauseAlpha = 0
+			my.surf.blit(my.map.surf, (0, 0))
+			my.ticks += 1
+			for i in range(1, 20):
+				if my.ticks % i == 0:
+					my.tick[i] = True
+				else:
+					my.tick[i] = False
+			self.sunx += my.SUNMOVESPEED
+			if self.sunx > my.MAPWIDTH: self.sunx = -30
+			my.sunPos = (self.sunx, my.MAPHEIGHT + 10)
+			my.map.update()
+			building.updateBuildings()
+			item.update()
+			mob.updateMobs()
+			my.hud.updateWorldUI()
+			my.camera.update()
+			my.hud.updateHUD()
+
+		else:
+			if self.pauseAlpha < 150: self.pauseAlpha += 5
+			self.pauseSurf.fill(my.DARKGREY)
+			self.pauseSurf.set_alpha(self.pauseAlpha)
+			self.pauseSurf.blit(self.pauseTextSurf, self.pauseTextRect)
+			my.screen.blit(self.screenCache, (0, 0))
+			my.screen.blit(self.pauseSurf, (0, 0))
+			pauseText = '   **PAUSED**'
 
 		pygame.display.update()
 		my.FPSCLOCK.tick(my.FPS)
-		pygame.display.set_caption('Real time strategy' + ' ' * 10 + 'FPS: ' + str(int(my.FPSCLOCK.get_fps())))
+		pygame.display.set_caption('Real time strategy' + ' ' * 10 + 'FPS: ' + str(int(my.FPSCLOCK.get_fps())) + pauseText)
 
 		for key in my.resources.keys(): # DON'T FIX THE BUGS, HIDE 'EM!
 			if my.resources[key] < 0:

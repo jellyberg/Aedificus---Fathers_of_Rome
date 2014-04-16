@@ -155,7 +155,8 @@ class Mob(pygame.sprite.Sprite):
 	def die(self):
 		"""Pretty self explanatory really. Kick the bucket."""
 		if my.allHumans.has(self):
-			sound.play('groan')
+			if my.camera.isVisible(self.rect):
+				sound.play('groan')
 			if self.occupation == None: self.stopCarryingJob()
 			elif self.occupation == 'builder': self.removeSiteReservation()
 			elif self.occupation == 'woodcutter': self.stopWoodcutterJob()
