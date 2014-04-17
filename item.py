@@ -1,4 +1,4 @@
-import pygame, my, ui
+import pygame, my, ui, sound
 
 my.allItems = pygame.sprite.Group()
 my.itemsOnTheFloor = pygame.sprite.Group()
@@ -53,6 +53,8 @@ class Item(pygame.sprite.Sprite):
 		self.reserved = None
 		self.beingCarried = False
 		self.lastCoords = None
+		if self.sound and my.camera.isVisible(self.rect):
+			sound.play(self.sound, 0.2)
 		#self.initTooltip()
 
 
@@ -79,6 +81,8 @@ class Item(pygame.sprite.Sprite):
 				self.rect.topleft = (0, 0)
 				self.coords = None
 				self.remove(my.itemsOnTheFloor)
+			else:
+				self.add(my.itemsOnTheFloor)
 			self.lastCoords = self.coords
 
 			#self.tooltip.text = 'reserved: %s' %(self.reserved)
@@ -95,6 +99,7 @@ class Item(pygame.sprite.Sprite):
 
 class Wood(Item):
 	def __init__(self, quantity, coords):
+		self.sound = None
 		Item.__init__(self, 'wood', quantity, coords)
 
 
@@ -105,6 +110,7 @@ class Wood(Item):
 
 class Fish(Item):
 	def __init__(self, quantity, coords):
+		self.sound = 'splash'
 		Item.__init__(self, 'fish', quantity, coords)
 
 
@@ -119,6 +125,7 @@ class Fish(Item):
 
 class Ore(Item):
 	def __init__(self, quantity, coords, mineral):
+		self.sound = 'pop'
 		Item.__init__(self, mineral, quantity, coords)
 		self.mineral = mineral
 

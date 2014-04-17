@@ -54,13 +54,13 @@ MAXOREONFLOOR = 20
 TREECHOPSPEED = 1
 MAXTREESDESIGNATED = 30 # to help performance
 OREMINESPEED = 1
-CONSTRUCTIONSPEED = 3 # progress towards completion added per tick per builder
-FISHFREQUENCY = 400 # lower is higher chance of fish per frame
+CONSTRUCTIONSPEED = 1 # progress towards completion added per tick per builder
+FISHFREQUENCY = 2000 # lower is higher chance of fish per frame
 FISHPERFISH = 100 # fish per Fish() caught by fishermen (+/- 20)
 FISHCONSUMEDPERTICK = 0.2 # fish consumed per frame by each person eating at the fishmongers
 MAXFISHONFLOOR = 10
 
-STARTRESOURCES    = {'wood': 300, 'iron': 10, 'coal': 0}
+STARTRESOURCES    = {'wood': 1000, 'iron': 10, 'coal': 0}
 HUMANMOVESPEED = 3
 STARTINGHAPPINESS = 20
 MAXHUNGER = 2000

@@ -10,25 +10,25 @@ def loadImg(buildingName):
 my.BUILDINGNAMES = ['hut', 'shed', 'orchard', 'fishing boat', 'fish mongers','pool' , 'town hall']
 my.BUILDINGSTATS = {}
 my.BUILDINGSTATS['hut']       =  {'description':'Spawns a human when placed.',
-								'buildTime': 500, 'buildMaterials': {'wood': 25},
+								'buildTime': 5000, 'buildMaterials': {'wood': 25},
 								'img': loadImg('hut')}
 my.BUILDINGSTATS['shed']      = {'description':'Store all sorts of goods here.',
-								'buildTime': 2000, 'buildMaterials': {'wood': 75},
+								'buildTime': 10000, 'buildMaterials': {'wood': 75},
 								'img': loadImg('shed')}
 my.BUILDINGSTATS['orchard']   = {'description':'Feeds up to 5 nearby humans.',
-								'buildTime': 500, 'buildMaterials': {'wood': 150},
+								'buildTime': 5000, 'buildMaterials': {'wood': 150},
 								'img': loadImg('orchard')}
 my.BUILDINGSTATS['fishing boat'] = {'description':'Fishermen fish fish here. Kinda fishy.',
-								'buildTime': 1500, 'buildMaterials': {'wood': 100},
+								'buildTime': 6000, 'buildMaterials': {'wood': 100},
 								'img': loadImg('fishingBoat')}
 my.BUILDINGSTATS['fish mongers'] = {'description':'Feeds nearby people when fish is brought here.',
-								'buildTime': 2000, 'buildMaterials': {'wood': 150},
+								'buildTime': 8000, 'buildMaterials': {'wood': 150},
 								'img': loadImg('fishMongers')}
 my.BUILDINGSTATS['pool']       =  {'description':'UNDER DEVELOPMENT.',
-								'buildTime': 2000, 'buildMaterials': {'wood': 100, 'iron': 10},
+								'buildTime': 5000, 'buildMaterials': {'wood': 100, 'iron': 10},
 								'img': loadImg('pool')}
 my.BUILDINGSTATS['town hall'] = {'description':'Control town legislation and all that jazz.',
-								'buildTime': 10000, 'buildMaterials': {'wood': 500, 'iron': 10},
+								'buildTime': 15000, 'buildMaterials': {'wood': 500, 'iron': 10},
 								'img': loadImg('townHall')}
 
 my.allBuildings = pygame.sprite.Group() 

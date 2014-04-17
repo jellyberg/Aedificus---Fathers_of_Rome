@@ -339,6 +339,8 @@ class BottomBar:
 				building.Pool()
 			elif self.clickedCell == 6:
 				building.TownHall()
+			else:
+				sound.play('error', 0.2)
 		my.screen.blit(self.surf, self.bounds)
 		i=0
 		for tooltip in self.tooltips:
@@ -585,7 +587,8 @@ class OccupationAssigner:
 								if human.occupation == None:
 									human.changeOccupation(mob.OCCUPATIONS[i])
 									sound.play('click')
-									break
+									return
+						sound.play('error', 0.4)
 
 				elif self.minusRectsGlobal[i].collidepoint(my.input.mousePos):
 					my.screen.blit(OccupationAssigner.IMGS['minusHover'], self.minusRectsGlobal[i])
@@ -596,7 +599,8 @@ class OccupationAssigner:
 							if human.occupation == mob.OCCUPATIONS[i]:
 								human.changeOccupation(None)
 								sound.play('click')
-								break
+								return
+						sound.play('error', 0.4)
 
 
 
@@ -854,4 +858,3 @@ class Minimap:
 			x -= x2
 			y -= y2
 			my.camera.focus = my.map.cellsToPixels((x, y))
-			sound.play('click')

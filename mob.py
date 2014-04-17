@@ -496,6 +496,7 @@ class Human(Mob):
 		self.building = None
 		self.destinationSite = None
 		self.lastDestination = None
+		self.buildSoundPlaying = False
 
 
 	def updateBuilder(self):
@@ -574,9 +575,12 @@ class Human(Mob):
 				self.animation = Human.buildAnim
 				self.animFrame = 0
 				playSound = True
-			if randint(0, 250) == 0 or playSound and my.camera.isVisible(self.rect):
-				num = randint(1, 4)
+			if self.animFrame != 6:
+				self.buildSoundPlaying = False
+			elif self.animFrame == 6 and my.camera.isVisible(self.rect) and not self.buildSoundPlaying:
+				num = randint(1, 6)
 				sound.play('hammering%s' %(num))
+				self.buildSoundPlaying = True
 		if my.builtBuildings.has(self.building):
 			self.building = None
 			self.intention = None
@@ -850,6 +854,7 @@ class ThoughtBubble:
 			self.image = ThoughtBubble.bubble.copy()
 		self.image.blit(self.icon, (0,0))
 		self.image.convert_alpha()
+		sound.play('pop', 0.1)
 
 
 	def update(self, thought, pos, isUrgent=False):
