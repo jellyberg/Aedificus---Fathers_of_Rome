@@ -405,7 +405,7 @@ class Human(Mob):
 							self.intention = 'working'
 							done = True
 						else:
-							my.statusMessage = "No storage space for %s" %(item.name)
+							ui.StatusText("No storage space for %s" %(item.name))
 						if done: break
 					if not item.reserved or item.reserved == self:
 						if self.isStorageSpace(my.storageBuildingsWithSpace, item.quantity):
@@ -415,7 +415,7 @@ class Human(Mob):
 							self.intention = 'working'
 							done = True
 						else:
-							my.statusMessage = "No storage space for %s" %(item.name)
+							ui.StatusText("No storage space for %s" %(item.name))
 					if done: break
 		if self.destinationItem and self.rect.colliderect(self.destinationItem.rect) \
 				and self.destinationItem.reserved == self: # pick up item
@@ -438,7 +438,7 @@ class Human(Mob):
 					self.destination = self.destinationSite.coords
 					return
 				else:
-					my.statusMessage = 'Build a fishmongers!'
+					ui.StatusText('Build a fishmongers!')
 				return
 			# item is not fish....
 			sites = my.map.findNearestBuildings(self.coords, my.storageBuildingsWithSpace)
@@ -450,7 +450,7 @@ class Human(Mob):
 					self.destination = self.destinationSite.coords
 				if done: break
 			if not self.destinationSite:
-				my.statusMessage = "No storage space for %s" %(self.carrying.name)
+				ui.StatusText("No storage space for %s" %(self.carrying.name))
 				self.intention = None
 				self.stopCarryingJob()
 				return
@@ -854,7 +854,8 @@ class ThoughtBubble:
 			self.image = ThoughtBubble.bubble.copy()
 		self.image.blit(self.icon, (0,0))
 		self.image.convert_alpha()
-		sound.play('pop', 0.1)
+		if not self.animated:
+			sound.play('pop', 0.1)
 
 
 	def update(self, thought, pos, isUrgent=False):
@@ -886,7 +887,8 @@ class Corpse(pygame.sprite.Sprite):
 		if self.animCount > -90: # fall over
 			self.img = pygame.transform.rotate(self.livingImage, self.animCount)
 			self.animCount -= 5
-		else: self.img = Corpse.image
+		else:
+			self.img = Corpse.image
 		my.surf.blit(self.img, self.pos)
 		self.handleTooltip()
 

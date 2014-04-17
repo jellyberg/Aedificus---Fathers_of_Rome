@@ -1,7 +1,7 @@
 import pygame, random
 from pygame.locals import *
 
-DEBUGMODE = True
+DEBUGMODE = 1
 CHEATS = {'noHunger': 0, 'fastActions': 0, 'fastMoving': 0}
 
 pygame.mixer.pre_init(44100,-16,2, 1024)
@@ -54,7 +54,7 @@ MAXOREONFLOOR = 20
 TREECHOPSPEED = 1
 MAXTREESDESIGNATED = 30 # to help performance
 OREMINESPEED = 1
-CONSTRUCTIONSPEED = 1 # progress towards completion added per tick per builder
+CONSTRUCTIONSPEED = 3 # progress towards completion added per tick per builder
 FISHFREQUENCY = 2000 # lower is higher chance of fish per frame
 FISHPERFISH = 100 # fish per Fish() caught by fishermen (+/- 20)
 FISHCONSUMEDPERTICK = 0.2 # fish consumed per frame by each person eating at the fishmongers
@@ -75,8 +75,9 @@ if CHEATS['noHunger']:
 if CHEATS['fastActions']:
 	TREECHOPSPEED = 100
 	CONSTRUCTIONSPEED = 100
+	OREMINESPEED = 100
 if CHEATS['fastMoving']:
-	HUMANMOVESPEED = 10
+	HUMANMOVESPEED = 50
 
 
 

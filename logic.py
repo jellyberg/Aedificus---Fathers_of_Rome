@@ -57,15 +57,18 @@ class Handler:
 		if not my.paused:
 			self.pauseAlpha = 0
 			my.surf.blit(my.map.surf, (0, 0))
+
 			my.ticks += 1
 			for i in range(1, 20):
 				if my.ticks % i == 0:
 					my.tick[i] = True
 				else:
 					my.tick[i] = False
+
 			self.sunx += my.SUNMOVESPEED
 			if self.sunx > my.MAPWIDTH: self.sunx = -30
 			my.sunPos = (self.sunx, my.MAPHEIGHT + 10)
+
 			my.map.update()
 			building.updateBuildings()
 			item.update()
@@ -73,6 +76,10 @@ class Handler:
 			my.hud.updateWorldUI()
 			my.camera.update()
 			my.hud.updateHUD()
+
+			# TEMP
+			if pygame.locals.K_q in my.input.unpressedKeys:
+				ui.StatusText('this is a test')
 
 		else:
 			if self.pauseAlpha < 150: self.pauseAlpha += 5

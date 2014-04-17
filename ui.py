@@ -44,7 +44,7 @@ class Hud:
 		self.occupationAssigner = OccupationAssigner()
 		self.designator = Designator()
 		self.minimap = Minimap()
-		self.statusText = StatusText()
+		self.statusArea = StatusArea()
 		my.surf = pygame.Surface(my.map.surf.get_size())
 		self.regenSurf = False
 
@@ -55,7 +55,7 @@ class Hud:
 		self.occupationAssigner.update()
 		self.designator.update()
 		self.minimap.update()
-		self.statusText.update()
+		self.statusArea.update()
 		# RESOURCE AMOUNTS
 		i = 0
 		currentWidth = 0
@@ -694,6 +694,7 @@ class SelectionBox(pygame.sprite.Sprite):
 			maxDesignated = my.MAXORESDESIGNATED
 			terrainTypes = ['coal', 'iron']
 		selected = pygame.sprite.Group()
+		alerted = False
 		for terrainType in terrainTypes:
 			selected.add((self.findTerrainType(terrainType, group)).sprites())
 		if selected:
@@ -701,7 +702,9 @@ class SelectionBox(pygame.sprite.Sprite):
 				if len(group) < maxDesignated:
 					group.add(sprite)
 				else:
-					my.statusMessage = 'Woah, too many %s designated! Your workers have forgotten some.' %(terrainTypes)
+					if not alerted: 
+						StatusText('Woah, too many %s designated! Your workers have forgotten some.' %(terrainTypes))
+						alerted = True
 		self.kill()
 
 
@@ -748,24 +751,66 @@ class PulseLight(pygame.sprite.Sprite):
 
 
 
-class StatusText:
-	"""Displays my.statusMessage as a tooltip when it is changed in the upper left of the screen"""
+class StatusArea:
+	"""Handles any status messages that occur, moving them down and fading them out"""
 	def __init__(self):
-		self.lastStatus = my.statusMessage
-		self.pos = int(my.WINDOWWIDTH / 4) * 3, int(my.WINDOWHEIGHT / 4)
-		self.tooltip = Tooltip(my.statusMessage, (10, 40), BIGFONT)
-		self.tooltip.fadeRate = 1
-		self.tooltip.rect.topright = self.pos
-	
+		my.statuses = pygame.sprite.Group()
+		my.recentStatuses = pygame.sprite.Group()
+		self.statusList = []
+
 
 	def update(self):
-		if my.statusMessage != self.lastStatus:
-			self.tooltip.text = my.statusMessage
-			self.tooltip.simulate(True)
-			self.tooltip.alpha = 255
-		else:
-			self.tooltip.simulate(False)
-		self.lastStatus = my.statusMessage
+		for statusObj in my.statuses.sprites():
+			if statusObj not in self.statusList:
+				self.statusList = [statusObj] + self.statusList
+		currentHeight = 0
+		for status in self.statusList[:]:
+			if status not in my.statuses: # is faded out
+				self.statusList.remove(status)
+			else:
+				status.update(GAP * 10 + currentHeight)
+				currentHeight += status.tooltip.rect.height + GAP
+		for recentStatus in my.recentStatuses.sprites():
+			if my.ticks - recentStatus.startTicks > StatusText.recentStatusLifetime:
+				recentStatus.kill()
+
+
+
+class StatusText(pygame.sprite.Sprite):
+	"""
+	Displays important info to the player.
+	Is moved down when another message comes in, is faded out after a period of time
+	"""
+	statusLifetime = 200
+	recentStatusLifetime = 1000  # how long before a status pops up again when called repeatedly
+	def __init__(self, text):
+		for obj in my.recentStatuses.sprites():
+			if obj.text == text: return # don't have duplicate messages at once
+		pygame.sprite.Sprite.__init__(self)
+		self.add(my.statuses)
+		self.add(my.recentStatuses)
+		self.startTicks = my.ticks
+		self.text = text
+		self.tooltip = Tooltip(text, (10, 40), BIGFONT)
+		self.tooltip.fadeRate = 1
+		self.tooltip.rect.topleft = (GAP, 0)
+		self.tooltip.alpha = 100
+		self.fadeOut = False
+		self.destination = (GAP, GAP)
+		sound.play('pop')
+
+
+	def update(self, destinationY): # destinationY may be the StatusText's current y value
+		if my.ticks - self.startTicks > StatusText.statusLifetime:
+			self.fadeOut = True
+		self.destination = (GAP, destinationY)
+		destx, desty = self.destination
+		if desty > self.tooltip.rect.top:
+			self.tooltip.rect.y += 5
+		if self.tooltip.alpha > 0:
+			self.tooltip.simulate(not self.fadeOut)
+		if self.tooltip.alpha < 1 or self.tooltip.rect.collidepoint(my.input.mousePos) and my.input.mouseUnpressed == 1:
+			self.remove(my.statuses)
 
 
 
