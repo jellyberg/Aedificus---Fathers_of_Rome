@@ -8,6 +8,7 @@ class Handler:
 		my.tick = []
 		for i in range(20):
 			my.tick.append(False)
+			
 		my.paused = False
 		my.statusMessage = 'None'
 		my.map = map.Map()
@@ -15,6 +16,7 @@ class Handler:
 		my.input = input.Input()
 		my.camera = map.Camera()
 		my.hud = ui.Hud()
+
 		my.mode = 'look' 
 		my.resources = {'wood': my.STARTRESOURCES['wood'], 'iron': my.STARTRESOURCES['iron'], 
 						'coal': my.STARTRESOURCES['coal']}
@@ -22,22 +24,11 @@ class Handler:
 		my.gameRunning = True
 		self.sunx = int(my.MAPWIDTH / 2)
 		my.sunPos = (self.sunx, my.MAPHEIGHT + 10)
+
 # HUMANS FOR TESTING
 		for i in range(3):
 			mob.Human((random.randint(int(my.MAPXCELLS / 2) - 5, int(my.MAPXCELLS / 2) + 5),
 					   random.randint(int(my.MAPYCELLS / 2) - 5, int(my.MAPYCELLS / 2) + 5)), None)
-		for i in range(0):
-			mob.Human((random.randint(int(my.MAPXCELLS / 2) - 5, int(my.MAPXCELLS / 2) + 5),
-					   random.randint(int(my.MAPYCELLS / 2) - 5, int(my.MAPYCELLS / 2) + 5)), 'woodcutter')
-		for i in range(0):
-			mob.Human((random.randint(int(my.MAPXCELLS / 2) - 5, int(my.MAPXCELLS / 2) + 5),
-					   random.randint(int(my.MAPYCELLS / 2) - 5, int(my.MAPYCELLS / 2) + 5)), 'builder')
-		for i in range(0):
-			mob.Human((random.randint(int(my.MAPXCELLS / 2) - 5, int(my.MAPXCELLS / 2) + 5),
-					   random.randint(int(my.MAPYCELLS / 2) - 5, int(my.MAPYCELLS / 2) + 5)), 'miner')
-		for i in range(0):
-			mob.Human((random.randint(int(my.MAPXCELLS / 2) - 5, int(my.MAPXCELLS / 2) + 5),
-					   random.randint(int(my.MAPYCELLS / 2) - 5, int(my.MAPYCELLS / 2) + 5)), 'fisherman')
 
 		for i in range(20):
 			mob.Rabbit()

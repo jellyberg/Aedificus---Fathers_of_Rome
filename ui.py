@@ -157,7 +157,7 @@ class Button:
 			self.currentSurf = self.buttonSurf
 		if userInput.mouseUnpressed == True and self.rect.collidepoint(my.input.mousePos):
 			self.isClicked = True
-			sound.play('click')
+			sound.play('click', 0.8, False)
 
 
 
@@ -340,7 +340,7 @@ class BottomBar:
 			elif self.clickedCell == 6:
 				building.TownHall()
 			else:
-				sound.play('error', 0.2)
+				sound.play('error', 0.2, False)
 		my.screen.blit(self.surf, self.bounds)
 		i=0
 		for tooltip in self.tooltips:
@@ -363,6 +363,8 @@ class BottomBar:
 			# reset surf if hover or click is finished
 			self.surf = self.SURFS[self.tab].copy()
 			resetted = True
+			if self.hovered != self.lastHovered and self.hovered is not None:
+				sound.play('tick', 0.8, False)
 		for i in range(len(self.globalRects)):
 			rect = self.globalRects[i]
 			if rect.collidepoint(my.input.mousePos):
@@ -373,7 +375,7 @@ class BottomBar:
 					self.surf.blit(self.cellClick, self.localRects[i])
 				if my.input.mouseUnpressed == 1:
 					self.clickedCell = i
-					sound.play('click')
+					sound.play('click', 0.8, False)
 		self.lastClicked, self.lastHovered = self.clickedCell, self.hovered
 
 
@@ -397,6 +399,7 @@ class Designator:
 		self.tabHoveredSurf.blit(self.tabHighlight, (0, 0))
 		self.collapsed = False
 		self.animate = None
+		self.lastHovered = None
 
 		self.buttonRects = []
 		x, y = self.OPENTOPLEFT
@@ -422,7 +425,7 @@ class Designator:
 					self.collapsed = False
 					self.animate = 'open'
 					self.surf = self.baseSurf
-					sound.play('click')
+					sound.play('click', 0.8, False)
 			else:
 				self.surf = self.baseSurf
 		# COLLAPSE TAB
@@ -433,7 +436,7 @@ class Designator:
 					self.collapsed = True
 					self.animate = 'close'
 					self.surf = self.baseSurf
-					sound.play('click')
+					sound.play('click', 0.8, False)
 			else:
 				self.surf = self.baseSurf
 		# ANIMATE
@@ -461,6 +464,9 @@ class Designator:
 		for rect in self.buttonRects:
 			if rect.collidepoint(my.input.mousePos):
 				my.screen.blit(self.highlight, rect)
+				if rect != self.lastHovered:
+					sound.play('tick', 0.8, False)
+				self.lastHovered = rect
 				if my.input.mousePressed == 1:
 					my.screen.blit(self.highlight, rect)
 				if my.input.mouseUnpressed == 1:
@@ -468,7 +474,7 @@ class Designator:
 						my.designationMode = 'tree'
 					elif i == 1:
 						my.designationMode = 'ore'
-					sound.play('click')
+					sound.play('click', 0.8, False)
 			i += 1
 
 
@@ -488,6 +494,7 @@ class OccupationAssigner:
 		self.genSurf()
 		self.tooltip = Tooltip('BLANK TOOLTIP', (self.rect.left + GAP, self.rect.bottom + GAP))
 		self.displayTooltip = False
+		self.lastHovered = None
 
 
 	def update(self):
@@ -559,10 +566,12 @@ class OccupationAssigner:
 
 	def handleInput(self):
 		"""Updates the hover and click images, and changes occupation counts"""
-		if self.rect.collidepoint(my.input.mousePos): # avoid unnecessary collsion detection
+		hovered = None
+		if self.rect.collidepoint(my.input.mousePos): # avoid unnecessary collision detection
 			for i in range(len(self.humanRectsGlobal)):
 				if self.humanRectsGlobal[i].collidepoint(my.input.mousePos) or self.plusRectsGlobal[i].collidepoint(my.input.mousePos)\
 												or self.minusRectsGlobal[i].collidepoint(my.input.mousePos):
+					hovered = self.humanRectsGlobal[i]
 					self.displayTooltip = True
 					if mob.OCCUPATIONS[i] == 'None':
 						job = 'No job'
@@ -578,6 +587,7 @@ class OccupationAssigner:
 						self.tooltip.rect.right = my.WINDOWWIDTH - 1
 
 				if self.plusRectsGlobal[i].collidepoint(my.input.mousePos):
+					hovered = self.plusRectsGlobal[i]
 					my.screen.blit(OccupationAssigner.IMGS['plusHover'], self.plusRectsGlobal[i])
 					if my.input.mousePressed == 1:
 						my.screen.blit(OccupationAssigner.IMGS['plusClick'], self.plusRectsGlobal[i])
@@ -586,11 +596,12 @@ class OccupationAssigner:
 							for human in my.allHumans.sprites():
 								if human.occupation == None:
 									human.changeOccupation(mob.OCCUPATIONS[i])
-									sound.play('click')
+									sound.play('click', 0.8, False)
 									return
-						sound.play('error', 0.4)
+						sound.play('error', 0.4, False)
 
 				elif self.minusRectsGlobal[i].collidepoint(my.input.mousePos):
+					hovered = self.minusRectsGlobal[i]
 					my.screen.blit(OccupationAssigner.IMGS['minusHover'], self.minusRectsGlobal[i])
 					if my.input.mousePressed == 1:
 						my.screen.blit(OccupationAssigner.IMGS['minusClick'], self.minusRectsGlobal[i])
@@ -598,9 +609,12 @@ class OccupationAssigner:
 						for human in my.allHumans.sprites():
 							if human.occupation == mob.OCCUPATIONS[i]:
 								human.changeOccupation(None)
-								sound.play('click')
+								sound.play('click', 0.8, False)
 								return
-						sound.play('error', 0.4)
+						sound.play('error', 0.4, False)
+			if hovered != self.lastHovered and hovered is not None:
+				sound.play('tick', 0.8, False)
+		self.lastHovered = hovered
 
 
 
@@ -797,7 +811,7 @@ class StatusText(pygame.sprite.Sprite):
 		self.tooltip.alpha = 100
 		self.fadeOut = False
 		self.destination = (GAP, GAP)
-		sound.play('pop')
+		sound.play('pop', 0.8, False)
 
 
 	def update(self, destinationY): # destinationY may be the StatusText's current y value
@@ -829,10 +843,12 @@ class Minimap:
 		self.row = 0
 		self.updateMapsurf()
 		self.updateMobBlips()
+		self.hoverSurf = pygame.Surface(self.rect.size)
+		self.hoverSurf.fill(my.WHITE)
+		self.hoverSurf.set_alpha(30)
 
 
 	def update(self):
-		self.handleInput()
 		for i in range(my.MINIMAPUPDATESPEED):
 			self.updateRowOfSurf()
 		self.surf.blit(self.mapSurf, (0,0))
@@ -845,6 +861,7 @@ class Minimap:
 		self.updateCameraRect()
 		my.screen.blit(self.surf, self.rect)
 		my.screen.blit(Minimap.borderImg, (self.rect.left - 10, self.rect.top - 10))
+		self.handleInput()
 
 
 	def updateMapsurf(self):
@@ -897,9 +914,11 @@ class Minimap:
 
 	def handleInput(self):
 		"""Jump the camera to the clicked location"""
-		if my.input.mousePressed == 1 and self.rect.collidepoint(my.input.mousePos):
-			x, y = my.input.mousePos
-			x2, y2 = self.rect.topleft
-			x -= x2
-			y -= y2
-			my.camera.focus = my.map.cellsToPixels((x, y))
+		if self.rect.collidepoint(my.input.mousePos):
+			my.screen.blit(self.hoverSurf, self.rect)
+			if my.input.mousePressed == 1:
+				x, y = my.input.mousePos
+				x2, y2 = self.rect.topleft
+				x -= x2
+				y -= y2
+				my.camera.focus = my.map.cellsToPixels((x, y))

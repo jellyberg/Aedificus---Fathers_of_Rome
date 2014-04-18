@@ -59,8 +59,8 @@ FISHFREQUENCY = 2000 # lower is higher chance of fish per frame
 FISHPERFISH = 100 # fish per Fish() caught by fishermen (+/- 20)
 FISHCONSUMEDPERTICK = 0.2 # fish consumed per frame by each person eating at the fishmongers
 MAXFISHONFLOOR = 10
+STARTRESOURCES    = {'wood': 300, 'iron': 10, 'coal': 0}
 
-STARTRESOURCES    = {'wood': 1000, 'iron': 10, 'coal': 0}
 HUMANMOVESPEED = 3
 STARTINGHAPPINESS = 20
 MAXHUNGER = 2000
@@ -74,7 +74,7 @@ if CHEATS['noHunger']:
 	STARTINGHUNGER = 10000000000000000000000000000000000000000000000000000000000000
 if CHEATS['fastActions']:
 	TREECHOPSPEED = 100
-	CONSTRUCTIONSPEED = 100
+	CONSTRUCTIONSPEED = 500
 	OREMINESPEED = 100
 if CHEATS['fastMoving']:
 	HUMANMOVESPEED = 50

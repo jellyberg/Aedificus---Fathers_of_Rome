@@ -157,6 +157,11 @@ class Mob(pygame.sprite.Sprite):
 		if my.allHumans.has(self):
 			if my.camera.isVisible(self.rect):
 				sound.play('groan')
+			if self.occupation == None:
+				job = 'carrier'
+			else:
+				job = self.occupation
+			ui.StatusText('%s, esteemed %s, has %s' %(self.name, job, self.causeOfDeath))
 			if self.occupation == None: self.stopCarryingJob()
 			elif self.occupation == 'builder': self.removeSiteReservation()
 			elif self.occupation == 'woodcutter': self.stopWoodcutterJob()
@@ -328,6 +333,9 @@ class Human(Mob):
 			self.causeOfDeath = 'starved to death'
 			self.die()
 		self.lastHunger = self.hunger
+
+		if self.thought == 'eating' and randint(0, 120) == 0:
+			sound.play('eating%s' %(randint(1, 3)))
 
 		# THOUGHTBUBBLE
 		bubblePos = (self.rect.left + ui.GAP, self.rect.top - my.BUBBLEMARGIN)
