@@ -68,8 +68,8 @@ class Hud:
 		# RESOURCE AMOUNTS
 		i = 0
 		currentWidth = 0
-		for key in my.resources.keys():
-			currentWidth += resourceText('%s: %s' % (key, my.resources[key]), (GAP * (i + 1) + currentWidth, GAP))
+		for resource in my.RESOURCENAMEORDER:
+			currentWidth += resourceText('%s: %s' % (resource, my.resources[resource]), (GAP * (i + 1) + currentWidth, GAP))
 			i += 1
 
 
@@ -275,7 +275,7 @@ class BottomBar:
 		stats = my.BUILDINGSTATS # synctactic sugar
 		self.SURFS = [self.genSurf([stats['hut']['img'], stats['shed']['img'],
 					  stats['orchard']['img'], stats['fishing boat']['img'], stats['fish mongers']['img'],
-					  stats['pool']['img'], stats['town hall']['img']])]
+					  stats['pool']['img'], stats['blacksmith']['img'], stats['town hall']['img']])]
 		self.surf.blit(self.SURFS[self.tab], (0, 0))
 
 
@@ -347,6 +347,8 @@ class BottomBar:
 			elif self.clickedCell == 5:
 				building.Pool()
 			elif self.clickedCell == 6:
+				building.Blacksmith()
+			elif self.clickedCell == 7:
 				building.TownHall()
 			else:
 				sound.play('error', 0.2, False)

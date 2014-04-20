@@ -20,6 +20,7 @@ class Handler:
 		my.mode = 'look' 
 		my.resources = {'wood': my.STARTRESOURCES['wood'], 'iron': my.STARTRESOURCES['iron'], 
 						'coal': my.STARTRESOURCES['coal']}
+		my.RESOURCENAMEORDER = ['wood', 'coal', 'iron']
 		my.updateSurf = True
 		my.gameRunning = True
 		self.sunx = int(my.MAPWIDTH / 2)

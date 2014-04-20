@@ -436,33 +436,6 @@ class Human(Mob):
 				self.intention = None
 				self.stopCarryingJob()
 				return
-
-			## if fish, only send to fishmongers
-			#if self.carrying.name == 'fish':
-			#	fishMongers = my.map.findNearestBuildings(self.coords, my.fishMongers)
-			#	if fishMongers:
-			#		site = fishMongers[0]
-			#		self.intention = 'working'
-			#		self.destinationSite = site
-			#		self.destination = self.destinationSite.coords
-			#		return
-			#	else:
-			#		ui.StatusText('Build a fishmongers!')
-			#	return
-			## item is not fish....
-			#sites = my.map.findNearestBuildings(self.coords, my.storageBuildingsWithSpace)
-			#done = False
-			#for site in sites:
-			#	if site.totalStored + self.carrying.quantity < site.storageCapacity:
-			#		self.intention = 'working'
-			#		self.destinationSite = site
-			#		self.destination = self.destinationSite.coords
-			#	if done: break
-			#if not self.destinationSite:
-			#	ui.StatusText("No storage space for %s" %(self.carrying.name))
-			#	self.intention = None
-			#	self.stopCarryingJob()
-			#	return
 		# STORE ITEM
 		if self.destinationSite and self.coords == self.destinationSite.coords:
 			self.destinationSite.storeResource(self.carrying.name, self.carrying.quantity)
@@ -863,7 +836,7 @@ class ThoughtBubble:
 			self.image = ThoughtBubble.bubble.copy()
 		self.image.blit(self.icon, (0,0))
 		self.image.convert_alpha()
-		if not self.animated:
+		if not self.animated and my.ticks > 1:
 			sound.play('pop', 0.1)
 
 

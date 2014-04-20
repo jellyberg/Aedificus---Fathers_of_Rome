@@ -7,28 +7,31 @@ def loadImg(buildingName):
 	return pygame.image.load('assets/buildings/' + buildingName + '.png').convert_alpha()
 
 
-my.BUILDINGNAMES = ['hut', 'shed', 'orchard', 'fishing boat', 'fish mongers','pool' , 'town hall']
+my.BUILDINGNAMES = ['hut', 'shed', 'orchard', 'fishing boat', 'fish mongers', 'pool' , 'blacksmith', 'town hall']
 my.BUILDINGSTATS = {}
-my.BUILDINGSTATS['hut']       =  {'description':'Spawns a human when placed.',
+my.BUILDINGSTATS['hut']       =  {'description':'A new citizen is born when built.',
 								'buildTime': 3000, 'buildMaterials': {'wood': 25},
 								'img': loadImg('hut')}
 my.BUILDINGSTATS['shed']      = {'description':'Store all sorts of goods here.',
 								'buildTime': 6000, 'buildMaterials': {'wood': 75},
 								'img': loadImg('shed')}
-my.BUILDINGSTATS['orchard']   = {'description':'Feeds up to 5 nearby humans.',
+my.BUILDINGSTATS['orchard']   = {'description':'Feeds up to 5 nearby citizens at once.',
 								'buildTime': 3000, 'buildMaterials': {'wood': 150},
 								'img': loadImg('orchard')}
-my.BUILDINGSTATS['fishing boat'] = {'description':'Fishermen fish fish here. Kinda fishy.',
+my.BUILDINGSTATS['fishing boat'] = {'description':'Fishermen fish fish here. Duh.',
 								'buildTime': 5000, 'buildMaterials': {'wood': 100},
 								'img': loadImg('fishingBoat')}
-my.BUILDINGSTATS['fish mongers'] = {'description':'Feeds nearby people when fish is brought here.',
+my.BUILDINGSTATS['fish mongers'] = {'description':'Feeds up to 9 nearby citizens when fish is brought here.',
 								'buildTime': 4000, 'buildMaterials': {'wood': 150},
 								'img': loadImg('fishMongers')}
 my.BUILDINGSTATS['pool']       =  {'description':'UNDER DEVELOPMENT.',
 								'buildTime': 5000, 'buildMaterials': {'wood': 100, 'iron': 10},
 								'img': loadImg('pool')}
+my.BUILDINGSTATS['blacksmith'] = {'description':'Refine ores into metals here.',
+								'buildTime': 8000, 'buildMaterials': {'wood': 200, 'iron': 15},
+								'img': loadImg('blacksmith')}
 my.BUILDINGSTATS['town hall'] = {'description':'Control town legislation and all that jazz.',
-								'buildTime': 10000, 'buildMaterials': {'wood': 500, 'iron': 10},
+								'buildTime': 15000, 'buildMaterials': {'wood': 500, 'iron': 30},
 								'img': loadImg('townHall')}
 
 my.allBuildings = pygame.sprite.Group() 
@@ -47,7 +50,8 @@ my.orchards = pygame.sprite.Group()
 my.fishingBoats = pygame.sprite.Group()
 my.fishMongers = pygame.sprite.Group()
 my.pools = pygame.sprite.Group()
-my.blackSmiths = pygame.sprite.Group()
+my.blacksmiths = pygame.sprite.Group()
+my.blacksmithsWithSpace = pygame.sprite.Group()
 
 cross = pygame.image.load('assets/ui/cross.png').convert_alpha() # indicates invalid construction site
 unscaledConstructionImg = pygame.image.load('assets/buildings/underConstruction.png').convert_alpha()
@@ -323,9 +327,10 @@ class FoodBuilding(Building):
 
 class StorageBuilding(Building):
 	"""Base class for storage buildings"""
-	def __init__(self, name, size, buildCost, buildTime, storageCapacity):
+	def __init__(self, name, size, buildCost, buildTime, storageCapacity, withSpaceGroup):
 		Building.__init__(self, name, size, buildCost, buildTime)
 		self.storageCapacity = storageCapacity
+		self.withSpaceGroup = withSpaceGroup
 		self.stored = {}
 		for resource in my.resources.keys():
 			self.stored[resource] = 0
@@ -341,12 +346,18 @@ class StorageBuilding(Building):
 		self.totalStored = 0
 		for resourceAmount in self.stored.values():
 			self.totalStored += resourceAmount
-		self.tooltip.text = '%s/%s storage crates are full. This %s contains %s.'\
-							 %(self.totalStored, self.storageCapacity, self.name, self.stored)
-		if self.totalStored >= self.storageCapacity and my.storageBuildingsWithSpace.has(self):
-			self.remove(my.storageBuildingsWithSpace)
-		elif self.totalStored < self.storageCapacity and not my.storageBuildingsWithSpace.has(self):
-			my.storageBuildingsWithSpace.add(self)
+		text = 'This %s contains: ' %(self.name)
+		for resource in my.RESOURCENAMEORDER:
+			if self.stored[resource]:
+				text += '%s %s ' %(self.stored[resource], resource)
+		if text == 'This %s contains: ' %(self.name): # no resources
+			text = 'This %s is empty' %(self.name)
+		self.tooltip.text = '%s. %s/%s storage crates are full.'\
+							 %(text, self.totalStored, self.storageCapacity)
+		if self.totalStored >= self.storageCapacity and self.withSpaceGroup.has(self):
+			self.remove(self.withSpaceGroup)
+		elif self.totalStored < self.storageCapacity and not self.withSpaceGroup.has(self):
+			self.withSpaceGroup.add(self)
 
 
 	def storeResource(self, resource, quantity):
@@ -398,10 +409,10 @@ class Hut(Building):
 
 
 class Shed(StorageBuilding):
-	"""Basic storage building"""
+	"""Basic storage building, stores any item without a special storage place."""
 	def __init__(self):
 		stats = my.BUILDINGSTATS['shed']
-		StorageBuilding.__init__(self, 'shed', (3, 3), stats['buildMaterials'], stats['buildTime'], 10000)
+		StorageBuilding.__init__(self, 'shed', (3, 3), stats['buildMaterials'], stats['buildTime'], 500, my.storageBuildingsWithSpace)
 		self.add(my.sheds)
 
 
@@ -511,6 +522,24 @@ class Pool(Building):
 
 	def onPlace(self):
 		pass
+
+
+
+class Blacksmith(StorageBuilding):
+	def __init__(self):
+		stats = my.BUILDINGSTATS['blacksmith']
+		StorageBuilding.__init__(self, 'blacksmith', (4, 4), stats['buildMaterials'], stats['buildTime'], 20, my.blacksmithsWithSpace)
+
+
+	def update(self):
+		if my.builtBuildings.has(self):
+			self.updateStorage()
+		self.updateBasic()
+
+
+	def onPlace(self):
+		self.onPlaceStorage()
+
 
 
 

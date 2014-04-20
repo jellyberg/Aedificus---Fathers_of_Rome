@@ -133,7 +133,7 @@ class Fish(Item):
 class Ore(Item):
 	def __init__(self, quantity, coords, mineral):
 		self.sound = 'pop'
-		Item.__init__(self, mineral, quantity, coords, my.blackSmiths)
+		Item.__init__(self, mineral, quantity, coords, my.blacksmithsWithSpace)
 		self.mineral = mineral
 
 
