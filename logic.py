@@ -64,13 +64,10 @@ class Handler:
 			building.updateBuildings()
 			item.update()
 			mob.updateMobs()
+			ui.handleTooltips()
 			my.hud.updateWorldUI()
 			my.camera.update()
 			my.hud.updateHUD()
-
-			# TEMP
-			if pygame.locals.K_q in my.input.unpressedKeys:
-				ui.StatusText('this is a test')
 
 		else:
 			if self.pauseAlpha < 150: self.pauseAlpha += 5

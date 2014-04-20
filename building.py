@@ -47,6 +47,7 @@ my.orchards = pygame.sprite.Group()
 my.fishingBoats = pygame.sprite.Group()
 my.fishMongers = pygame.sprite.Group()
 my.pools = pygame.sprite.Group()
+my.blackSmiths = pygame.sprite.Group()
 
 cross = pygame.image.load('assets/ui/cross.png').convert_alpha() # indicates invalid construction site
 unscaledConstructionImg = pygame.image.load('assets/buildings/underConstruction.png').convert_alpha()
@@ -111,7 +112,6 @@ class Building(pygame.sprite.Sprite):
 					self.updateAOE()
 					if self.rect.collidepoint(my.input.hoveredPixel):
 						self.drawAOE()
-			self.handleTooltip()
 			self.blit()
 
 

@@ -30,6 +30,15 @@ def resourceText(text, topLeftPos):
 	return bgRect.width
 
 
+def handleTooltips():
+	for building in my.allBuildings:
+		building.handleTooltip()
+	for corpse in my.corpses:
+		corpse.handleTooltip()
+	for mob in my.allMobs:
+		mob.handleTooltip()
+
+
 
 
 class Hud:
@@ -823,8 +832,11 @@ class StatusText(pygame.sprite.Sprite):
 			self.tooltip.rect.y += 5
 		if self.tooltip.alpha > 0:
 			self.tooltip.simulate(not self.fadeOut)
-		if self.tooltip.alpha < 1 or self.tooltip.rect.collidepoint(my.input.mousePos) and my.input.mouseUnpressed == 1:
+		isClicked = (self.tooltip.rect.collidepoint(my.input.mousePos) and my.input.mouseUnpressed == 1)
+		if self.tooltip.alpha < 1 or isClicked:
 			self.remove(my.statuses)
+			if isClicked:
+				sound.play('pop')
 
 
 

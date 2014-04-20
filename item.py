@@ -37,17 +37,24 @@ class Item(pygame.sprite.Sprite):
 	IMG = {}
 	for item in ['wood', 'fish', 'coal', 'iron']:
 		IMG[item] = loadImg(item)
-	def __init__(self, name, quantity, coords, imageName=None):
-		# imageName need only be specified if it's not the same as the item name
+	def __init__(self, name, quantity, coords, destinationGroup='default', imageName=None):
+		"""imageName need only be specified if it's not the same as the item name"""
 		pygame.sprite.Sprite.__init__(self)
 		self.add(my.allItems)
 		self.add(my.itemsOnTheFloor)
 		self.name, self.quantity, self.coords = name, quantity, coords
 		self.rect = pygame.Rect(my.map.cellsToPixels(self.coords), (my.CELLSIZE, my.CELLSIZE))
+
 		if not imageName:
 			imageName = self.name
 		self.image = Item.IMG[imageName]
 		self.carryImage = pygame.transform.scale(self.image, (10, 10))
+
+		if destinationGroup == 'default':
+			self.destinationGroup = my.storageBuildingsWithSpace
+		else:
+			self.destinationGroup = destinationGroup
+
 		self.bob = 10 # item will float up and down on the spot
 		self.bobDir = 'up'
 		self.reserved = None
@@ -111,7 +118,7 @@ class Wood(Item):
 class Fish(Item):
 	def __init__(self, quantity, coords):
 		self.sound = 'splash'
-		Item.__init__(self, 'fish', quantity, coords)
+		Item.__init__(self, 'fish', quantity, coords, my.fishMongers)
 
 
 	def update(self):
@@ -126,7 +133,7 @@ class Fish(Item):
 class Ore(Item):
 	def __init__(self, quantity, coords, mineral):
 		self.sound = 'pop'
-		Item.__init__(self, mineral, quantity, coords)
+		Item.__init__(self, mineral, quantity, coords, my.blackSmiths)
 		self.mineral = mineral
 
 

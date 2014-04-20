@@ -18,8 +18,6 @@ def updateMobs():
 		mob.update()
 	for mob in my.allHumans.sprites():
 		mob.update()
-	for mob in my.allMobs.sprites():
-		mob.handleTooltip()
 	for corpse in my.corpses.sprites():
 		corpse.handleTooltip()
 	if len(my.designatedTrees) > my.MAXTREESDESIGNATED:
@@ -161,7 +159,7 @@ class Mob(pygame.sprite.Sprite):
 				job = 'carrier'
 			else:
 				job = self.occupation
-			ui.StatusText('%s, esteemed %s, has %s' %(self.name, job, self.causeOfDeath))
+			ui.StatusText('%s, %s %s, has %s' %(self.name, random.choice(['esteemed', 'renowned', 'mediocre']), job, self.causeOfDeath))
 			if self.occupation == None: self.stopCarryingJob()
 			elif self.occupation == 'builder': self.removeSiteReservation()
 			elif self.occupation == 'woodcutter': self.stopWoodcutterJob()
@@ -258,9 +256,6 @@ class Human(Mob):
 				self.updateFisherman()
 			if self.occupation == 'miner':
 				self.updateMiner()
-			if self.rect.collidepoint(my.input.hoveredPixel) and my.input.mousePressed == 2:
-				self.occupation = 'miner'
-				self.initMiner()
 			if my.map.cellType(self.coords) == 'water' and self.animation == self.moveAnim:
 				self.animation = self.swimAnim
 			elif my.map.cellType(self.coords) != 'water' and self.animation == self.swimAnim:
@@ -405,18 +400,9 @@ class Human(Mob):
 			items = my.map.findNearestBuildings(self.coords, my.itemsOnTheFloor)
 			if items:
 				for item in items:
-					if item.name == 'fish' and (not item.reserved or item.reserved == self):
-						if self.isStorageSpace(my.fishMongers, item.quantity):
-							self.destination = item.coords
-							self.destinationItem = item
-							item.reserved = self
-							self.intention = 'working'
-							done = True
-						else:
-							ui.StatusText("No storage space for %s" %(item.name))
-						if done: break
+					destGroup = item.destinationGroup
 					if not item.reserved or item.reserved == self:
-						if self.isStorageSpace(my.storageBuildingsWithSpace, item.quantity):
+						if self.isStorageSpace(destGroup, item.quantity):
 							self.destination = item.coords
 							self.destinationItem = item
 							item.reserved = self
@@ -436,20 +422,8 @@ class Human(Mob):
 		"""Carry the item to the nearest storage building with space"""
 		self.carrying.reserved = self
 		if self.intention in [None, 'working'] and not self.destinationSite:
-			# if fish, only send to fishmongers
-			if self.carrying.name == 'fish':
-				fishMongers = my.map.findNearestBuildings(self.coords, my.fishMongers)
-				if fishMongers:
-					site = fishMongers[0]
-					self.intention = 'working'
-					self.destinationSite = site
-					self.destination = self.destinationSite.coords
-					return
-				else:
-					ui.StatusText('Build a fishmongers!')
-				return
-			# item is not fish....
-			sites = my.map.findNearestBuildings(self.coords, my.storageBuildingsWithSpace)
+			destGroup = self.carrying.destinationGroup
+			sites = my.map.findNearestBuildings(self.coords, destGroup)
 			done = False
 			for site in sites:
 				if site.totalStored + self.carrying.quantity < site.storageCapacity:
@@ -462,6 +436,33 @@ class Human(Mob):
 				self.intention = None
 				self.stopCarryingJob()
 				return
+
+			## if fish, only send to fishmongers
+			#if self.carrying.name == 'fish':
+			#	fishMongers = my.map.findNearestBuildings(self.coords, my.fishMongers)
+			#	if fishMongers:
+			#		site = fishMongers[0]
+			#		self.intention = 'working'
+			#		self.destinationSite = site
+			#		self.destination = self.destinationSite.coords
+			#		return
+			#	else:
+			#		ui.StatusText('Build a fishmongers!')
+			#	return
+			## item is not fish....
+			#sites = my.map.findNearestBuildings(self.coords, my.storageBuildingsWithSpace)
+			#done = False
+			#for site in sites:
+			#	if site.totalStored + self.carrying.quantity < site.storageCapacity:
+			#		self.intention = 'working'
+			#		self.destinationSite = site
+			#		self.destination = self.destinationSite.coords
+			#	if done: break
+			#if not self.destinationSite:
+			#	ui.StatusText("No storage space for %s" %(self.carrying.name))
+			#	self.intention = None
+			#	self.stopCarryingJob()
+			#	return
 		# STORE ITEM
 		if self.destinationSite and self.coords == self.destinationSite.coords:
 			self.destinationSite.storeResource(self.carrying.name, self.carrying.quantity)
