@@ -246,7 +246,7 @@ class BottomBar:
 	margin = 14 # at left hand side
 	cell   = 52 # width
 	def __init__(self):
-		self.bounds = pygame.Rect((0, my.WINDOWHEIGHT - BottomBar.height), (BottomBar.margin + BottomBar.cell * 12, BottomBar.height))
+		self.bounds = pygame.Rect((0, my.WINDOWHEIGHT - BottomBar.height - GAP * 2), (BottomBar.margin + BottomBar.cell * 12, BottomBar.height))
 		self.tab = 0
 		self.cellBackgrounds = []
 		bgImg = pygame.image.load('assets/ui/bottomBar/cellBg.png').convert_alpha()

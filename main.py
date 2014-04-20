@@ -14,6 +14,7 @@ def main():
 	runGame()
 
 
+
 def runGame():
 	handler = logic.Handler()
 	while my.gameRunning:

@@ -8,7 +8,7 @@ class Handler:
 		my.tick = []
 		for i in range(20):
 			my.tick.append(False)
-			
+
 		my.paused = False
 		my.statusMessage = 'None'
 		my.map = map.Map()
