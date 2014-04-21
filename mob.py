@@ -7,7 +7,7 @@ my.allHumans = pygame.sprite.Group()
 my.animals = pygame.sprite.Group()
 my.corpses = pygame.sprite.Group()
 
-OCCUPATIONS = ['None', 'builder', 'woodcutter', 'miner', 'fisherman']
+OCCUPATIONS = ['None', 'builder', 'woodcutter', 'miner', 'fisherman', 'blacksmith']
 
 def updateMobs():
 	for mob in my.allMobs.sprites():
@@ -221,6 +221,7 @@ class Human(Mob):
 	fishAnim = loadAnimationFiles('assets/mobs/fish')
 	minerIdleAnim, minerMoveAnim, minerSwimAnim = blitClothes(idleAnimation, moveAnimation, 'miner', swimmingMask)
 	mineAnim = loadAnimationFiles('assets/mobs/mine')
+	blacksmithIdleAnim, blacksmithMoveAnim, blacksmithSwimAnim = blitClothes(idleAnimation, moveAnimation, 'blacksmith', swimmingMask)
 #   BASE CLASS
 	def __init__(self, coords, occupation=None):
 		pygame.sprite.Sprite.__init__(self)
@@ -256,6 +257,8 @@ class Human(Mob):
 				self.updateFisherman()
 			if self.occupation == 'miner':
 				self.updateMiner()
+			if self.occupation == 'blacksmith':
+				self.updateBlacksmith()
 			if my.map.cellType(self.coords) == 'water' and self.animation == self.moveAnim:
 				self.animation = self.swimAnim
 			elif my.map.cellType(self.coords) != 'water' and self.animation == self.swimAnim:
@@ -280,6 +283,8 @@ class Human(Mob):
 			self.initFisherman()
 		elif self.occupation == 'miner':
 			self.initMiner()
+		elif self.occupation == 'blacksmith':
+			self.initBlacksmith()
 
 
 	def stopJob(self):
@@ -297,6 +302,8 @@ class Human(Mob):
 			self.stopFishingJob()
 		elif self.occupation == 'miner':
 			self.stopMiningJob()
+		elif self.occupation == 'blacksmith':
+			self.stopBlacksmithJob()
 
 
 	def initEmotions(self):
@@ -793,6 +800,27 @@ class Human(Mob):
 		if self.animation == Human.fishAnim:
 			self.animation = self.idleAnim
 			self.animCount = 0
+
+
+#   BLACKSMITH
+	def initBlacksmith(self):
+		"""Goes ot nearest blacksmiths and carries out orders"""
+		self.occupation = 'blacksmith'
+		self.idleAnim = Human.blacksmithIdleAnim
+		self.moveAnim = Human.blacksmithMoveAnim
+		self.swimAnim = Human.blacksmithSwimAnim
+		self.animation = self.idleAnim
+		self.destinationSite = None
+		self.fishing = None
+		self.lastSite = None
+
+
+	def updateBlacksmith(self):
+		pass
+
+
+	def stopBlacksmithJob(self):
+		pass
 
 
 

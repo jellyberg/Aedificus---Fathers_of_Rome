@@ -116,6 +116,10 @@ class Building(pygame.sprite.Sprite):
 					self.updateAOE()
 					if self.rect.collidepoint(my.input.hoveredPixel):
 						self.drawAOE()
+				try:
+					self.menu.update()
+				except AttributeError:
+					pass
 			self.blit()
 
 
@@ -539,7 +543,10 @@ class Blacksmith(StorageBuilding):
 
 	def onPlace(self):
 		self.onPlaceStorage()
-
+		menuImgList = []
+		for name in my.BUILDINGNAMES:
+			menuImgList.append(my.BUILDINGSTATS[name]['img'])
+		self.menu = ui.BuildingMenu(self, ['order1', 'order2'], menuImgList, ['tooltip1', 'tooltip2'])
 
 
 

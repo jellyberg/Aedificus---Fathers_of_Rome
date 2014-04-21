@@ -23,13 +23,13 @@ class Handler:
 		my.RESOURCENAMEORDER = ['wood', 'coal', 'iron']
 		my.updateSurf = True
 		my.gameRunning = True
-		self.sunx = int(my.MAPWIDTH / 2)
+		self.sunx = 0
 		my.sunPos = (self.sunx, my.MAPHEIGHT + 10)
 
 # HUMANS FOR TESTING
 		for i in range(3):
 			mob.Human((random.randint(int(my.MAPXCELLS / 2) - 5, int(my.MAPXCELLS / 2) + 5),
-					   random.randint(int(my.MAPYCELLS / 2) - 5, int(my.MAPYCELLS / 2) + 5)), None)
+					   random.randint(int(my.MAPYCELLS / 2) - 5, int(my.MAPYCELLS / 2) + 5)), 'builder')
 
 		for i in range(20):
 			mob.Rabbit()

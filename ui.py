@@ -496,7 +496,7 @@ class OccupationAssigner:
 	for name in ['background', 'plus', 'plusHover', 'plusClick', 'minus', 'minusHover', 'minusClick']:
 		IMGS[name] = pygame.image.load('assets/ui/occupationAssigner/%s.png' %(name)).convert_alpha()
 	OCCUPATIONIMGS = [mob.Human.idleAnimation[0], mob.Human.builderIdleAnim[0], mob.Human.woodcutterIdleAnim[0],
-					  mob.Human.minerIdleAnim[0], mob.Human.fishermanIdleAnim[0]]
+					  mob.Human.minerIdleAnim[0], mob.Human.fishermanIdleAnim[0], mob.Human.blacksmithIdleAnim[0]]
 	MAXCOLUMNS = 3
 	def __init__(self):
 		self.leftx = my.WINDOWWIDTH - OccupationAssigner.IMGS['background'].get_width() - GAP
@@ -626,6 +626,83 @@ class OccupationAssigner:
 			if hovered != self.lastHovered and hovered is not None:
 				sound.play('tick', 0.8, False)
 		self.lastHovered = hovered
+
+
+
+class BuildingMenu:
+	"""A menu that appears when the building is hovered. Allows orders to be given."""
+	IMGS = {}
+	for name in ['plus', 'plusHover', 'plusClick', 'minus', 'minusHover', 'minusClick']:
+		IMGS[name] = pygame.image.load('assets/ui/occupationAssigner/%s.png' %(name)).convert_alpha()
+	def __init__(self, building, orderList, imgList, tooltipList):
+		self.building, self.orderList, self.rawImgList, self.tooltipList = building, orderList, imgList, tooltipList
+		self.topleft = (building.rect.right + GAP, building.rect.top)
+		self.genSurf()
+
+
+	def update(self):
+		my.surf.blit(self.baseSurf, self.topleft)
+
+
+	def genSurf(self):
+		"""Generate surf and rects"""
+		iconSize = 20 # width=height
+		plusMinusSize = 8 # width=height
+		self.imgList = []
+		# SCALE IMAGES TO iconSize
+		for i in range(len(self.rawImgList)):
+			img = pygame.transform.scale(self.rawImgList[i], (iconSize, iconSize))
+			self.imgList.append(img)
+
+		# INIT SURF
+		tempSurf = pygame.Surface((iconSize + plusMinusSize * 2 + GAP * 4, 1000))
+		tempSurf.fill(my.GREYBROWN)
+
+		# GEN RECTS AND SURF
+		self.iconRectsLocal = []
+		self.iconRectsGlobal = []
+		self.plusRectsLocal = []
+		self.plusRectsGlobal = []
+		self.minusRectsLocal = []
+		self.minusRectsGlobal = []
+
+		for i in range(len(self.imgList)):
+			# ICONS
+			iconRect = pygame.Rect((GAP, iconSize * i + GAP * (i + 1)), (iconSize, iconSize))
+			self.iconRectsLocal.append(iconRect)
+			tempSurf.blit(self.imgList[i], iconRect)
+
+			globalIconRect = iconRect.copy()
+			globalIconRect.move_ip(self.topleft)
+			self.iconRectsGlobal.append(globalIconRect)
+
+			# PLUS
+			plusRect = pygame.Rect((0, 0), BuildingMenu.IMGS['plus'].get_size())
+			plusRect.midleft = (iconRect.right + GAP, iconRect.centery)
+			self.plusRectsLocal.append(plusRect)
+			tempSurf.blit(BuildingMenu.IMGS['plus'], plusRect)
+
+			globalPlusRect = plusRect.copy()
+			globalPlusRect.move_ip(self.topleft)
+			self.iconRectsGlobal.append(globalPlusRect)
+
+			# MINUS
+			minusRect = plusRect.copy()
+			minusRect.left = plusRect.right + GAP
+			self.minusRectsLocal.append(minusRect)
+			tempSurf.blit(BuildingMenu.IMGS['minus'], minusRect)
+
+			globalMinusRect = plusRect.copy()
+			globalMinusRect.move_ip(self.topleft)
+			self.iconRectsGlobal.append(globalMinusRect)
+
+			if i == len(self.imgList) - 1: # bottom item
+				surfHeight = iconRect.bottom + GAP
+				self.baseSurf = pygame.Surface((tempSurf.get_width(), surfHeight))
+				self.baseSurf.blit(tempSurf, (0,0))
+
+
+
 
 
 

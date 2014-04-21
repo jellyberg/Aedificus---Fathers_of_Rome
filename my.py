@@ -2,7 +2,7 @@ import pygame, random
 from pygame.locals import *
 
 DEBUGMODE = 1
-CHEATS = {'noHunger': 1, 'fastActions': 1, 'fastMoving': 0}
+CHEATS = {'noHunger': 1, 'fastActions': 1, 'fastMoving': 1}
 
 pygame.mixer.pre_init(44100,-16,2, 1024)
 pygame.init()
@@ -74,7 +74,7 @@ if CHEATS['noHunger']:
 	STARTINGHUNGER = 10000000000000000000000000000000000000000000000000000000000000
 if CHEATS['fastActions']:
 	TREECHOPSPEED = 100
-	CONSTRUCTIONSPEED = 500
+	CONSTRUCTIONSPEED = 10000
 if CHEATS['fastMoving']:
 	HUMANMOVESPEED = 50
 
@@ -97,6 +97,7 @@ LIGHTGREY = (180, 180, 180, 255)
 BROWN     = (139,  69,  19, 255)
 DARKBROWN = (100,  30,   0, 255)
 BROWNBLACK= ( 50,  0,    0, 255)
+GREYBROWN = (160, 110,  90, 255)
 CREAM     = (255, 255, 204, 255)
 COLOURKEY = (  1,   2,   3, 255)
 BLUETRANS = (  0,   0, 255, 100)
