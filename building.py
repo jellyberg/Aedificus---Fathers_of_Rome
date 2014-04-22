@@ -64,8 +64,8 @@ def updateBuildings():
 		my.mode = 'look'
 	for building in my.builtBuildings.sprites():
 		building.handleShadow()
-	my.buildingBeingPlaced.update()
 	my.allBuildings.update()
+	my.buildingBeingPlaced.update()
 
 
 
@@ -92,6 +92,8 @@ class Building(pygame.sprite.Sprite):
 			self.AOEsize = AOEsize
 		else: self.AOE = False
 		self.buildableTerrain = 'grass'
+		self.menu = None # created in the building's onPlace() function
+		self.orders = []
 
 
 	def addToMapFile(self, topleftcell):
@@ -116,10 +118,6 @@ class Building(pygame.sprite.Sprite):
 					self.updateAOE()
 					if self.rect.collidepoint(my.input.hoveredPixel):
 						self.drawAOE()
-				try:
-					self.menu.update()
-				except AttributeError:
-					pass
 			self.blit()
 
 
@@ -203,7 +201,8 @@ class Building(pygame.sprite.Sprite):
 				self.image = self.buildingImage
 				self.onPlace()
 				self.shadow = shadow.Shadow(self, self.buildingImage)
-				#my.hud.genSurf()
+				if self.menu:
+					self.tooltip.rect.x += self.menu.rect.width
 				return
 			else:
 				progress = self.buildProgress / self.totalBuildProgress
@@ -544,9 +543,9 @@ class Blacksmith(StorageBuilding):
 	def onPlace(self):
 		self.onPlaceStorage()
 		menuImgList = []
-		for name in my.BUILDINGNAMES:
+		for name in my.BUILDINGNAMES[0:4]:
 			menuImgList.append(my.BUILDINGSTATS[name]['img'])
-		self.menu = ui.BuildingMenu(self, ['order1', 'order2'], menuImgList, ['tooltip1', 'tooltip2'])
+		self.menu = ui.BuildingMenu(self, ['order1', 'order2', 'order3', 'order4'], menuImgList, ['tooltip1', 'tooltip2', 'tooltip3', 'tooltip4'])
 
 
 

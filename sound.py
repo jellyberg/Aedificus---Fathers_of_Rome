@@ -1,4 +1,4 @@
-import pygame, random
+import pygame, random, my
 
 SOUND = {}
 for filename in ['chop1', 'chop2', 'hammering1', 'hammering2', 'hammering3', 'hammering4', 'hammering5',
@@ -8,8 +8,9 @@ for filename in ['chop1', 'chop2', 'hammering1', 'hammering2', 'hammering3', 'ha
 
 def play(sound, volume=0.8, varyVolume=True ,loops=0):
 	"""Plays the given sound"""
-	if varyVolume:
-		volume -= random.uniform(0.0, 0.4)
-		if volume < 1: volume == 1
-		SOUND[sound].set_volume(volume)
-	SOUND[sound].play(loops)
+	if not my.muted:
+		if varyVolume:
+			volume -= random.uniform(0.0, 0.4)
+			if volume < 1: volume == 1
+			SOUND[sound].set_volume(volume)
+		SOUND[sound].play(loops)

@@ -2,16 +2,16 @@ import pygame, my, math, random, building, mob, sound
 
 my.selectionBoxGroup = pygame.sprite.GroupSingle()
 my.pulseLights = pygame.sprite.Group()
+my.buildingMenus = pygame.sprite.Group()
 
 BASICFONT = pygame.font.Font('assets/fonts/olympus bold.ttf', 14)
-PRETTYFONT = pygame.font.Font('assets/fonts/fontTitle.ttf', 12)
 BIGFONT   = pygame.font.Font('assets/fonts/olympus thin.ttf', 25)
 MEGAFONT  = pygame.font.Font('assets/fonts/olympus thin.ttf', 42)
 GAP = 5
 TOOLTIPWORDSPERLINE = 6  # subtract 1!
 
 
-def genText(text, topLeftPos, colour, font):
+def genText(text, topLeftPos, colour, font=BASICFONT):
 	surf = font.render(text, 1, colour)
 	rect = surf.get_rect()
 	rect.topleft = topLeftPos
@@ -91,7 +91,9 @@ class Hud:
 		if my.selectionBoxGroup.sprite:
 			my.selectionBoxGroup.sprite.update()
 		my.pulseLights.update()
-
+		# BUILDING MENUS
+		for menu in my.buildingMenus.sprites():
+			menu.update()
 
 
 	def genSurf(self):
@@ -629,26 +631,38 @@ class OccupationAssigner:
 
 
 
-class BuildingMenu:
+class BuildingMenu(pygame.sprite.Sprite):
 	"""A menu that appears when the building is hovered. Allows orders to be given."""
 	IMGS = {}
 	for name in ['plus', 'plusHover', 'plusClick', 'minus', 'minusHover', 'minusClick']:
 		IMGS[name] = pygame.image.load('assets/ui/occupationAssigner/%s.png' %(name)).convert_alpha()
 	def __init__(self, building, orderList, imgList, tooltipList):
-		self.building, self.orderList, self.rawImgList, self.tooltipList = building, orderList, imgList, tooltipList
-		self.topleft = (building.rect.right + GAP, building.rect.top)
+		assert len(orderList) == len(imgList) == len(tooltipList), '%s\'s building menu has invalid arguments' %(building.name)
+		pygame.sprite.Sprite.__init__(self)
+		self.add(my.buildingMenus)
+		self.building, self.orderList, self.rawImgList = building, orderList, imgList
+		self.topright = (self.building.rect.left - GAP, self.building.tooltip.rect.top)
+		self.alpha = 250
+		self.lastHovered = None
 		self.genSurf()
+		self.genTooltips(tooltipList)
 
 
 	def update(self):
-		my.surf.blit(self.baseSurf, self.topleft)
+		self.handleInput()
+		self.updateOrderNumbers()
+		for i in range(len(self.tooltips)):
+			hovered = i == self.hoveredTooltip
+			self.tooltips[i].simulate(hovered, True)
 
 
 	def genSurf(self):
-		"""Generate surf and rects"""
+		"""Generate baseSurf and a bajillion rects"""
 		iconSize = 20 # width=height
+		self.iconSize = iconSize # lazy programming   D:
 		plusMinusSize = 8 # width=height
 		self.imgList = []
+		self.topleft  = (self.building.rect.left - GAP - iconSize - plusMinusSize * 2 - GAP * 4, self.building.tooltip.rect.top)
 		# SCALE IMAGES TO iconSize
 		for i in range(len(self.rawImgList)):
 			img = pygame.transform.scale(self.rawImgList[i], (iconSize, iconSize))
@@ -684,7 +698,7 @@ class BuildingMenu:
 
 			globalPlusRect = plusRect.copy()
 			globalPlusRect.move_ip(self.topleft)
-			self.iconRectsGlobal.append(globalPlusRect)
+			self.plusRectsGlobal.append(globalPlusRect)
 
 			# MINUS
 			minusRect = plusRect.copy()
@@ -692,17 +706,89 @@ class BuildingMenu:
 			self.minusRectsLocal.append(minusRect)
 			tempSurf.blit(BuildingMenu.IMGS['minus'], minusRect)
 
-			globalMinusRect = plusRect.copy()
+			globalMinusRect = minusRect.copy()
 			globalMinusRect.move_ip(self.topleft)
-			self.iconRectsGlobal.append(globalMinusRect)
+			self.minusRectsGlobal.append(globalMinusRect)
 
 			if i == len(self.imgList) - 1: # bottom item
 				surfHeight = iconRect.bottom + GAP
 				self.baseSurf = pygame.Surface((tempSurf.get_width(), surfHeight))
 				self.baseSurf.blit(tempSurf, (0,0))
 
+		self.rect = self.baseSurf.get_rect()
+		self.rect.topright = self.topright
+		self.displayRect = self.rect.copy()
+		self.displayRect.inflate(10, 0)
+
+		# TRIANGLE SURF
+		self.triangleSurf = pygame.Surface((10, 10))
+		pygame.draw.polygon(self.triangleSurf, my.GREYBROWN, [(0, 0), (GAP, 5), (0, 10)])
+		self.triangleSurf.set_colorkey(my.BLACK)
 
 
+	def genTooltips(self, textList):
+		"""Generates the list self.tooltips from tooltipList, which correspond to each icon (hopefully)"""
+		self.tooltips = []
+		for i in range(len(textList)):
+			self.tooltips.append(Tooltip(textList[i], (self.rect.right + GAP, self.rect.top + i * self.iconSize)))
+		self.hoveredTooltip = None
+
+
+	def handleInput(self):
+		self.alpha -= 20
+		orders = []
+		if (self.displayRect.collidepoint(my.input.hoveredPixel) and self.alpha > 50) or self.building.rect.collidepoint(my.input.hoveredPixel):
+			self.alpha += 60
+			if self.alpha > 230:
+				self.alpha = 230
+
+		if self.alpha > 0 and my.camera.isVisible(self.rect):
+			self.baseSurf.set_alpha(self.alpha)
+			my.surf.blit(self.baseSurf, self.rect)
+			self.triangleSurf.set_alpha(self.alpha)
+			my.surf.blit(self.triangleSurf, (self.rect.right, self.rect.top + GAP))
+			hovered = None
+			self.hoveredTooltip = None
+			for i in range(len(self.iconRectsGlobal)):
+				if self.iconRectsGlobal[i].collidepoint(my.input.hoveredPixel):
+					self.hoveredTooltip = i
+
+				if self.plusRectsGlobal[i].collidepoint(my.input.hoveredPixel):
+					my.surf.blit(BuildingMenu.IMGS['plusHover'], self.plusRectsGlobal[i])
+					hovered = self.plusRectsGlobal[i]
+					self.hoveredTooltip = i
+					if my.input.mousePressed == 1:
+						my.surf.blit(BuildingMenu.IMGS['plusClick'], self.plusRectsGlobal[i])
+					if my.input.mouseUnpressed == 1:
+						sound.play('click')
+						self.building.orders.append(self.orderList[i])
+					break
+
+				if self.minusRectsGlobal[i].collidepoint(my.input.hoveredPixel):
+					my.surf.blit(BuildingMenu.IMGS['minusHover'], self.minusRectsGlobal[i])
+					hovered = self.minusRectsGlobal[i]
+					self.hoveredTooltip = i
+					if my.input.mousePressed == 1:
+						my.surf.blit(BuildingMenu.IMGS['minusClick'], self.minusRectsGlobal[i])
+					if my.input.mouseUnpressed == 1:
+						try:
+							self.building.orders.remove(self.orderList[i])
+						except ValueError:
+							sound.play('error')
+						else:
+							sound.play('click')
+					break
+			if hovered != self.lastHovered and hovered:
+				sound.play('tick')
+			self.lastHovered = hovered
+
+
+	def updateOrderNumbers(self):
+		for i in range(len(self.orderList)):
+			if self.building.orders.count(self.orderList[i]) > 0 and self.alpha > 0:
+				surf, rect = genText(str(self.building.orders.count(self.orderList[i])), (0,0), my.WHITE)
+				rect.center = self.iconRectsGlobal[i].center
+				my.surf.blit(surf, rect)
 
 
 

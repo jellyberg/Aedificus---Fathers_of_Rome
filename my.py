@@ -2,13 +2,14 @@ import pygame, random
 from pygame.locals import *
 
 DEBUGMODE = 1
-CHEATS = {'noHunger': 1, 'fastActions': 1, 'fastMoving': 1}
+CHEATS = {'noHunger': 1, 'fastActions': 1, 'fastMoving': 0}
 
 pygame.mixer.pre_init(44100,-16,2, 1024)
 pygame.init()
 
 FPS = 40
 FPSCLOCK = pygame.time.Clock()
+muted = False
 
 if DEBUGMODE:
 	WINDOWWIDTH = 1200
@@ -74,7 +75,7 @@ if CHEATS['noHunger']:
 	STARTINGHUNGER = 10000000000000000000000000000000000000000000000000000000000000
 if CHEATS['fastActions']:
 	TREECHOPSPEED = 100
-	CONSTRUCTIONSPEED = 10000
+	CONSTRUCTIONSPEED = 1000
 if CHEATS['fastMoving']:
 	HUMANMOVESPEED = 50
 

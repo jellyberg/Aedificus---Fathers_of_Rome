@@ -45,7 +45,12 @@ class Handler:
 			self.pauseSurf = pygame.Surface((my.WINDOWWIDTH, my.WINDOWHEIGHT))
 			self.pauseTextSurf, self.pauseTextRect = ui.genText('PAUSED (press space to unpause)', (10, 10), my.WHITE, ui.MEGAFONT)
 			self.pauseTextRect.center = (int(my.WINDOWWIDTH / 2), int(my.WINDOWHEIGHT / 2))
-
+		if pygame.locals.K_m in my.input.unpressedKeys:
+			my.muted = not my.muted
+			if my.muted:
+				ui.StatusText('All sounds muted (M to unmute)')
+			if not my.muted:
+				ui.StatusText('All earmeltingly beautiful sounds activated')
 		if not my.paused:
 			self.pauseAlpha = 0
 			my.surf.blit(my.map.surf, (0, 0))
