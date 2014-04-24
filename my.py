@@ -2,7 +2,7 @@ import pygame, random
 from pygame.locals import *
 
 DEBUGMODE = 1
-CHEATS = {'noHunger': 0, 'fastActions': 0, 'fastMoving': 0}
+CHEATS = {'noHunger': 0, 'fastActions': 1, 'fastMoving': 0}
 
 pygame.mixer.pre_init(44100,-16,2, 1024)
 pygame.init()

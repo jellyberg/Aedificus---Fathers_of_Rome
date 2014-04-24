@@ -27,10 +27,10 @@ my.BUILDINGSTATS['fish mongers'] = {'description':'Feeds up to 9 nearby citizens
 my.BUILDINGSTATS['pool']       =  {'description':'UNDER DEVELOPMENT.',
 								'buildTime': 5000, 'buildMaterials': {'wood': 100, 'iron': 10},
 								'img': loadImg('pool')}
-my.BUILDINGSTATS['blacksmith'] = {'description':'Refine ores into building materials and metal based items here.',
+my.BUILDINGSTATS['blacksmith'] = {'description':'A blacksmith refines ores into building materials and metal based items here.',
 								'buildTime': 8000, 'buildMaterials': {'wood': 200},
 								'img': loadImg('blacksmith')}
-my.BUILDINGSTATS['town hall'] = {'description':'Control town legislation and all that jazz.',
+my.BUILDINGSTATS['town hall'] = {'description':'Control town legislation and all that jazz. UNDER DEVELOPMENT',
 								'buildTime': 15000, 'buildMaterials': {'wood': 500, 'iron': 30},
 								'img': loadImg('townHall')}
 
@@ -537,15 +537,18 @@ class Blacksmith(StorageBuilding):
 
 
 	def update(self):
+		self.updateBasic()
 		if my.builtBuildings.has(self):
 			self.updateStorage()
-		self.updateBasic()
-		if self.orders == []:
-			self.reserved = None
-		if self.reserved and self.reserved.coords == self.smithCoords:
-			for order in self.orders:
-				order.update(self)
-				if order.constructionProgress >= 0: break # if constructing an order, just construct that one
+			if self.orders == []:
+				self.reserved = None
+			if self.reserved and self.reserved.coords == self.smithCoords:
+				for order in self.orders:
+					lastProgress = order.constructionProgress
+					order.update(self)
+					if order.constructionProgress > lastProgress:
+						self.reserved.animation = mob.Human.smithAnim
+					if order.constructionProgress >= 0: break # if constructing an order, just construct that one
 
 
 	def onPlace(self):

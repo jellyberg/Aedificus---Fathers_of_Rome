@@ -843,14 +843,14 @@ class Human(Mob):
 
 	def smith(self):
 		"""Just cosmetic, the building handles processing the order"""
-		if self.intention == 'working' and self.destinationSite.coords == self.coords:
-			self.animation = Human.smithAnim
-			self.animFrame = 0
+		self.intention = 'working'
+		self.destinationSite.reserved = self
 		if self.destinationSite.orders == []:
 			self.stopBlacksmithJob()
 
 
 	def stopBlacksmithJob(self):
+		print('stop job')
 		if self.destinationSite:
 			self.destinationSite.reserved = None
 			self.destinationSite = None
