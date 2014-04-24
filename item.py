@@ -1,4 +1,4 @@
-import pygame, my, ui, sound
+import pygame, my, ui, sound, random
 
 my.allItems = pygame.sprite.Group()
 my.itemsOnTheFloor = pygame.sprite.Group()
@@ -35,7 +35,7 @@ def spendResource(resource, quantity):
 class Item(pygame.sprite.Sprite):
 	"""Base class for items dropped when resources are harvested etc"""
 	IMG = {}
-	for item in ['wood', 'fish', 'coal', 'iron']:
+	for item in ['wood', 'fish', 'coal', 'iron', 'nail', 'ingot', 'standard']:
 		IMG[item] = loadImg(item)
 	def __init__(self, name, quantity, coords, destinationGroup='default', imageName=None):
 		"""imageName need only be specified if it's not the same as the item name"""
@@ -103,7 +103,6 @@ class Item(pygame.sprite.Sprite):
 
 
 
-
 class Wood(Item):
 	def __init__(self, quantity, coords):
 		self.sound = None
@@ -112,7 +111,6 @@ class Wood(Item):
 
 	def update(self):
 		Item.update(self)
-
 
 
 class Fish(Item):
@@ -129,10 +127,9 @@ class Fish(Item):
 			self.remove(my.fishOnTheFloor)
 
 
-
 class Ore(Item):
 	def __init__(self, quantity, coords, mineral):
-		self.sound = 'pop'
+		self.sound = 'clunk'
 		Item.__init__(self, mineral, quantity, coords, my.blacksmithsWithSpace)
 		self.mineral = mineral
 
@@ -143,3 +140,79 @@ class Ore(Item):
 			self.add(my.oreOnTheFloor)
 		else:
 			self.remove(my.oreOnTheFloor)
+
+
+class Nail(Item):
+	def __init__(self, quantity, coords):
+		self.sound = 'clunk'
+		Item.__init__(self, 'nail', quantity, coords)
+
+
+	def update(self):
+		Item.update(self)
+
+
+class Ingot(Item):
+	def __init__(self, quantity, coords):
+		self.sound = 'clunk'
+		Item.__init__(self, 'ingot', quantity, coords)
+
+
+	def update(self):
+		Item.update(self)
+
+
+class Standard(Item):
+	def __init__(self, quantity, coords):
+		self.sound = 'clunk'
+		Item.__init__(self, 'standard', quantity, coords)
+
+
+	def update(self):
+		Item.update(self)
+
+
+
+class Order:
+	"""Items are ordered from various buildings then produced there"""
+	def __init__(self, itemName, prerequisites, building, constructionTicks, itemQuantity):
+		self.image = Item.IMG[itemName]
+		self.name = itemName
+		self.prerequisites, self.building = prerequisites, building
+		self.constructionTicks, self.itemQuantity = constructionTicks, itemQuantity
+		self.constructionProgress = -1 # not started
+
+
+	def update(self, building):
+		self.building = building
+		if self.constructionProgress < 0:
+			if self.canConstruct():
+				self.constructionProgress += 1 # start construction
+				for resource in self.prerequisites.keys(): # spend resources
+					self.building.stored[resource] -= self.prerequisites[resource]
+		if self.constructionProgress >= 0:
+			self.constructionProgress += 1
+			if self.constructionProgress >= self.constructionTicks: # construction complete
+				itemSpawnPos = random.choice(self.building.allCoords)
+				if self.name == 'wood':
+					Wood(self.itemQuantity, itemSpawnPos)
+				elif self.name == 'fish':
+					Fish(self.itemQuantity, itemSpawnPos)
+				elif self.name == 'coal':
+					Ore(self.itemQuantity, itemSpawnPos, 'coal')
+				elif self.name == 'iron':
+					Ore(self.itemQuantity, itemSpawnPos, 'iron')
+				elif self.name == 'nail':
+					Nail(self.itemQuantity, itemSpawnPos)
+				elif self.name == 'ingot':
+					Ingot(self.itemQuantity, itemSpawnPos)
+				elif self.name == 'standard':
+					Standard(self.itemQuantity, itemSpawnPos)
+				self.building.orders.remove(self)
+
+
+	def canConstruct(self):
+		for resource in self.prerequisites.keys():
+			if self.building.stored[resource] < self.prerequisites[resource]:
+				return False
+		return True

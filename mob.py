@@ -222,6 +222,7 @@ class Human(Mob):
 	minerIdleAnim, minerMoveAnim, minerSwimAnim = blitClothes(idleAnimation, moveAnimation, 'miner', swimmingMask)
 	mineAnim = loadAnimationFiles('assets/mobs/mine')
 	blacksmithIdleAnim, blacksmithMoveAnim, blacksmithSwimAnim = blitClothes(idleAnimation, moveAnimation, 'blacksmith', swimmingMask)
+	smithAnim = loadAnimationFiles('assets/mobs/smith')
 #   BASE CLASS
 	def __init__(self, coords, occupation=None):
 		pygame.sprite.Sprite.__init__(self)
@@ -608,7 +609,7 @@ class Human(Mob):
 				self.intention, self.thought = None, None
 				self.chopping = False
 				if my.camera.isVisible(self.rect):
-					sound.play('treeFalling', 0.2)
+					sound.play('treeFalling', 0.3)
 		else:
 			self.chopping = False
 			if self.animation not in [self.idleAnim, self.moveAnim]:
@@ -816,11 +817,48 @@ class Human(Mob):
 
 
 	def updateBlacksmith(self):
-		pass
+		if not self.destinationSite and self.intention in ['working', None]:
+			self.findBlacksmithsJob()
+		elif self.destinationSite:
+			self.smith()
+
+
+
+	def findBlacksmithsJob(self):
+		"""Finds nearest unreserved smith with orders waiting and goes there"""
+		sites = my.map.findNearestBuildings(self.coords, my.blacksmiths)
+		if not sites: return
+		done = False
+		for site in sites:
+			if (site.reserved is None or site.reserved == self) and site.orders != []:
+				self.destinationSite = site
+				self.destination = site.smithCoords
+				site.reserved = self
+				self.intention = 'working'
+				done = True
+			if done: return
+		self.thought = None
+		self.intention = None
+
+
+	def smith(self):
+		"""Just cosmetic, the building handles processing the order"""
+		if self.intention == 'working' and self.destinationSite.coords == self.coords:
+			self.animation = Human.smithAnim
+			self.animFrame = 0
+		if self.destinationSite.orders == []:
+			self.stopBlacksmithJob()
 
 
 	def stopBlacksmithJob(self):
-		pass
+		if self.destinationSite:
+			self.destinationSite.reserved = None
+			self.destinationSite = None
+		if self.intention == 'working':
+			self.intention = None
+		if self.animation == Human.smithAnim:
+			self.animation = self.idleAnim
+			self.animFrame = 0
 
 
 

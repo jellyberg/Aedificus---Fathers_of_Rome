@@ -368,28 +368,31 @@ class BottomBar:
 		self.clickedCell = None
 		self.hovered = None
 		resetted = False
-		for i in range(len(self.globalRects)):
-			rect = self.globalRects[i]
-			if rect.collidepoint(my.input.mousePos):
-				self.hovered = i
-		if (self.hovered != self.lastHovered) or (self.clickedCell != self.lastClicked):
-			# reset surf if hover or click is finished
+		if self.bounds.collidepoint(my.input.mousePos):
+			for i in range(len(self.globalRects)):
+				rect = self.globalRects[i]
+				if rect.collidepoint(my.input.mousePos):
+					self.hovered = i
+			if (self.hovered != self.lastHovered) or (self.clickedCell != self.lastClicked):
+				# reset surf if hover or click is finished
+				self.surf = self.SURFS[self.tab].copy()
+				resetted = True
+				if self.hovered != self.lastHovered and self.hovered is not None:
+					sound.play('tick', 0.8, False)
+			for i in range(len(self.globalRects)):
+				rect = self.globalRects[i]
+				if rect.collidepoint(my.input.mousePos):
+					# hovered
+					if (self.lastHovered is None or resetted):
+						self.surf.blit(self.cellHighlight, self.localRects[i])
+					if my.input.mousePressed == 1 and (self.lastClicked is None or resetted): # clicked
+						self.surf.blit(self.cellClick, self.localRects[i])
+					if my.input.mouseUnpressed == 1:
+						self.clickedCell = i
+						sound.play('click', 0.8, False)
+			self.lastClicked, self.lastHovered = self.clickedCell, self.hovered
+		else:
 			self.surf = self.SURFS[self.tab].copy()
-			resetted = True
-			if self.hovered != self.lastHovered and self.hovered is not None:
-				sound.play('tick', 0.8, False)
-		for i in range(len(self.globalRects)):
-			rect = self.globalRects[i]
-			if rect.collidepoint(my.input.mousePos):
-				# hovered
-				if (self.lastHovered is None or resetted):
-					self.surf.blit(self.cellHighlight, self.localRects[i])
-				if my.input.mousePressed == 1 and (self.lastClicked is None or resetted): # clicked
-					self.surf.blit(self.cellClick, self.localRects[i])
-				if my.input.mouseUnpressed == 1:
-					self.clickedCell = i
-					sound.play('click', 0.8, False)
-		self.lastClicked, self.lastHovered = self.clickedCell, self.hovered
 
 
 
@@ -473,22 +476,23 @@ class Designator:
 			elif my.designationMode == 'ore':
 				selectedRect = self.buttonRects[1]
 			my.screen.blit(self.selected, selectedRect)
-		i = 0
-		for rect in self.buttonRects:
-			if rect.collidepoint(my.input.mousePos):
-				my.screen.blit(self.highlight, rect)
-				if rect != self.lastHovered:
-					sound.play('tick', 0.8, False)
-				self.lastHovered = rect
-				if my.input.mousePressed == 1:
+		if self.rect.collidepoint(my.input.mousePos):
+			i = 0
+			for rect in self.buttonRects:
+				if rect.collidepoint(my.input.mousePos):
 					my.screen.blit(self.highlight, rect)
-				if my.input.mouseUnpressed == 1:
-					if i == 0:
-						my.designationMode = 'tree'
-					elif i == 1:
-						my.designationMode = 'ore'
-					sound.play('click', 0.8, False)
-			i += 1
+					if rect != self.lastHovered:
+						sound.play('tick', 0.8, False)
+					self.lastHovered = rect
+					if my.input.mousePressed == 1:
+						my.screen.blit(self.highlight, rect)
+					if my.input.mouseUnpressed == 1:
+						if i == 0:
+							my.designationMode = 'tree'
+						elif i == 1:
+							my.designationMode = 'ore'
+						sound.play('click', 0.8, False)
+				i += 1
 
 
 
@@ -636,11 +640,11 @@ class BuildingMenu(pygame.sprite.Sprite):
 	IMGS = {}
 	for name in ['plus', 'plusHover', 'plusClick', 'minus', 'minusHover', 'minusClick']:
 		IMGS[name] = pygame.image.load('assets/ui/occupationAssigner/%s.png' %(name)).convert_alpha()
-	def __init__(self, building, orderList, imgList, tooltipList):
-		assert len(orderList) == len(imgList) == len(tooltipList), '%s\'s building menu has invalid arguments' %(building.name)
+	def __init__(self, building, orderList, tooltipList):
+		assert len(orderList) == len(tooltipList), '%s\'s building menu has invalid arguments' %(building.name)
 		pygame.sprite.Sprite.__init__(self)
 		self.add(my.buildingMenus)
-		self.building, self.orderList, self.rawImgList = building, orderList, imgList
+		self.building, self.orderList = building, orderList
 		self.topright = (self.building.rect.left - GAP, self.building.tooltip.rect.top)
 		self.alpha = 250
 		self.lastHovered = None
@@ -663,7 +667,10 @@ class BuildingMenu(pygame.sprite.Sprite):
 		plusMinusSize = 8 # width=height
 		self.imgList = []
 		self.topleft  = (self.building.rect.left - GAP - iconSize - plusMinusSize * 2 - GAP * 4, self.building.tooltip.rect.top)
-		# SCALE IMAGES TO iconSize
+		# RETRIEVE AND SCALE IMAGES TO iconSize
+		self.rawImgList = []
+		for order in self.orderList:
+			self.rawImgList.append(order.image)
 		for i in range(len(self.rawImgList)):
 			img = pygame.transform.scale(self.rawImgList[i], (iconSize, iconSize))
 			self.imgList.append(img)
@@ -730,17 +737,19 @@ class BuildingMenu(pygame.sprite.Sprite):
 		"""Generates the list self.tooltips from tooltipList, which correspond to each icon (hopefully)"""
 		self.tooltips = []
 		for i in range(len(textList)):
-			self.tooltips.append(Tooltip(textList[i], (self.rect.right + GAP, self.rect.top + i * self.iconSize)))
+			tooltipText = textList[i] + '  | ' + str(self.orderList[i].prerequisites)
+			self.tooltips.append(Tooltip(tooltipText, (self.rect.right + GAP, self.rect.top + i*self.iconSize + i*GAP)))
 		self.hoveredTooltip = None
 
 
 	def handleInput(self):
-		self.alpha -= 20
+		if self.alpha > 0: self.alpha -= 20
 		orders = []
 		if (self.displayRect.collidepoint(my.input.hoveredPixel) and self.alpha > 50) or self.building.rect.collidepoint(my.input.hoveredPixel):
 			self.alpha += 60
 			if self.alpha > 230:
 				self.alpha = 230
+			my.UIhover = True
 
 		if self.alpha > 0 and my.camera.isVisible(self.rect):
 			self.baseSurf.set_alpha(self.alpha)

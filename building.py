@@ -27,8 +27,8 @@ my.BUILDINGSTATS['fish mongers'] = {'description':'Feeds up to 9 nearby citizens
 my.BUILDINGSTATS['pool']       =  {'description':'UNDER DEVELOPMENT.',
 								'buildTime': 5000, 'buildMaterials': {'wood': 100, 'iron': 10},
 								'img': loadImg('pool')}
-my.BUILDINGSTATS['blacksmith'] = {'description':'Refine ores into metals here.',
-								'buildTime': 8000, 'buildMaterials': {'wood': 200, 'iron': 15},
+my.BUILDINGSTATS['blacksmith'] = {'description':'Refine ores into building materials and metal based items here.',
+								'buildTime': 8000, 'buildMaterials': {'wood': 200},
 								'img': loadImg('blacksmith')}
 my.BUILDINGSTATS['town hall'] = {'description':'Control town legislation and all that jazz.',
 								'buildTime': 15000, 'buildMaterials': {'wood': 500, 'iron': 30},
@@ -71,7 +71,7 @@ def updateBuildings():
 
 class Building(pygame.sprite.Sprite):
 	"""Base class for buildings with basic functions"""
-	def __init__(self, name, size, buildCost, buildTime, AOEsize=None):
+	def __init__(self, name, size, buildCost, buildTime, AOEsize=None, displayShadow=True):
 		"""
 		buildCost {'material1': amount1, 'material2': amount2} ad infinity
 		buildTime is actually amount of production needed to construct
@@ -79,7 +79,7 @@ class Building(pygame.sprite.Sprite):
 		"""
 		pygame.sprite.Sprite.__init__(self)
 		self.name, self.buildingImage = name, pygame.image.load('assets/buildings/' + name + '.png').convert_alpha()
-		self.buildCost, self.totalBuildProgress = buildCost, buildTime
+		self.buildCost, self.totalBuildProgress, self.displayShadow = buildCost, buildTime, displayShadow
 		self.buildProgress = 0
 		self.xsize, self.ysize = size
 		self.add(my.buildingBeingPlaced)
@@ -163,7 +163,7 @@ class Building(pygame.sprite.Sprite):
 
 		leftx, topy = self.coords
 		for x in range(leftx, self.xsize + leftx):
-			for y in range(topy, self.ysize + leftx):
+			for y in range(topy, self.ysize + topy):
 				self.allCoords.append((x, y))
 		my.mode = 'look'
 
@@ -275,7 +275,8 @@ class Building(pygame.sprite.Sprite):
 
 	def handleShadow(self):
 		"""Draw the shadow to my.surf"""
-		self.shadow.draw(my.surf, my.sunPos)
+		if self.displayShadow:
+			self.shadow.draw(my.surf, my.sunPos)
 
 
 
@@ -517,6 +518,7 @@ class Pool(Building):
 		stats = my.BUILDINGSTATS['pool']
 		Building.__init__(self, 'pool', (3, 2), stats['buildMaterials'], stats['buildTime'])
 		self.add(my.pools)
+		self.displayShadow = False
 
 
 	def update(self):
@@ -538,14 +540,27 @@ class Blacksmith(StorageBuilding):
 		if my.builtBuildings.has(self):
 			self.updateStorage()
 		self.updateBasic()
+		if self.orders == []:
+			self.reserved = None
+		if self.reserved and self.reserved.coords == self.smithCoords:
+			for order in self.orders:
+				order.update(self)
+				if order.constructionProgress >= 0: break # if constructing an order, just construct that one
 
 
 	def onPlace(self):
+		self.add(my.blacksmiths)
 		self.onPlaceStorage()
-		menuImgList = []
-		for name in my.BUILDINGNAMES[0:4]:
-			menuImgList.append(my.BUILDINGSTATS[name]['img'])
-		self.menu = ui.BuildingMenu(self, ['order1', 'order2', 'order3', 'order4'], menuImgList, ['tooltip1', 'tooltip2', 'tooltip3', 'tooltip4'])
+		orderMenuList = []
+		orderMenuList.append(item.Order('nail', {'iron': 2}, self, 200, 1))
+		orderMenuList.append(item.Order('ingot', {'iron': 1, 'coal': 1}, self, 250, 1))
+		orderMenuList.append(item.Order('standard', {'iron': 3}, self, 300, 1))
+		self.menu = ui.BuildingMenu(self, orderMenuList, ['Nail: a common construction component',
+														  'Ingot: a common construction component',
+														  'Standard: a fine looking standard bearing an eagle'])
+		self.reserved = None
+		leftx, topy = self.coords
+		self.smithCoords = (leftx + 1, topy + 3)
 
 
 

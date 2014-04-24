@@ -125,6 +125,7 @@ class Map:
 		return (endx - startx)*(endx-startx) + (endy - starty)*(endy - starty)
 
 
+
 	def findNearestBuilding(self, myCoords, buildingGroup):
 		"""Returns a single value of the nearest building object"""
 		if len(buildingGroup) == 0: return None
@@ -159,6 +160,7 @@ class Map:
 				buildings.append(building)
 				distances.append(distance)
 		return buildings
+
 
 
 	def getObj(self, coords, objName):

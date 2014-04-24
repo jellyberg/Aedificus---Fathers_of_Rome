@@ -36,7 +36,7 @@ class Input:
                 self.mousePressed = False
                 self.mouseUnpressed = event.button
         self.hoveredPixel = my.map.screenToGamePix(self.mousePos)
-        if not my.hud.bottomBar.bounds.collidepoint(self.mousePos):
+        if not my.UIhover:
             self.hoveredCell = my.map.screenToCellCoords(self.mousePos)
             self.hoveredCellType = my.map.cellType(self.hoveredCell)
         else:  

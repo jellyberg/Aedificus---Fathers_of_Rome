@@ -18,18 +18,19 @@ class Handler:
 		my.hud = ui.Hud()
 
 		my.mode = 'look' 
-		my.resources = {'wood': my.STARTRESOURCES['wood'], 'iron': my.STARTRESOURCES['iron'], 
-						'coal': my.STARTRESOURCES['coal']}
-		my.RESOURCENAMEORDER = ['wood', 'coal', 'iron']
+		my.resources = {}
+		for resourceName in my.STARTRESOURCES.keys():
+			my.resources[resourceName] = my.STARTRESOURCES[resourceName]
+		my.RESOURCENAMEORDER = ['wood', 'coal', 'iron', 'ingot'] # displayed on the screen at all times
 		my.updateSurf = True
 		my.gameRunning = True
 		self.sunx = 0
 		my.sunPos = (self.sunx, my.MAPHEIGHT + 10)
 
-# HUMANS FOR TESTING
+	# HUMANS FOR TESTING
 		for i in range(3):
 			mob.Human((random.randint(int(my.MAPXCELLS / 2) - 5, int(my.MAPXCELLS / 2) + 5),
-					   random.randint(int(my.MAPYCELLS / 2) - 5, int(my.MAPYCELLS / 2) + 5)), 'builder')
+					   random.randint(int(my.MAPYCELLS / 2) - 5, int(my.MAPYCELLS / 2) + 5)), None)
 
 		for i in range(20):
 			mob.Rabbit()
@@ -37,6 +38,7 @@ class Handler:
 
 
 	def update(self):
+		my.UIhover = False
 		my.input.get()
 		pauseText = ''
 		if pygame.locals.K_SPACE in my.input.unpressedKeys:

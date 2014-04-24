@@ -2,7 +2,7 @@ import pygame, random
 from pygame.locals import *
 
 DEBUGMODE = 1
-CHEATS = {'noHunger': 1, 'fastActions': 1, 'fastMoving': 0}
+CHEATS = {'noHunger': 0, 'fastActions': 0, 'fastMoving': 0}
 
 pygame.mixer.pre_init(44100,-16,2, 1024)
 pygame.init()
@@ -37,7 +37,7 @@ SCROLLDRAG = 2 # bigger is less drag
 MOUSESCROLL = 20 # size of mouse scrolling region in pixels
 MAPEDGEBOUNCE = 10
 MAXSCROLLSPEED = 4
-MINIMAPUPDATESPEED = 3 # update x minimap rows per frame, so minimap is updated every YCELLS / x frames. reduces fps
+MINIMAPUPDATESPEED = 3 # update [num] minimap rows per frame, so minimap is updated every YCELLS / [num] frames. reduces fps
 
 SUNMOVESPEED = 0.1
 TREEFREQUENCY = random.randint(50, 100)   # 1/xth of tiles are trees
@@ -60,7 +60,7 @@ FISHFREQUENCY = 2000 # lower is higher chance of fish per frame
 FISHPERFISH = 100 # fish per Fish() caught by fishermen (+/- 20)
 FISHCONSUMEDPERTICK = 0.2 # fish consumed per frame by each person eating at the fishmongers
 MAXFISHONFLOOR = 10
-STARTRESOURCES    = {'wood': 300, 'iron': 20, 'coal': 0}
+STARTRESOURCES    = {'wood': 300, 'iron': 20, 'coal': 0, 'ingot': 0, 'nail': 0, 'standard': 0}
 
 HUMANMOVESPEED = 3
 STARTINGHAPPINESS = 20
