@@ -9,9 +9,6 @@ DIAGONALDIR = {'downright': (1, 1), 'downleft': (-1, 1), 'upright': (1, -1), 'up
 ALLDIR = {'down': (0, 1), 'left': (-1, 0), 'right': (1, 0), 'up': (0, -1),
 		 'downright': (1, 1), 'downleft': (-1, 1), 'upright': (1, -1), 'upleft': (-1, -1)}
 
-OREDURABILITY = {'coal': 500, 'iron': 700}
-OREABUNDANCE  = {'coal':   5, 'iron':   3} # % of mining time that an ore item drops
-
 
 def loadTerrainImgs(terrainNames):
 	"""Load terrain .png's from assets/buildings/ when given a ist of names"""
@@ -23,7 +20,7 @@ def loadTerrainImgs(terrainNames):
 
 class Map:
 #   WORLD GEN
-	TERRAIN = ['water', 'grass', 'rock', 'iron', 'coal']
+	TERRAIN = ['water', 'grass', 'rock', 'iron', 'coal', 'gold']
 	IMGS = loadTerrainImgs(TERRAIN)
 	def __init__(self):
 		self.genBlankStructure()
@@ -405,7 +402,9 @@ class Mountain:
 	def genOre(self):
 		for coord in self.allCoords:
 			num = randint(0, my.MASTEROREFREQ)
-			if num < my.IRONFREQ:
+			if num < my.GOLDFREQ:
+				Ore('gold', coord)
+			elif num < my.IRONFREQ:
 				Ore('iron', coord)
 			elif num < my.COALFREQ:
 				Ore('coal', coord)
@@ -422,7 +421,7 @@ class Ore(pygame.sprite.Sprite):
 		x, y = self.coords
 		my.map.map[x][y] = self.mineral
 		self.reserved = False
-		self.durability = OREDURABILITY[self.mineral]
+		self.durability = my.OREDURABILITY[self.mineral]
 
 
 	def update(self):

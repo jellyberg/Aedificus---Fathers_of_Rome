@@ -21,7 +21,7 @@ class Handler:
 		my.resources = {}
 		for resourceName in my.STARTRESOURCES.keys():
 			my.resources[resourceName] = my.STARTRESOURCES[resourceName]
-		my.RESOURCENAMEORDER = ['wood', 'coal', 'iron', 'ingot'] # displayed on the screen at all times
+		my.RESOURCENAMEORDER = ['wood', 'coal', 'iron', 'gold', 'ingot'] # displayed on the screen at all times
 		my.updateSurf = True
 		my.gameRunning = True
 		self.sunx = 0
@@ -40,6 +40,10 @@ class Handler:
 		for i in range(20):
 			mob.Rabbit()
 			mob.Deer()
+
+		for i in range(10):
+			mob.DeathWolf((random.randint(int(my.MAPXCELLS / 2) - 5, int(my.MAPXCELLS / 2) + 5),
+						   random.randint(int(my.MAPYCELLS / 2) - 5, int(my.MAPYCELLS / 2) + 5)))
 
 
 	def update(self):

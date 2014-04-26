@@ -5,6 +5,8 @@ from random import randint
 my.allMobs = pygame.sprite.Group()
 my.allHumans = pygame.sprite.Group()
 my.animals = pygame.sprite.Group()
+my.passiveAnimals = pygame.sprite.Group()
+my.hostileAnimals = pygame.sprite.Group()
 my.corpses = pygame.sprite.Group()
 
 OCCUPATIONS = ['None', 'builder', 'woodcutter', 'miner', 'fisherman', 'blacksmith']
@@ -87,6 +89,7 @@ class Mob(pygame.sprite.Sprite):
 		self.rect = pygame.Rect(my.map.cellsToPixels(coords), size)
 		self.destination = None
 		self.baseMoveSpeed = baseMoveSpeed
+		self.moveSpeed = self.baseMoveSpeed
 		self.coords =  coords
 		self.tick = randint(1, 19)
 		self.initTooltip()
@@ -714,7 +717,7 @@ class Human(Mob):
 				self.destinationSeam = None
 				self.mining = False
 				self.intention = None
-			elif randint(0, 1000) < map.OREABUNDANCE[self.destinationSeam.mineral]:
+			elif randint(0, 1000) < my.OREABUNDANCE[self.destinationSeam.mineral]:
 				x, y = self.coords
 				item.Ore(1, (x + randint(-1, 1), y + randint(-1, 1)), self.destinationSeam.mineral)
 		elif self.animation == Human.mineAnim:
@@ -958,6 +961,51 @@ class Corpse(pygame.sprite.Sprite):
 
 
 
+class HostileAnimal(Mob):
+	"""Base class for animals that hunt and kill nearby humans"""
+	def __init__(self, baseMoveSpeed, img, coords, size, chaseDistance):
+		if coords == 'randomGrass':
+			while True:
+				x, y = (randint(0, my.MAPXCELLS - 1), randint(0, my.MAPYCELLS - 1))
+				if my.map.map[x][y] == 'grass':
+					coords = (x, y)
+					break
+		Mob.__init__(self, baseMoveSpeed, img, coords, size)
+		self.add(my.animals)
+		self.add(my.hostileAnimals)
+		self.chaseDistance = chaseDistance
+		self.hunting = None
+
+
+	def animalUpdate(self):
+		if not self.hunting and my.tick[self.tick]:
+			self.findPrey()
+		if self.hunting:
+			self.destination = self.hunting.coords
+		self.baseUpdate()
+
+
+	def findPrey(self):
+		target = my.map.findNearestBuilding(self.coords, my.allHumans)
+		if my.map.distanceTo(self.coords, target.coords) < self.chaseDistance:
+			self.hunting = target
+			ui.StatusText('A %s is chasing %s!' %(self.name.capitalize(), self.hunting.name))
+
+
+class DeathWolf(HostileAnimal):
+	"""DEATH WOLF ARRRRGGHHHH"""
+	runAnim = loadAnimationFiles('assets/mobs/deathWolf/run')
+	def __init__(self, coords='randomGrass'):
+		self.name = 'death wolf'
+		self.idleAnim = DeathWolf.runAnim
+		self.moveAnim = DeathWolf.runAnim
+		HostileAnimal.__init__(self, 5, self.idleAnim, coords, (25, 15), 10)
+
+
+	def update(self):
+		self.animalUpdate()
+
+
 
 class PassiveAnimal(Mob):
 	"""Base class for animals that do not interact with humans"""
@@ -970,6 +1018,7 @@ class PassiveAnimal(Mob):
 					break
 		Mob.__init__(self, baseMoveSpeed, img, coords, size)
 		self.add(my.animals)
+		self.add(my.passiveAnimals)
 
 
 	def animalUpdate(self):

@@ -1,3 +1,6 @@
+# REAL TIME STRATEGY
+# by Adam Binks   www.github.com/jellyberg/RTS
+
 import pygame, my, logic, os
 from pygame.locals import *
 

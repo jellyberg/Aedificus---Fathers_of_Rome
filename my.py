@@ -2,7 +2,7 @@ import pygame, random
 from pygame.locals import *
 
 DEBUGMODE = 1
-CHEATS = {'noHunger': 0, 'fastActions': 1, 'fastMoving': 0}
+CHEATS = {'noHunger': 1, 'fastActions': 1, 'fastMoving': 0}
 
 pygame.mixer.pre_init(44100,-16,2, 1024)
 pygame.init()
@@ -48,8 +48,11 @@ NUMMOUNTAINS = 20
 MASTEROREFREQ = 200
 IRONFREQ = 2 # / MASTEROREFREQ of rock tiles
 COALFREQ = 10 # / MASTEROREFREQ of rock tiles
+GOLDFREQ = 1 # / MASTEROREFREQ of rock tiles
 MAXORESDESIGNATED = 30
 MAXOREONFLOOR = 20
+OREDURABILITY = {'coal': 500, 'iron': 700, 'gold': 1000}
+OREABUNDANCE  = {'coal':   5, 'iron':   3, 'gold': 2} # % of mining time that an ore item drops
 
 
 TREECHOPSPEED = 1
@@ -60,7 +63,7 @@ FISHFREQUENCY = 2000 # lower is higher chance of fish per frame
 FISHPERFISH = 100 # fish per Fish() caught by fishermen (+/- 20)
 FISHCONSUMEDPERTICK = 0.2 # fish consumed per frame by each person eating at the fishmongers
 MAXFISHONFLOOR = 10
-STARTRESOURCES    = {'wood': 300, 'iron': 20, 'coal': 0, 'ingot': 0, 'nail': 0, 'standard': 0}
+STARTRESOURCES    = {'wood': 300, 'iron': 0, 'coal': 0, 'gold': 0, 'ingot': 0, 'nail': 0, 'standard': 0}
 
 HUMANMOVESPEED = 3
 STARTINGHAPPINESS = 20

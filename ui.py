@@ -794,7 +794,7 @@ class BuildingMenu(pygame.sprite.Sprite):
 
 	def updateOrderNumbers(self):
 		for i in range(len(self.orderList)):
-			if self.building.orders.count(self.orderList[i]) > 0 and self.alpha > 0:
+			if self.building.orders.count(self.orderList[i]) > 0 and self.alpha > 50:
 				surf, rect = genText(str(self.building.orders.count(self.orderList[i])), (0,0), my.WHITE)
 				rect.center = self.iconRectsGlobal[i].center
 				my.surf.blit(surf, rect)
@@ -1067,8 +1067,7 @@ class Minimap:
 			colour = None
 			if tile == 'rock': colour = my.DARKGREY
 			elif tile == 'tree': colour = my.GREEN
-			elif tile == 'coal': colour = my.BLACK
-			elif tile == 'iron': colour = my.ORANGE
+			elif tile in ['coal', 'iron', 'gold']: colour = my.BLACK
 			elif tile == 'water': colour = my.BLUE
 			else:
 				colour = my.YELLOW

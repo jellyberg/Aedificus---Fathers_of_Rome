@@ -35,7 +35,7 @@ def spendResource(resource, quantity):
 class Item(pygame.sprite.Sprite):
 	"""Base class for items dropped when resources are harvested etc"""
 	IMG = {}
-	for item in ['wood', 'fish', 'coal', 'iron', 'nail', 'ingot', 'standard']:
+	for item in ['wood', 'fish', 'coal', 'iron', 'gold', 'nail', 'ingot', 'standard']:
 		IMG[item] = loadImg(item)
 	def __init__(self, name, quantity, coords, destinationGroup='default', imageName=None):
 		"""imageName need only be specified if it's not the same as the item name"""
@@ -175,12 +175,20 @@ class Standard(Item):
 
 class Order:
 	"""Items are ordered from various buildings then produced there"""
+	cogImg = pygame.image.load('assets/ui/cog.png')
 	def __init__(self, itemName, prerequisites, building, constructionTicks, itemQuantity):
 		self.image = Item.IMG[itemName]
 		self.name = itemName
 		self.prerequisites, self.building = prerequisites, building
 		self.constructionTicks, self.itemQuantity = constructionTicks, itemQuantity
 		self.constructionProgress = -1 # not started
+
+		self.inProgressImg = Order.cogImg.copy()
+		self.inProgressImgRect = self.inProgressImg.get_rect()
+		scaledImg = pygame.transform.scale(self.image.copy(), (15, 15))
+		scaledImgRect = scaledImg.get_rect()
+		scaledImgRect.center = self.inProgressImgRect.center
+		self.inProgressImg.blit(scaledImg, scaledImgRect)
 
 
 	def update(self, building):
@@ -214,5 +222,6 @@ class Order:
 	def canConstruct(self):
 		for resource in self.prerequisites.keys():
 			if self.building.stored[resource] < self.prerequisites[resource]:
+				ui.StatusText('Not enough %s in the %s to make a %s' %(resource, self.building.name, self.name))
 				return False
 		return True
