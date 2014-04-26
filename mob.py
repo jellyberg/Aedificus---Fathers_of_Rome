@@ -72,7 +72,7 @@ def blitClothes(baseAnim, moveAnim, clothes, swimmingMask=None):
 
 class Mob(pygame.sprite.Sprite):
 	"""Base class for all mobs"""
-	def __init__(self, baseMoveSpeed, img, coords, size):
+	def __init__(self, baseMoveSpeed, img, coords, size, health=None):
 		pygame.sprite.Sprite.__init__(self)
 		self.isDead = False
 		self.causeOfDeath = None
@@ -90,6 +90,10 @@ class Mob(pygame.sprite.Sprite):
 		self.destination = None
 		self.baseMoveSpeed = baseMoveSpeed
 		self.moveSpeed = self.baseMoveSpeed
+		self.health = health
+		self.startHealth = health
+		self.lastHealth = 1000# self.health
+		self.drawHealthBar = False
 		self.coords =  coords
 		self.tick = randint(1, 19)
 		self.initTooltip()
@@ -102,6 +106,7 @@ class Mob(pygame.sprite.Sprite):
 			self.updateMove()
 			self.handleImage()
 			self.blit()
+			if self.health is not None: self.handleHealth()
 
 
 	def updateMove(self):
@@ -153,6 +158,20 @@ class Mob(pygame.sprite.Sprite):
 			self.moveSpeed = 1
 
 
+	def handleHealth(self):
+		"""Update healthbar or kill self when health decreases"""
+		if self.health != self.lastHealth:
+			self.drawHealthBar = my.HEALTHBARSHOWTIME
+		if self.drawHealthBar > 0 and my.camera.isVisible(self.rect):
+			# draw health bar
+			pygame.draw.rect(my.surf, my.RED, pygame.Rect((self.rect.topleft), (self.rect.width, 2)))
+			pygame.draw.rect(my.surf, my.GREEN, pygame.Rect((self.rect.topleft),
+														 (int(self.rect.width / self.startHealth * self.health), 2)))
+		self.drawHealthBar -= 1
+		if self.health < 1: self.die()
+		self.lastHealth = self.health
+
+
 	def die(self):
 		"""Pretty self explanatory really. Kick the bucket."""
 		if my.allHumans.has(self):
@@ -201,7 +220,12 @@ class Mob(pygame.sprite.Sprite):
 	def handleTooltip(self):
 		"""Updates a tooltip that appears when the mob is hovered"""
 		self.tooltip.rect.topleft = (self.rect.right + ui.GAP, self.rect.top)
-		self.tooltip.simulate(self.rect.collidepoint(my.input.hoveredPixel), True)
+		hovered = self.rect.collidepoint(my.input.hoveredPixel)
+		self.tooltip.simulate(hovered, True)
+		if hovered:
+			try:
+				self.bubble.alpha = 200
+			except: pass
 
 
 	def handleShadow(self):
@@ -236,15 +260,16 @@ class Human(Mob):
 		self.baseMoveSpeed = my.HUMANMOVESPEED
 		self.moveSpeed = my.HUMANMOVESPEED
 		self.changeOccupation(occupation)
-		Mob.__init__(self, self.baseMoveSpeed, self.animation, coords, self.size)
+		Mob.__init__(self, self.baseMoveSpeed, self.animation, coords, self.size, my.HUMANMAXHEALTH)
+		self.add(my.allHumans)
 		self.name = random.choice(my.FIRSTNAMES) + ' ' + random.choice(my.LASTNAMES)
 		self.tooltip.text = self.name
 		self.initEmotions()
+		
 		self.carrying = None
 		self.lastDestItem = None
 		self.destinationItem = None
 		self.destinationSite = None
-		self.add(my.allHumans)
 
 
 	def update(self):

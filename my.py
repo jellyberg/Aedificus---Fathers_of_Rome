@@ -2,7 +2,7 @@ import pygame, random
 from pygame.locals import *
 
 DEBUGMODE = 1
-CHEATS = {'noHunger': 1, 'fastActions': 1, 'fastMoving': 0}
+CHEATS = {'noHunger': 0, 'fastActions': 0, 'fastMoving': 0}
 
 pygame.mixer.pre_init(44100,-16,2, 1024)
 pygame.init()
@@ -65,6 +65,7 @@ FISHCONSUMEDPERTICK = 0.2 # fish consumed per frame by each person eating at the
 MAXFISHONFLOOR = 10
 STARTRESOURCES    = {'wood': 300, 'iron': 0, 'coal': 0, 'gold': 0, 'ingot': 0, 'nail': 0, 'standard': 0}
 
+HUMANMAXHEALTH = 200
 HUMANMOVESPEED = 3
 STARTINGHAPPINESS = 20
 MAXHUNGER = 2000
@@ -73,6 +74,7 @@ FULLMARGIN = MAXHUNGER - 100
 HUNGERWARNING = 800 # when people are not eating look for food
 HUNGERURGENT = 300 # UH OH CRAZY HUNGRY NEED FOOD REAL QUICK
 BUBBLEMARGIN = 3
+HEALTHBARSHOWTIME = 200
 
 if CHEATS['noHunger']:
 	STARTINGHUNGER = 10000000000000000000000000000000000000000000000000000000000000
