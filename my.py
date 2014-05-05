@@ -2,7 +2,7 @@ import pygame, random
 from pygame.locals import *
 
 DEBUGMODE = 1
-CHEATS = {'noHunger': 0, 'fastActions': 0, 'fastMoving': 0}
+CHEATS = {'noHunger': 0, 'fastActions': 1, 'fastMoving': 0}
 
 pygame.mixer.pre_init(44100,-16,2, 1024)
 pygame.init()
@@ -57,6 +57,7 @@ OREABUNDANCE  = {'coal':   5, 'iron':   3, 'gold': 2} # % of mining time that an
 
 TREECHOPSPEED = 1
 MAXTREESDESIGNATED = 30 # to help performance
+treesChopped = 0
 OREMINESPEED = 1
 CONSTRUCTIONSPEED = 3 # progress towards completion added per tick per builder
 FISHFREQUENCY = 2000 # lower is higher chance of fish per frame
@@ -65,7 +66,7 @@ FISHCONSUMEDPERTICK = 0.2 # fish consumed per frame by each person eating at the
 MAXFISHONFLOOR = 10
 STARTRESOURCES    = {'wood': 300, 'iron': 0, 'coal': 0, 'gold': 0, 'ingot': 0, 'nail': 0, 'standard': 0}
 
-HUMANMAXHEALTH = 200
+HUMANMAXHEALTH = 2000
 HUMANMOVESPEED = 3
 STARTINGHAPPINESS = 20
 MAXHUNGER = 2000
@@ -73,6 +74,7 @@ STARTINGHUNGER = MAXHUNGER
 FULLMARGIN = MAXHUNGER - 100
 HUNGERWARNING = 800 # when people are not eating look for food
 HUNGERURGENT = 300 # UH OH CRAZY HUNGRY NEED FOOD REAL QUICK
+STARVINGHEALTHLOSS = 50
 BUBBLEMARGIN = 3
 HEALTHBARSHOWTIME = 200
 
@@ -107,7 +109,6 @@ GREYBROWN = (160, 110,  90, 255)
 CREAM     = (255, 255, 204, 255)
 COLOURKEY = (  1,   2,   3, 255)
 BLUETRANS = (  0,   0, 255, 100)
-
 
 FIRSTNAMES = 'Robert Jenny Steve Jeff Alice Benjamin Yoric Fatima Reem Aya Suha Paul Becca Habiba \
 				Mariam Irene Salma Liam Jacob Mohammed Ethan Cohen Jake Landon Elizabeth James John\

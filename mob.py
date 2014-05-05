@@ -1,5 +1,4 @@
-import my, pygame, map, ui, os, random, math, item, sound, shadow
-from pygame.locals import *
+import my, pygame, ui, os, random, math, item, sound, shadow
 from random import randint
 
 my.allMobs = pygame.sprite.Group()
@@ -92,7 +91,7 @@ class Mob(pygame.sprite.Sprite):
 		self.moveSpeed = self.baseMoveSpeed
 		self.health = health
 		self.startHealth = health
-		self.lastHealth = 1000# self.health
+		self.lastHealth = self.health
 		self.drawHealthBar = False
 		self.coords =  coords
 		self.tick = randint(1, 19)
@@ -165,7 +164,8 @@ class Mob(pygame.sprite.Sprite):
 		if self.drawHealthBar > 0 and my.camera.isVisible(self.rect):
 			# draw health bar
 			pygame.draw.rect(my.surf, my.RED, pygame.Rect((self.rect.topleft), (self.rect.width, 2)))
-			pygame.draw.rect(my.surf, my.GREEN, pygame.Rect((self.rect.topleft),
+			if self.health > 0:
+				pygame.draw.rect(my.surf, my.GREEN, pygame.Rect((self.rect.topleft),
 														 (int(self.rect.width / self.startHealth * self.health), 2)))
 		self.drawHealthBar -= 1
 		if self.health < 1: self.die()
@@ -181,7 +181,8 @@ class Mob(pygame.sprite.Sprite):
 				job = 'carrier'
 			else:
 				job = self.occupation
-			ui.StatusText('%s, %s %s, has %s' %(self.name, random.choice(['esteemed', 'renowned', 'mediocre']), job, self.causeOfDeath))
+			ui.StatusText('%s, %s %s, has %s' %(self.name, random.choice(['esteemed', 'renowned', 'mediocre', 'decent', 'proficient']),
+												 job, self.causeOfDeath))
 			if self.occupation == None: self.stopCarryingJob()
 			elif self.occupation == 'builder': self.removeSiteReservation()
 			elif self.occupation == 'woodcutter': self.stopWoodcutterJob()
@@ -360,12 +361,13 @@ class Human(Mob):
 				self.thoughtIsUrgent = True
 		elif self.thought == 'eating' and self.hunger > my.FULLMARGIN:
 			self.intention = None
-		if self.hunger < 1: # starved to death?
+		if self.hunger < 1: # starving?
+			self.health -= my.STARVINGHEALTHLOSS
 			self.causeOfDeath = 'starved to death'
 			self.die()
 		self.lastHunger = self.hunger
 
-		if self.thought == 'eating' and randint(0, 120) == 0:
+		if self.thought == 'eating' and randint(0, 120) == 0 and my.camera.isVisible(self.rect):
 			sound.play('eating%s' %(randint(1, 3)))
 
 		# THOUGHTBUBBLE
@@ -435,20 +437,19 @@ class Human(Mob):
 			done = False
 			items = my.map.findNearestBuildings(self.coords, my.itemsOnTheFloor)
 			if items:
-				for item in items:
-					destGroup = item.destinationGroup
-					if not item.reserved or item.reserved == self:
-						if self.isStorageSpace(destGroup, item.quantity):
-							self.destination = item.coords
-							self.destinationItem = item
-							item.reserved = self
+				for theItem in items:
+					destGroup = theItem.destinationGroup
+					if not theItem.reserved or theItem.reserved == self:
+						if self.isStorageSpace(destGroup, theItem.quantity):
+							self.destination = theItem.coords
+							self.destinationItem = theItem
+							theItem.reserved = self
 							self.intention = 'working'
 							done = True
 						else:
-							ui.StatusText("No storage space for %s" %(item.name))
+							ui.StatusText("No storage space for %s" %(theItem.name))
 					if done: break
-		if self.destinationItem and self.rect.colliderect(self.destinationItem.rect) \
-				and self.destinationItem.reserved == self: # pick up item
+		if self.destinationItem and self.coords == self.destinationItem.coords: # pick up item
 			self.carrying = self.destinationItem
 			self.destinationItem = None
 			self.carrying.beingCarried = True
@@ -588,11 +589,9 @@ class Human(Mob):
 				self.animFrame = 0
 			self.building = None
 		else:
-			playSound = False
 			if self.animation != Human.buildAnim:
 				self.animation = Human.buildAnim
 				self.animFrame = 0
-				playSound = True
 			if self.animFrame != 6:
 				self.buildSoundPlaying = False
 			elif self.animFrame == 6 and my.camera.isVisible(self.rect) and not self.buildSoundPlaying:
@@ -988,17 +987,18 @@ class Corpse(pygame.sprite.Sprite):
 
 class HostileAnimal(Mob):
 	"""Base class for animals that hunt and kill nearby humans"""
-	def __init__(self, baseMoveSpeed, img, coords, size, chaseDistance):
+	def __init__(self, baseMoveSpeed, img, coords, size, chaseDistance, health, damage):
+		"""chaseDistance is pretty arbitrary, experiment to find an appropriate value"""
 		if coords == 'randomGrass':
 			while True:
 				x, y = (randint(0, my.MAPXCELLS - 1), randint(0, my.MAPYCELLS - 1))
 				if my.map.map[x][y] == 'grass':
 					coords = (x, y)
 					break
-		Mob.__init__(self, baseMoveSpeed, img, coords, size)
+		Mob.__init__(self, baseMoveSpeed, img, coords, size, health)
 		self.add(my.animals)
 		self.add(my.hostileAnimals)
-		self.chaseDistance = chaseDistance
+		self.chaseDistance, self.damage = chaseDistance, damage
 		self.hunting = None
 
 
@@ -1007,12 +1007,20 @@ class HostileAnimal(Mob):
 			self.findPrey()
 		if self.hunting:
 			self.destination = self.hunting.coords
+			if my.tick[self.tick] and self.rect.colliderect(self.hunting.rect):
+				self.hunting.health -= self.damage
+				if self.hunting.health < 1:
+					self.hunting.causeOfDeath = 'been eaten by a %s' %(self.name)
+					self.hunting = None
+			elif self.rect.colliderect(self.hunting.rect):
+				if my.camera.isVisible(self.rect) and my.ticks % 50 == 0:
+					sound.play(random.choice(self.attackSounds))
 		self.baseUpdate()
 
 
 	def findPrey(self):
 		target = my.map.findNearestBuilding(self.coords, my.allHumans)
-		if my.map.distanceTo(self.coords, target.coords) < self.chaseDistance:
+		if target and my.map.distanceTo(self.coords, target.coords) < self.chaseDistance:
 			self.hunting = target
 			ui.StatusText('A %s is chasing %s!' %(self.name.capitalize(), self.hunting.name))
 
@@ -1024,7 +1032,9 @@ class DeathWolf(HostileAnimal):
 		self.name = 'death wolf'
 		self.idleAnim = DeathWolf.runAnim
 		self.moveAnim = DeathWolf.runAnim
-		HostileAnimal.__init__(self, 5, self.idleAnim, coords, (25, 15), 10)
+		self.chaseSound = 'wolfHowl'
+		self.attackSounds = ['growl1', 'growl2', 'growl3']
+		HostileAnimal.__init__(self, 5, self.idleAnim, coords, (25, 15), 100, 200, 80)
 
 
 	def update(self):

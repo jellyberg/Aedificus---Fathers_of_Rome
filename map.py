@@ -301,6 +301,7 @@ class Tree(pygame.sprite.Sprite):
 			self.isDead = True
 			self.remove(my.designatedTrees) 
 			self.justDied = False
+			my.treesChopped += 1
 
 
 

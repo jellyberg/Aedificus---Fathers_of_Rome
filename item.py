@@ -62,7 +62,7 @@ class Item(pygame.sprite.Sprite):
 		self.lastCoords = None
 		if self.sound and my.camera.isVisible(self.rect):
 			sound.play(self.sound, 0.2)
-		#self.initTooltip()
+		self.initTooltip()
 
 
 	def update(self):
@@ -84,6 +84,12 @@ class Item(pygame.sprite.Sprite):
 						self.bobDir = 'up'
 				if not self.beingCarried and self.rect.colliderect(my.camera.viewArea):
 					my.surf.blit(self.image, self.rect)
+				
+				if self.reserved:
+					self.tooltip.text = 'my coords: %s, reservee coords %s' % (self.coords, self.reserved.coords)
+				if not self.beingCarried:
+					self.tooltip.simulate(1, True)
+
 			if self.beingCarried:
 				self.rect.topleft = (0, 0)
 				self.coords = None
@@ -92,14 +98,11 @@ class Item(pygame.sprite.Sprite):
 				self.add(my.itemsOnTheFloor)
 			self.lastCoords = self.coords
 
-			#self.tooltip.text = 'reserved: %s' %(self.reserved)
-			#if not self.beingCarried:
-			#	self.tooltip.simulate(1, True)
 
 
 	def initTooltip(self):
 		"""For bugfixing"""
-		self.tooltip = ui.Tooltip('BLANK', (self.rect.left + 3, self.rect.top))
+		self.tooltip = ui.Tooltip('BLANK TOOLTIP', (self.rect.left + 3, self.rect.top))
 
 
 

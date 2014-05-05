@@ -2,7 +2,6 @@
 # by Adam Binks   www.github.com/jellyberg/RTS
 
 import pygame, my, logic, os
-from pygame.locals import *
 
 os.environ['SDL_VIDEO_CENTERED'] = '1'
 pygame.mixer.pre_init(44100,-16,2, 1024)
@@ -15,7 +14,6 @@ pygame.display.update()
 
 def main():
 	runGame()
-
 
 
 def runGame():

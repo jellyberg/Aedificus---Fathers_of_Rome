@@ -31,8 +31,8 @@ def resourceText(text, topLeftPos):
 
 
 def handleTooltips():
-	for building in my.allBuildings:
-		building.handleTooltip()
+	for site in my.allBuildings:
+		site.handleTooltip()
 	for corpse in my.corpses:
 		corpse.handleTooltip()
 	for mob in my.allMobs:
@@ -49,11 +49,14 @@ class Hud:
 		self.HIGHLIGHTS = {}
 		for colour in Highlight.IMGS.keys():
 			self.HIGHLIGHTS[colour] = Highlight(colour)
+
 		self.bottomBar = BottomBar()
+		self.missionBar = MissionProgressBar()
 		self.occupationAssigner = OccupationAssigner()
 		self.designator = Designator()
 		self.minimap = Minimap()
 		self.statusArea = StatusArea()
+
 		my.surf = pygame.Surface(my.map.surf.get_size())
 		self.regenSurf = False
 
@@ -61,6 +64,7 @@ class Hud:
 	def updateHUD(self):
 		"""Updates elements that are blitted to screen"""
 		self.bottomBar.update()
+		self.missionBar.update()
 		self.occupationAssigner.update()
 		self.designator.update()
 		self.minimap.update()
@@ -323,9 +327,9 @@ class BottomBar:
 	def genTooltips(self):
 		self.tooltips = []
 		for i in range(len(my.BUILDINGSTATS)):
-			building = my.BUILDINGSTATS[my.BUILDINGNAMES[i]]
+			site = my.BUILDINGSTATS[my.BUILDINGNAMES[i]]
 			text = '%s: %s Building materials needed: %s' \
-					%(my.BUILDINGNAMES[i].capitalize(), building['description'], building['buildMaterials'])
+					%(my.BUILDINGNAMES[i].capitalize(), site['description'], site['buildMaterials'])
 			x = self.globalRects[i].right
 			x += GAP
 			tooltip = Tooltip(text, (x, 0))
@@ -635,6 +639,54 @@ class OccupationAssigner:
 
 
 
+class MissionProgressBar:
+	"""Displays a progress bar showing progress through the current my.mission"""
+	def __init__(self):
+		self.fgImg = pygame.image.load('assets/ui/missionBar/bar.png').convert_alpha() # foreground img
+		self.progressImg = pygame.image.load('assets/ui/missionBar/progressBar.png').convert_alpha()
+		self.bgImg = pygame.image.load('assets/ui/missionBar/barBg.png').convert_alpha() # background img
+		self.rect = pygame.Rect((0, 0), self.fgImg.get_size())
+		self.rect.midtop = (int(my.WINDOWWIDTH / 2), GAP * 2)
+		self.lastProgress = -1 # always gen surf on first update
+		self.ticksTillNextMission = 0
+		self.showTooltipTicks = 200
+		self.missionComplete = False
+		self.tooltip = Tooltip('BLANK TOOLTIP', (self.rect.right + GAP, self.rect.top), BIGFONT)
+
+
+	def update(self):
+		if my.mission:
+			progress = my.mission.getProgress()
+			if progress != self.lastProgress:
+				self.genSurf()
+			if progress >= 100 and not self.missionComplete:
+				sound.play('achievement', 0.8, 0)
+				self.ticksTillNextMission = 100
+				self.missionComplete = True
+				self.tooltip.text = 'MISSION COMPLETE:   ' + my.mission.name
+			if not self.missionComplete:
+				self.tooltip.text = my.mission.name + ' :  ' + my.mission.description
+			self.tooltip.simulate(self.rect.collidepoint(my.input.mousePos) or self.ticksTillNextMission > 0 or self.showTooltipTicks > 0)
+			
+			my.screen.blit(self.surf, self.rect)
+
+			self.ticksTillNextMission -= 1
+			self.showTooltipTicks -= 1
+
+			if self.ticksTillNextMission == 0:
+				my.currentMissionNum += 1
+				self.missionComplete = False
+				self.showTooltipTicks = 100
+			self.lastProgress = progress
+
+
+	def genSurf(self):
+		self.surf = self.bgImg.copy()
+		self.surf.blit(self.progressImg, (2,2), pygame.Rect(2, 2, int(my.mission.getProgress() / 100 * 117) , 20))
+		self.surf.blit(self.fgImg, (0,0))
+		
+
+
 class BuildingMenu(pygame.sprite.Sprite):
 	"""A menu that appears when the building is hovered. Allows orders to be given."""
 	IMGS = {}
@@ -744,7 +796,6 @@ class BuildingMenu(pygame.sprite.Sprite):
 
 	def handleInput(self):
 		if self.alpha > 0: self.alpha -= 20
-		orders = []
 		if (self.displayRect.collidepoint(my.input.hoveredPixel) and self.alpha > 50) or self.building.rect.collidepoint(my.input.hoveredPixel):
 			self.alpha += 60
 			if self.alpha > 230:

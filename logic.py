@@ -1,4 +1,4 @@
-import pygame, my, input, ui, map, building, mob, item, random, sound
+import pygame, my, input, ui, map, building, mob, item, random, mission
 
 
 class Handler:
@@ -33,13 +33,18 @@ class Handler:
 			human.destination = (random.randint(int(my.MAPXCELLS / 2) - 5, int(my.MAPXCELLS / 2) + 5),
 					   random.randint(int(my.MAPYCELLS / 2) - 5, int(my.MAPYCELLS / 2) + 5))
 
+		item.Wood(5, (random.randint(int(my.MAPXCELLS / 2) - 5, int(my.MAPXCELLS / 2) + 5),
+							   random.randint(int(my.MAPYCELLS / 2) - 5, int(my.MAPYCELLS / 2) + 5)))
+
 		for i in range(20):
 			mob.Rabbit()
 			mob.Deer()
 
-		for i in range(2):
-			mob.DeathWolf((random.randint(int(my.MAPXCELLS / 2) - 5, int(my.MAPXCELLS / 2) + 5),
-						   random.randint(int(my.MAPYCELLS / 2) - 5, int(my.MAPYCELLS / 2) + 5)))
+		#for i in range(1):
+		#	mob.DeathWolf((random.randint(int(my.MAPXCELLS / 2) - 5, int(my.MAPXCELLS / 2) + 5),
+		#						random.randint(int(my.MAPYCELLS / 2) - 5, int(my.MAPYCELLS / 2) + 5)))
+
+		mission.initMissions()
 
 
 	def update(self):
@@ -73,6 +78,10 @@ class Handler:
 			if self.sunx > my.MAPWIDTH: self.sunx = -30
 			my.sunPos = (self.sunx, my.MAPHEIGHT + 10)
 
+			try:
+				my.mission = my.MISSIONS[my.currentMissionNum]
+			except IndexError:
+				my.mission = None
 			my.map.update()
 			building.updateBuildings()
 			item.update()

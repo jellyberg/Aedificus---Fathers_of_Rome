@@ -1,6 +1,4 @@
-import pygame, my, copy, math, mob, ui, shadow, item, sound
-from pygame.locals import *
-
+import pygame, my, math, mob, ui, shadow, item, sound
 
 def loadImg(buildingName):
 	"""Just to save copy pasting in my.BUILDINGSTATS"""
@@ -237,15 +235,15 @@ class Building(pygame.sprite.Sprite):
 
 	def updateAOE(self):
 		"""Updates the groups of mobs and buildings in the AOE"""
-		for mob in my.allMobs.sprites():
-			if mob.coords in self.AOEcoords:
-				self.AOEmobsAffected.add(mob)
-				if my.allHumans.has(mob):
-					self.AOEhumansAffected.add(mob)
-			elif self.AOEmobsAffected.has(mob):
-				self.AOEmobsAffected.remove(mob)
-				if my.allHumans.has(mob):
-					self.AOEhumansAffected.remove(mob)
+		for nearbyMob in my.allMobs.sprites():
+			if nearbyMob.coords in self.AOEcoords:
+				self.AOEmobsAffected.add(nearbyMob)
+				if my.allHumans.has(nearbyMob):
+					self.AOEhumansAffected.add(nearbyMob)
+			elif self.AOEmobsAffected.has(nearbyMob):
+				self.AOEmobsAffected.remove(nearbyMob)
+				if my.allHumans.has(nearbyMob):
+					self.AOEhumansAffected.remove(nearbyMob)
 		done = False
 		for building in my.builtBuildings.sprites():
 			for coord in building.allCoords:
@@ -414,6 +412,7 @@ class Hut(Building):
 
 class Shed(StorageBuilding):
 	"""Basic storage building, stores any item without a special storage place."""
+	my.shedHasBeenPlaced = False
 	def __init__(self):
 		stats = my.BUILDINGSTATS['shed']
 		StorageBuilding.__init__(self, 'shed', (3, 3), stats['buildMaterials'], stats['buildTime'], 500, my.storageBuildingsWithSpace)
@@ -428,17 +427,20 @@ class Shed(StorageBuilding):
 
 	def onPlace(self):
 		self.onPlaceStorage()
+		my.shedHasBeenPlaced = True
 
 
 
 class Orchard(FoodBuilding):
 	"""Basic food place"""
+	my.orchardHasBeenPlaced = False
 	def __init__(self):
 		stats = my.BUILDINGSTATS['orchard']
 		FoodBuilding.__init__(self, 'orchard', (4, 2), stats['buildMaterials'], stats['buildTime'], (3, 2), 4, 5)
 
 
 	def onPlace(self):
+		my.orchardHasBeenPlaced = True
 		self.onPlaceFood()
 
 
@@ -531,6 +533,7 @@ class Pool(Building):
 
 
 class Blacksmith(StorageBuilding):
+	my.blacksmithHasBeenPlaced = False
 	def __init__(self):
 		stats = my.BUILDINGSTATS['blacksmith']
 		StorageBuilding.__init__(self, 'blacksmith', (4, 4), stats['buildMaterials'], stats['buildTime'], 20, my.blacksmithsWithSpace)
@@ -573,6 +576,7 @@ class Blacksmith(StorageBuilding):
 		self.reserved = None
 		leftx, topy = self.coords
 		self.smithCoords = (leftx + 1, topy + 3)
+		my.blacksmithHasBeenPlaced = True
 
 
 
