@@ -621,6 +621,7 @@ class Human(Mob):
 		if self.intention in [None, 'working'] and not self.chopping and my.tick[self.tick]:
 			self.intention = 'working'
 			self.findTree()
+
 		if self.destinationSite and self.coords == self.destinationSite.coords:
 			self.chopping = True
 			self.thought = 'working'
@@ -637,11 +638,13 @@ class Human(Mob):
 				self.chopping = False
 				if my.camera.isVisible(self.rect):
 					sound.play('treeFalling', 0.3)
+
 		else:
 			self.chopping = False
 			if self.animation not in [self.idleAnim, self.moveAnim]:
 				self.animation = self.idleAnim
 				self.animFrame = 0
+
 		if self.chopping:
 			self.animation = Human.chopAnim
 		self.lastSite = self.destinationSite
@@ -654,13 +657,14 @@ class Human(Mob):
 			if sites:
 				done = False
 				for site in sites:
-					if not site.reserved or site.reserved == self:
+					if site.reserved is None or site.reserved == self:
 						self.destinationSite = site
 						self.destination = self.destinationSite.coords
 						self.destinationSite.reserved = self
 						self.intention = 'working'
+						
 						if self.lastSite and self.lastSite != self.destinationSite:
-							self.lastSite.reserved = False
+							self.lastSite.reserved = None
 						done = True
 					if done: return
 		self.thought = None
@@ -669,7 +673,7 @@ class Human(Mob):
 
 	def stopWoodcutterJob(self):
 		if self.destinationSite:
-			self.destinationSite.reserved = False
+			self.destinationSite.reserved = None
 			self.destinationSite = None
 		self.chopping = False
 

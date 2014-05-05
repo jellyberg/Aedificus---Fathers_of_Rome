@@ -278,7 +278,7 @@ class Tree(pygame.sprite.Sprite):
 		self.isDead, self.justDied = False, True
 		self.pos = my.map.cellsToPixels(self.coords)
 		self.rect = pygame.Rect(self.pos, (my.CELLSIZE, my.CELLSIZE - 3))
-		self.reserved = False
+		self.reserved = None
 
 
 	def update(self):
