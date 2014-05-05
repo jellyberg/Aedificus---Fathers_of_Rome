@@ -69,15 +69,15 @@ def updateBuildings():
 
 class Building(pygame.sprite.Sprite):
 	"""Base class for buildings with basic functions"""
-	def __init__(self, name, size, buildCost, buildTime, AOEsize=None, displayShadow=True):
+	def __init__(self, name, size, stats, AOEsize=None, displayShadow=True):
 		"""
 		buildCost {'material1': amount1, 'material2': amount2} ad infinity
 		buildTime is actually amount of production needed to construct
 		AOEsize is number of cells from centre the area of effect should cover
 		"""
 		pygame.sprite.Sprite.__init__(self)
-		self.name, self.buildingImage = name, pygame.image.load('assets/buildings/' + name + '.png').convert_alpha()
-		self.buildCost, self.totalBuildProgress, self.displayShadow = buildCost, buildTime, displayShadow
+		self.name, self.buildingImage = name, stats['img']
+		self.buildCost, self.totalBuildProgress, self.displayShadow = stats['buildMaterials'], stats['buildTime'], displayShadow
 		self.buildProgress = 0
 		self.xsize, self.ysize = size
 		self.add(my.buildingBeingPlaced)
@@ -280,8 +280,8 @@ class Building(pygame.sprite.Sprite):
 
 class FoodBuilding(Building):
 	"""Base class for food buildings"""
-	def __init__(self, name, size, buildCost, buildTime, AOEsize, feedSpeed, maxCustomers):
-		Building.__init__(self, name, size, buildCost, buildTime, AOEsize)
+	def __init__(self, name, size, stats, AOEsize, feedSpeed, maxCustomers):
+		Building.__init__(self, name, size, stats, AOEsize)
 		self.feedSpeed, self.maxCustomers = feedSpeed, maxCustomers
 
 
@@ -329,8 +329,8 @@ class FoodBuilding(Building):
 
 class StorageBuilding(Building):
 	"""Base class for storage buildings"""
-	def __init__(self, name, size, buildCost, buildTime, storageCapacity, withSpaceGroup):
-		Building.__init__(self, name, size, buildCost, buildTime)
+	def __init__(self, name, size, stats, storageCapacity, withSpaceGroup):
+		Building.__init__(self, name, size, stats)
 		self.storageCapacity = storageCapacity
 		self.withSpaceGroup = withSpaceGroup
 		self.stored = {}
@@ -392,8 +392,7 @@ class StorageBuilding(Building):
 class Hut(Building):
 	"""Spawns a human when placed"""
 	def __init__(self):
-		stats = my.BUILDINGSTATS['hut']
-		Building.__init__(self, 'hut', (2, 2), stats['buildMaterials'], stats['buildTime'])
+		Building.__init__(self, 'hut', (2, 2), my.BUILDINGSTATS['hut'])
 		self.add(my.huts)
 
 
@@ -414,8 +413,7 @@ class Shed(StorageBuilding):
 	"""Basic storage building, stores any item without a special storage place."""
 	my.shedHasBeenPlaced = False
 	def __init__(self):
-		stats = my.BUILDINGSTATS['shed']
-		StorageBuilding.__init__(self, 'shed', (3, 3), stats['buildMaterials'], stats['buildTime'], 500, my.storageBuildingsWithSpace)
+		StorageBuilding.__init__(self, 'shed', (3, 3), my.BUILDINGSTATS['shed'], 500, my.storageBuildingsWithSpace)
 		self.add(my.sheds)
 
 
@@ -435,8 +433,7 @@ class Orchard(FoodBuilding):
 	"""Basic food place"""
 	my.orchardHasBeenPlaced = False
 	def __init__(self):
-		stats = my.BUILDINGSTATS['orchard']
-		FoodBuilding.__init__(self, 'orchard', (4, 2), stats['buildMaterials'], stats['buildTime'], (3, 2), 4, 5)
+		FoodBuilding.__init__(self, 'orchard', (4, 2), my.BUILDINGSTATS['orchard'], (3, 2), 4, 5)
 
 
 	def onPlace(self):
@@ -453,8 +450,7 @@ class Orchard(FoodBuilding):
 
 class FishingBoat(Building):
 	def __init__(self):
-		stats = my.BUILDINGSTATS['fishing boat']
-		Building.__init__(self, 'fishingBoat', (2, 1), stats['buildMaterials'], stats['buildTime'])
+		Building.__init__(self, 'fishingBoat', (2, 1), my.BUILDINGSTATS['fishing boat'])
 		self.buildableTerrain = 'water'
 
 
@@ -477,7 +473,7 @@ class FishMongers(FoodBuilding):
 	"""Fish() are taken here, then can be eaten"""
 	def __init__(self):
 		stats = my.BUILDINGSTATS['fish mongers']
-		FoodBuilding.__init__(self, 'fishMongers', (2, 2), stats['buildMaterials'], stats['buildTime'], (3, 2), 9, 9)
+		FoodBuilding.__init__(self, 'fishMongers', (2, 2), my.BUILDINGSTATS['fish mongers'] (3, 2), 9, 9)
 
 
 	def onPlace(self):
@@ -517,8 +513,7 @@ class FishMongers(FoodBuilding):
 class Pool(Building):
 	"""Splish splash"""
 	def __init__(self):
-		stats = my.BUILDINGSTATS['pool']
-		Building.__init__(self, 'pool', (3, 2), stats['buildMaterials'], stats['buildTime'])
+		Building.__init__(self, 'pool', (3, 2), my.BUILDINGSTATS['pool'])
 		self.add(my.pools)
 		self.displayShadow = False
 
@@ -535,8 +530,7 @@ class Pool(Building):
 class Blacksmith(StorageBuilding):
 	my.blacksmithHasBeenPlaced = False
 	def __init__(self):
-		stats = my.BUILDINGSTATS['blacksmith']
-		StorageBuilding.__init__(self, 'blacksmith', (4, 4), stats['buildMaterials'], stats['buildTime'], 20, my.blacksmithsWithSpace)
+		StorageBuilding.__init__(self, 'blacksmith', (4, 4), my.BUILDINGSTATS['blacksmith'], 20, my.blacksmithsWithSpace)
 
 
 	def update(self):
@@ -584,7 +578,7 @@ class TownHall(Building):
 	"""Control town legislation etc"""
 	def __init__(self):
 		stats = my.BUILDINGSTATS['town hall']
-		Building.__init__(self, 'townHall', (4, 3), stats['buildMaterials'], stats['buildTime'])
+		Building.__init__(self, 'townHall', (4, 3), my.BUILDINGSTATS['town hall'])
 		self.add(my.townHall)
 		self.menu = False
 
