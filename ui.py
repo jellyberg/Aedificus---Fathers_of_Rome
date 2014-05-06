@@ -1,6 +1,7 @@
 import pygame, my, math, random, building, mob, sound
 
 my.selectionBoxGroup = pygame.sprite.GroupSingle()
+my.demolisher = pygame.sprite.GroupSingle()
 my.pulseLights = pygame.sprite.Group()
 my.buildingMenus = pygame.sprite.Group()
 
@@ -95,6 +96,7 @@ class Hud:
 		if my.selectionBoxGroup.sprite:
 			my.selectionBoxGroup.sprite.update()
 		my.pulseLights.update()
+		my.demolisher.update()
 		# BUILDING MENUS
 		for menu in my.buildingMenus.sprites():
 			menu.update()
@@ -321,6 +323,10 @@ class BottomBar:
 			imgRect = img.get_rect()
 			imgRect.center = self.localRects[i].center
 			surf.blit(img, imgRect)
+		img = pygame.image.load('assets/ui/bomb.png')
+		imgRect = img.get_rect()
+		imgRect.center = self.localRects[-1].center
+		surf.blit(img, imgRect)
 		return surf
 
 
@@ -356,6 +362,8 @@ class BottomBar:
 				building.Blacksmith()
 			elif self.clickedCell == 7:
 				building.TownHall()
+			elif self.clickedCell == 11:
+				Demolisher()
 			else:
 				sound.play('error', 0.2, False)
 		my.screen.blit(self.surf, self.bounds)
@@ -976,6 +984,43 @@ class SelectionBox(pygame.sprite.Sprite):
 						self.selected.add(my.map.getObj((x, y), terrainType))
 						PulseLight((x, y), my.ORANGE)
 		return self.selected
+
+
+
+class Demolisher(pygame.sprite.Sprite):
+	"""Demolishes the hovered building when LMB is clicked"""
+	bombImg = pygame.image.load('assets/ui/bomb.png').convert_alpha()
+	def __init__(self):
+		pygame.sprite.Sprite.__init__(self)
+		self.add(my.demolisher)
+
+
+	def update(self):
+		my.mode = 'build'
+		hoveredSite = self.getHoveredSite()
+		if hoveredSite:
+			my.surf.blit(hoveredSite.scaledCross, hoveredSite.rect)
+			if my.input.mouseUnpressed == 1:
+				hoveredSite.demolish()
+				sound.play('explosion')
+				self.kill()
+				my.mode = 'look'
+		else:
+			my.surf.blit(Demolisher.bombImg, my.map.cellsToPixels(my.input.hoveredCell))
+
+
+	def getHoveredSite(self):
+		"""Returns the hovered building, if one is hovered"""
+		if my.input.mousePressed == 3:
+			self.kill()
+			my.mode = 'look'
+		if my.input.hoveredCell not in ['grass', 'stone', 'tree', 'coal', 'iron', 'gold']:
+			for site in my.allBuildings:
+				if my.input.hoveredCell in site.allCoords:
+					return site
+			for buildSite in my.buildingsUnderConstruction:
+				if my.input.hoveredCell in site.allCoords:
+					return site
 
 
 

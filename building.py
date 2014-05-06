@@ -36,6 +36,8 @@ my.allBuildings = pygame.sprite.Group()
 my.builtBuildings = pygame.sprite.Group() 
 my.buildingBeingPlaced = pygame.sprite.GroupSingle()
 my.buildingsUnderConstruction = pygame.sprite.Group()
+my.demolishedBuildings = pygame.sprite.Group()
+
 my.foodBuildings = pygame.sprite.Group()
 my.foodBuildingsWithSpace = pygame.sprite.Group()
 my.storageBuildings = pygame.sprite.Group()
@@ -209,6 +211,20 @@ class Building(pygame.sprite.Sprite):
 					(self.buildingImage.get_width(), height))
 				self.image = self.constructionImg
 				self.image.blit(self.buildingImage, progressRect.topleft, progressRect)
+
+
+	def demolish(self):
+		"""Destroys the building, removing it from the map"""
+		try:
+			self.onDestroy()  # remove reservations etc if need be
+			self.menu.kill()
+		except: pass
+		for coord in self.allCoords:
+			x, y = coord
+			my.map.map[x][y] = self.buildableTerrain[0]
+			my.map.genSurf()
+			self.kill()
+			self.add(my.demolishedBuildings)
 
 
 	def blit(self):
