@@ -182,7 +182,7 @@ class Mob(pygame.sprite.Sprite):
 			else:
 				job = self.occupation
 			ui.StatusText('%s, %s %s, has %s' %(self.name, random.choice(['esteemed', 'renowned', 'mediocre', 'decent', 'proficient']),
-												 job, self.causeOfDeath))
+												 job, self.causeOfDeath), self.coords)
 			if self.occupation == None: self.stopCarryingJob()
 			elif self.occupation == 'builder': self.removeSiteReservation()
 			elif self.occupation == 'woodcutter': self.stopWoodcutterJob()
@@ -354,18 +354,28 @@ class Human(Mob):
 		self.hunger -= 1
 		if self.hunger < my.HUNGERWARNING:
 			self.thought = 'hungry'
-			if not self.intention == 'find food': # ^ is hungry or eating?
+			if not self.intention == 'find food': # is hungry or eating?
 				self.goGetFood()
 				self.thoughtIsUrgent = False
 			if self.hunger < my.HUNGERURGENT:
 				self.thoughtIsUrgent = True
+
 		elif self.thought == 'eating' and self.hunger > my.FULLMARGIN:
 			self.intention = None
+			self.destinationSite = None
+
 		if self.hunger < 1: # starving?
 			self.health -= my.STARVINGHEALTHLOSS
 			self.causeOfDeath = 'starved to death'
 			self.die()
 		self.lastHunger = self.hunger
+
+		if self.destinationSite and self.destinationSite in my.demolishedBuildings:
+			if self.destination in self.destinationSite.allCoords:
+				self.destination = None
+			self.destinationSite = None
+			if self.thought == 'eating':
+				self.thought = None
 
 		if self.thought == 'eating' and randint(0, 120) == 0 and my.camera.isVisible(self.rect):
 			sound.play('eating%s' %(randint(1, 3)))
@@ -386,7 +396,7 @@ class Human(Mob):
 
 
 	def goGetFood(self, specificSite=None):
-		"""Find the nearest food place wiht slots and go and eat there. If specificSite, go there instead"""
+		"""Find the nearest food place with slots and go and eat there. If specificSite, go there instead"""
 		site = None
 		if not specificSite:
 			sites = my.map.findNearestBuildings(self.coords, my.foodBuildingsWithSpace)
@@ -399,6 +409,7 @@ class Human(Mob):
 			self.intention = 'find food'
 			self.thought = 'hungry'
 			self.stopJob()
+			self.destinationSite = site
 
 
 #   SERF
@@ -459,8 +470,7 @@ class Human(Mob):
 		"""Carry the item to the nearest storage building with space"""
 		self.carrying.reserved = self
 		if self.intention in [None, 'working'] and not self.destinationSite:
-			destGroup = self.carrying.destinationGroup
-			sites = my.map.findNearestBuildings(self.coords, destGroup)
+			sites = my.map.findNearestBuildings(self.coords, self.carrying.destinationGroup)
 			done = False
 			for site in sites:
 				if site.totalStored + self.carrying.quantity < site.storageCapacity:
@@ -473,6 +483,8 @@ class Human(Mob):
 				self.intention = None
 				self.stopCarryingJob()
 				return
+		if self.destinationSite and self.destinationSite in my.demolishedBuildings:
+			self.stopCarryingJob()
 		# STORE ITEM
 		if self.destinationSite and self.coords == self.destinationSite.coords:
 			self.destinationSite.storeResource(self.carrying.name, self.carrying.quantity)
@@ -662,7 +674,7 @@ class Human(Mob):
 						self.destination = self.destinationSite.coords
 						self.destinationSite.reserved = self
 						self.intention = 'working'
-						
+
 						if self.lastSite and self.lastSite != self.destinationSite:
 							self.lastSite.reserved = None
 						done = True
@@ -783,7 +795,7 @@ class Human(Mob):
 			self.findFishingSpot()
 		elif self.destinationSite and len(my.fishOnTheFloor) < my.MAXFISHONFLOOR:
 			self.fish()
-		if len(my.fishOnTheFloor) >= my.MAXFISHONFLOOR:
+		if len(my.fishOnTheFloor) >= my.MAXFISHONFLOOR or self.destinationSite and self.destinationSite in my.demolishedBuildings:
 			self.stopFishingJob()
 		self.lastSite = self.destinationSite
 
@@ -815,7 +827,7 @@ class Human(Mob):
 			if not self.animation == Human.fishAnim:
 				self.animation = Human.fishAnim
 				self.animCount = 0
-			if randint(0, my.FISHFREQUENCY) == 0:
+			if randint(0, my.FISHFREQUENCY) < 100:
 				x, y = self.coords
 				item.Fish(randint(my.FISHPERFISH - 20, my.FISHPERFISH + 20),
 						  (randint(x - 1, x + 1), randint(y - 1, y + 1)))
@@ -851,7 +863,10 @@ class Human(Mob):
 		if not self.destinationSite and self.intention in ['working', None]:
 			self.findBlacksmithsJob()
 		elif self.destinationSite:
-			self.smith()
+			if self.destinationSite in my.demolishedBuildings:
+				self.stopJob()
+			else:
+				self.smith()
 
 
 
@@ -1026,7 +1041,7 @@ class HostileAnimal(Mob):
 		target = my.map.findNearestBuilding(self.coords, my.allHumans)
 		if target and my.map.distanceTo(self.coords, target.coords) < self.chaseDistance:
 			self.hunting = target
-			ui.StatusText('A %s is chasing %s!' %(self.name.capitalize(), self.hunting.name))
+			ui.StatusText('A %s is chasing %s!' %(self.name.capitalize(), self.hunting.name), self.coords)
 
 
 class DeathWolf(HostileAnimal):

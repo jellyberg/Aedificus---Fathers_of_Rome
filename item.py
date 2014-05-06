@@ -225,6 +225,6 @@ class Order:
 	def canConstruct(self):
 		for resource in self.prerequisites.keys():
 			if self.building.stored[resource] < self.prerequisites[resource]:
-				ui.StatusText('Not enough %s in the %s to make a %s' %(resource, self.building.name, self.name))
+				ui.StatusText('Not enough %s in the %s to make a %s' %(resource, self.building.name, self.name), self.building.coords)
 				return False
 		return True

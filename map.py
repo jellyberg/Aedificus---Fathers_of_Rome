@@ -182,6 +182,8 @@ class Camera:
 		self.width = my.WINDOWWIDTH
 		self.shake = 0
 		self.focus = (int(my.MAPWIDTH / 2), int(my.MAPHEIGHT / 2))
+		self.lastFocus = self.focus
+		self.targetFocus = None
 		self.xVel, self.yVel = 0, 0
 		self.boundRect = {'top':    pygame.Rect((0,0), (my.WINDOWWIDTH, my.MOUSESCROLL)), # for mouse camera movement
 				  'right':  pygame.Rect((my.WINDOWWIDTH - my.MOUSESCROLL,0), (my.MOUSESCROLL, my.WINDOWHEIGHT)),
@@ -192,6 +194,16 @@ class Camera:
 	def update(self):
 		"""Updates camera pos and shake, and blits the to my.screen"""
 		x, y = self.focus
+
+		if self.targetFocus is not None:
+			destx, desty = my.map.cellsToPixels(self.targetFocus)
+			x += (destx - x) * 0.1
+			y += (desty - y) * 0.1
+			self.focus = (x, y)
+
+			if my.map.pixelsToCell(self.focus) == self.targetFocus or my.map.pixelsToCell(self.focus) == my.map.pixelsToCell(self.lastFocus):
+				self.targetFocus = None
+
 		# ACELLERATE X
 		if K_RIGHT in my.input.pressedKeys or K_d in my.input.pressedKeys \
 					or self.boundRect['right'].collidepoint(my.input.mousePos):
@@ -211,6 +223,7 @@ class Camera:
 		elif self.xVel < 0:
 			self.xVel += my.SCROLLDRAG
 		x += self.xVel
+
 		# ACELLERATE Y
 		if K_DOWN in my.input.pressedKeys or K_s in my.input.pressedKeys\
 					or self.boundRect['bottom'].collidepoint(my.input.mousePos):
@@ -230,6 +243,7 @@ class Camera:
 		elif self.yVel < 0:
 			self.yVel += my.SCROLLDRAG
 		y += self.yVel
+
 		# UPDATE SELF.VIEWAREA AND BLIT
 		self.focus = (x, y)
 		self.viewArea.center = self.focus
@@ -245,7 +259,9 @@ class Camera:
 		elif self.viewArea.right > my.surf.get_width():
 			self.viewArea.right = my.surf.get_width()
 			self.xVel = -my.MAPEDGEBOUNCE
+
 		my.screen.blit(my.surf, (0,0), self.viewArea)
+		self.lastFocus = self.focus
 
 
 	def isVisible(self, rect):

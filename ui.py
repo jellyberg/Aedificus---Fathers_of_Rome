@@ -1076,25 +1076,32 @@ class StatusText(pygame.sprite.Sprite):
 	"""
 	statusLifetime = 200
 	recentStatusLifetime = 1000  # how long before a status pops up again when called repeatedly
-	def __init__(self, text):
+	eyeImg = pygame.image.load('assets/ui/eye.png').convert_alpha()
+	def __init__(self, text, zoomTo=None):
 		for obj in my.recentStatuses.sprites():
 			if obj.text == text: return # don't have duplicate messages at once
 		pygame.sprite.Sprite.__init__(self)
 		self.add(my.statuses)
 		self.add(my.recentStatuses)
 		self.startTicks = my.ticks
-		self.text = text
+		self.text, self.zoomTo = text, zoomTo
+		self.lifetime = StatusText.statusLifetime
+
 		self.tooltip = Tooltip(text, (10, 40), BIGFONT)
 		self.tooltip.fadeRate = 1
 		self.tooltip.rect.topleft = (GAP, 0)
 		self.tooltip.alpha = 100
+		if self.zoomTo:
+			w, h = StatusText.eyeImg.get_size()
+			self.tooltip.surf.blit(StatusText.eyeImg, (self.tooltip.rect.right - w - GAP, self.tooltip.rect.bottom - h - GAP))
+			self.lifetime += 50
 		self.fadeOut = False
 		self.destination = (GAP, GAP)
 		sound.play('pop', 0.8, False)
 
 
 	def update(self, destinationY): # destinationY may be the StatusText's current y value
-		if my.ticks - self.startTicks > StatusText.statusLifetime:
+		if my.ticks - self.startTicks > self.lifetime:
 			self.fadeOut = True
 		self.destination = (GAP, destinationY)
 		destx, desty = self.destination
@@ -1102,10 +1109,14 @@ class StatusText(pygame.sprite.Sprite):
 			self.tooltip.rect.y += 5
 		if self.tooltip.alpha > 0:
 			self.tooltip.simulate(not self.fadeOut)
-		isClicked = (self.tooltip.rect.collidepoint(my.input.mousePos) and my.input.mouseUnpressed == 1)
+		hovered = self.tooltip.rect.collidepoint(my.input.mousePos)
+		if hovered:
+			self.tooltip.alpha += 20
+		isClicked = (hovered and my.input.mouseUnpressed == 1)
 		if self.tooltip.alpha < 1 or isClicked:
 			self.remove(my.statuses)
 			if isClicked:
+				if self.zoomTo: my.camera.targetFocus = self.zoomTo
 				sound.play('pop')
 
 

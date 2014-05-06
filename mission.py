@@ -108,7 +108,7 @@ class MissionTemplate:
 
 
 def initMissions():
-	my.currentMissionNum = 0
+	my.currentMissionNum = 2
 	my.MISSIONS = []
 	my.MISSIONS.append(MoveCamera())
 	my.MISSIONS.append(RecruitOccupation('builder'))
