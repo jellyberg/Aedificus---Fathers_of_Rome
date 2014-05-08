@@ -55,7 +55,6 @@ class Handler:
 			self.pauseTextSurf, self.pauseTextRect = ui.genText('PAUSED (press space to unpause)', (10, 10), my.WHITE, ui.MEGAFONT)
 			self.pauseTextRect.center = (int(my.WINDOWWIDTH / 2), int(my.WINDOWHEIGHT / 2))
 		if pygame.locals.K_m in my.input.unpressedKeys:
-			my.camera.targetFocus = (5, 5)
 			my.muted = not my.muted
 			if my.muted:
 				ui.StatusText('All sounds muted (M to unmute)')

@@ -271,6 +271,7 @@ class Human(Mob):
 		self.lastDestItem = None
 		self.destinationItem = None
 		self.destinationSite = None
+		self.destinationFoodSite = None
 
 
 	def update(self):
@@ -324,8 +325,7 @@ class Human(Mob):
 		if self.occupation is None:
 			self.stopCarryingJob()
 		if self.occupation == 'builder':
-			self.removeSiteReservation()
-			self.building, self.destinationSite = None, None
+			self.stopBuilderJob()
 		elif self.occupation == 'woodcutter':
 			self.stopWoodcutterJob()
 		elif self.occupation == 'fisherman':
@@ -362,7 +362,7 @@ class Human(Mob):
 
 		elif self.thought == 'eating' and self.hunger > my.FULLMARGIN:
 			self.intention = None
-			self.destinationSite = None
+			self.destinationFoodSite = None
 
 		if self.hunger < 1: # starving?
 			self.health -= my.STARVINGHEALTHLOSS
@@ -370,10 +370,10 @@ class Human(Mob):
 			self.die()
 		self.lastHunger = self.hunger
 
-		if self.destinationSite and self.destinationSite in my.demolishedBuildings:
-			if self.destination in self.destinationSite.allCoords:
+		if self.destinationFoodSite and self.destinationFoodSite in my.demolishedBuildings:
+			if self.destination in self.destinationFoodSite.allCoords:
 				self.destination = None
-			self.destinationSite = None
+			self.destinationFoodSite = None
 			if self.thought == 'eating':
 				self.thought = None
 
@@ -409,7 +409,9 @@ class Human(Mob):
 			self.intention = 'find food'
 			self.thought = 'hungry'
 			self.stopJob()
-			self.destinationSite = site
+			self.destinationFoodSite = site
+		else:
+			ui.StatusText("%s can't find anywhere to eat. Build more orchards" %(self.name), self.coords)
 
 
 #   SERF
@@ -432,8 +434,6 @@ class Human(Mob):
 			if self.carrying:
 				x, y = self.rect.center
 				my.surf.blit(self.carrying.carryImage, (x - 3, y))
-		if self.lastDestItem and self.lastDestItem != self.destinationItem:
-			self.lastDestItem.reserved = None
 		self.lastDestItem = self.destinationItem
 
 
@@ -452,6 +452,8 @@ class Human(Mob):
 					destGroup = theItem.destinationGroup
 					if not theItem.reserved or theItem.reserved == self:
 						if self.isStorageSpace(destGroup, theItem.quantity):
+							if theItem != self.lastDestItem and self.lastDestItem:
+								self.lastDestItem.reserved = None
 							self.destination = theItem.coords
 							self.destinationItem = theItem
 							theItem.reserved = self
@@ -519,15 +521,18 @@ class Human(Mob):
 	def initBuilder(self):
 		"""Finds the nearest construction site and constructs it."""
 		self.occupation = 'builder'
+
 		self.idleAnim = Human.builderIdleAnim
 		self.moveAnim = Human.builderMoveAnim
 		self.swimAnim = Human.builderSwimAnim
 		self.animation = self.idleAnim
+
 		self.destination = None
 		self.building = None
 		self.destinationSite = None
 		self.lastDestination = None
 		self.buildSoundPlaying = False
+		self.buildPosx, self.buildPosy = None, None
 
 
 	def updateBuilder(self):
@@ -575,9 +580,15 @@ class Human(Mob):
 
 	def removeSiteReservation(self):
 		"""Removes the reserved spot at the lost construction site"""
-		if self.destinationSite:
+		if self.destinationSite and self.buildPosx and self.buildPosy:
 			self.destinationSite.buildersPositions[self.buildPosx][self.buildPosy] = None
-			self.building = None
+			self.buildPosx, self.buildPosy = None, None
+		self.building = None
+
+
+	def stopBuilderJob(self):
+		self.removeSiteReservation()
+		self.destinationSite = None
 
 
 	def build(self):
@@ -896,7 +907,6 @@ class Human(Mob):
 
 
 	def stopBlacksmithJob(self):
-		print('stop job')
 		if self.destinationSite:
 			self.destinationSite.reserved = None
 			self.destinationSite = None

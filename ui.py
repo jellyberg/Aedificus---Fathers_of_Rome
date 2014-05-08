@@ -266,6 +266,7 @@ class BottomBar:
 		self.bounds = pygame.Rect((0, my.WINDOWHEIGHT - BottomBar.height - GAP * 2), (BottomBar.margin + BottomBar.cell * 12, BottomBar.height))
 		self.tab = 0
 		self.cellBackgrounds = []
+
 		bgImg = pygame.image.load('assets/ui/bottomBar/cellBg.png').convert_alpha()
 		flippedBgImg = pygame.transform.flip(bgImg, 1, 1)
 		for i in range(0, 360, 90):
@@ -273,6 +274,8 @@ class BottomBar:
 			self.cellBackgrounds.append(pygame.transform.rotate(flippedBgImg, i))
 		self.cellHighlight = pygame.image.load('assets/ui/bottomBar/cellHighlight.png').convert_alpha()
 		self.cellClick     = pygame.image.load('assets/ui/bottomBar/cellClick.png').convert_alpha()
+		self.lockImg       = pygame.image.load('assets/ui/padlock.png').convert_alpha()
+
 		self.genRects()
 		self.genBackgroundImg()
 		self.clickedCell, self.hovered, self.lastClicked, self.lastHovered = None, None, None, None
@@ -280,11 +283,15 @@ class BottomBar:
 		self.surf.blit(self.backgroundImg, (0, 0))
 		self.surf.set_colorkey(my.BLACK)
 		self.genTooltips()
-		stats = my.BUILDINGSTATS # synctactic sugar
-		self.SURFS = [self.genSurf([stats['hut']['img'], stats['shed']['img'],
+		self.lastUnlockedBuildings = my.unlockedBuildings.copy()
+
+		stats = my.BUILDINGSTATS
+		self.imgsForGenSurf = [stats['hut']['img'], stats['shed']['img'],
 					  stats['orchard']['img'], stats['fishing boat']['img'], stats['fish mongers']['img'],
-					  stats['pool']['img'], stats['blacksmith']['img'], stats['town hall']['img']])]
+					  stats['pool']['img'], stats['blacksmith']['img'], stats['town hall']['img']]
+		self.SURFS = [self.genSurf(self.imgsForGenSurf)]
 		self.surf.blit(self.SURFS[self.tab], (0, 0))
+
 
 
 	def genRects(self):
@@ -323,10 +330,18 @@ class BottomBar:
 			imgRect = img.get_rect()
 			imgRect.center = self.localRects[i].center
 			surf.blit(img, imgRect)
+
+		lockRect = self.lockImg.get_rect()
+		for i in range(len(my.BUILDINGNAMES)):
+			if my.BUILDINGNAMES[i] not in my.unlockedBuildings:
+				lockRect.center = self.localRects[i].center
+				surf.blit(self.lockImg, lockRect)
+
 		img = pygame.image.load('assets/ui/bomb.png')
 		imgRect = img.get_rect()
 		imgRect.center = self.localRects[-1].center
 		surf.blit(img, imgRect)
+
 		return surf
 
 
@@ -335,7 +350,7 @@ class BottomBar:
 		for i in range(len(my.BUILDINGSTATS)):
 			site = my.BUILDINGSTATS[my.BUILDINGNAMES[i]]
 			text = '%s: %s Building materials needed: %s' \
-					%(my.BUILDINGNAMES[i].capitalize(), site['description'], site['buildMaterials'])
+					%(my.BUILDINGNAMES[i].upper(), site['description'], site['buildMaterials'])
 			x = self.globalRects[i].right
 			x += GAP
 			tooltip = Tooltip(text, (x, 0))
@@ -344,23 +359,25 @@ class BottomBar:
 
 
 	def update(self):
+		if my.unlockedBuildings != self.lastUnlockedBuildings:
+			self.SURFS[self.tab] = self.genSurf(self.imgsForGenSurf)
 		self.handleInput()
 		if self.clickedCell != None:
-			if self.clickedCell == 0:
+			if self.clickedCell == 0 and 'hut' in my.unlockedBuildings:
 				building.Hut()
-			elif self.clickedCell == 1:
+			elif self.clickedCell == 1 and 'shed' in my.unlockedBuildings:
 				building.Shed()
-			elif self.clickedCell == 2:
+			elif self.clickedCell == 2 and 'orchard' in my.unlockedBuildings:
 				building.Orchard()
-			elif self.clickedCell == 3:
+			elif self.clickedCell == 3 and 'fishing boat' in my.unlockedBuildings:
 				building.FishingBoat()
-			elif self.clickedCell == 4:
+			elif self.clickedCell == 4 and 'fishmongers' in my.unlockedBuildings:
 				building.FishMongers()
-			elif self.clickedCell == 5:
+			elif self.clickedCell == 5 and 'pool' in my.unlockedBuildings:
 				building.Pool()
-			elif self.clickedCell == 6:
+			elif self.clickedCell == 6 and 'blacksmith' in my.unlockedBuildings:
 				building.Blacksmith()
-			elif self.clickedCell == 7:
+			elif self.clickedCell == 7 and 'town hall' in my.unlockedBuildings:
 				building.TownHall()
 			elif self.clickedCell == 11:
 				Demolisher()
@@ -672,8 +689,9 @@ class MissionProgressBar:
 				self.ticksTillNextMission = 100
 				self.missionComplete = True
 				self.tooltip.text = 'MISSION COMPLETE:   ' + my.mission.name
+				my.mission.onComplete()
 			if not self.missionComplete:
-				self.tooltip.text = my.mission.name + ' :  ' + my.mission.description
+				self.tooltip.text = my.mission.name.upper() + ' :  ' + my.mission.description
 			self.tooltip.simulate(self.rect.collidepoint(my.input.mousePos) or self.ticksTillNextMission > 0 or self.showTooltipTicks > 0)
 			
 			my.screen.blit(self.surf, self.rect)
@@ -718,6 +736,7 @@ class BuildingMenu(pygame.sprite.Sprite):
 		for i in range(len(self.tooltips)):
 			hovered = i == self.hoveredTooltip
 			self.tooltips[i].simulate(hovered, True)
+		self.lastUnlockedBuildings = my.unlockedBuildings.copy()
 
 
 	def genSurf(self):
@@ -1112,6 +1131,7 @@ class StatusText(pygame.sprite.Sprite):
 		hovered = self.tooltip.rect.collidepoint(my.input.mousePos)
 		if hovered:
 			self.tooltip.alpha += 20
+			if self.tooltip.alpha > 200: self.tooltip.alpha = 200
 		isClicked = (hovered and my.input.mouseUnpressed == 1)
 		if self.tooltip.alpha < 1 or isClicked:
 			self.remove(my.statuses)

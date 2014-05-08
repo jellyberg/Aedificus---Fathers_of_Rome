@@ -56,6 +56,8 @@ my.blacksmithsWithSpace = pygame.sprite.Group()
 cross = pygame.image.load('assets/ui/cross.png').convert_alpha() # indicates invalid construction site
 unscaledConstructionImg = pygame.image.load('assets/buildings/underConstruction.png').convert_alpha()
 
+my.unlockedBuildings = my.STARTUNLOCKEDBUILDINGS.copy()
+
 
 def updateBuildings():
 	"""To keep logic.update() nice and tidy"""
@@ -565,6 +567,7 @@ class Blacksmith(StorageBuilding):
 						if my.camera.isVisible(self.rect) and self.rect.collidepoint(my.input.hoveredPixel):
 							order.inProgressImgRect.center = self.rect.center
 							my.surf.blit(order.inProgressImg, order.inProgressImgRect)
+							self.tooltip.text += ', constructing a %s (%s/%s)' %(order.name, order.constructionProgress, order.constructionTicks)
 						break # if constructing an order, just construct that one
 				if smithAnim:
 					self.reserved.animation = mob.Human.smithAnim

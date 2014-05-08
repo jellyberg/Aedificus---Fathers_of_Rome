@@ -1,4 +1,4 @@
-import my
+import my, ui
 
 
 
@@ -9,8 +9,13 @@ class MoveCamera:
 		self.startFocus = my.camera.focus
 
 	def getProgress(self):
+		if 'blacksmith' in my.unlockedBuildings:
+			my.unlockedBuildings.remove('blacksmith')
 		if my.camera.focus != self.startFocus: return 100
 		return 0
+
+	def onComplete(self):
+		pass
 
 
 class RecruitOccupation:
@@ -27,6 +32,9 @@ class RecruitOccupation:
 			if human.occupation == self.occupation: return 100
 		return 0
 
+	def onComplete(self):
+		pass
+
 
 class BuildOrchard:
 	def __init__(self):
@@ -37,6 +45,9 @@ class BuildOrchard:
 	def getProgress(self):
 		if my.orchardHasBeenPlaced: return 100
 		return 0
+
+	def onComplete(self):
+		pass
 
 
 class ChopTrees:
@@ -49,27 +60,39 @@ class ChopTrees:
 	def getProgress(self):
 		return my.treesChopped * 20
 
+	def onComplete(self):
+		pass
+
 
 class BuildShed:
 	def __init__(self):
 		self.name = 'Build a shed'
 		self.description = 'Click the shed icon on the bar at the bottom of the screen and \
-							then click on a tile to place it. Make sure you have some builders!'
+							then click on a tile to place it. Make sure you have some builders\
+							 and enough wood!'
 
 	def getProgress(self):
 		if my.shedHasBeenPlaced: return 100
 		return 0
+
+	def onComplete(self):
+		my.unlockedBuildings.append('blacksmith')
+		ui.StatusText('Blacksmith building unlocked!')
 
 
 class BuildBlacksmith:
 	def __init__(self):
 		self.name = 'Build a blacksmith'
 		self.description = 'Click the blacksmith icon on the bar at the bottom of the screen and \
-							then click on a tile to place it. Make sure you have some builders!'
+							then click on a tile to place it. Make sure you have some builders\
+							 and enough wood!'
 
 	def getProgress(self):
 		if my.blacksmithHasBeenPlaced: return 100
 		return 0
+
+	def onComplete(self):
+		pass
 
 
 class MineOre:
@@ -84,6 +107,9 @@ class MineOre:
 			if my.resources[resource] > 0: return 100
 		return 0
 
+	def onComplete(self):
+		pass
+
 
 class GrowPopulation:
 	def __init__(self, targetPopulation):
@@ -95,10 +121,14 @@ class GrowPopulation:
 	def getProgress(self):
 		return int(len(my.allHumans) / self.targetPop * 100 )
 
+	def onComplete(self):
+		pass
+
 
 
 
 class MissionTemplate:
+	"""For easy copy and pasting"""
 	def __init__(self):
 		self.name = ''
 		self.description = ''
@@ -106,9 +136,12 @@ class MissionTemplate:
 	def getProgress(self):
 		return 0
 
+	def onComplete(self):
+		pass
+
 
 def initMissions():
-	my.currentMissionNum = 2
+	my.currentMissionNum = 5
 	my.MISSIONS = []
 	my.MISSIONS.append(MoveCamera())
 	my.MISSIONS.append(RecruitOccupation('builder'))

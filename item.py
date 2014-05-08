@@ -220,6 +220,7 @@ class Order:
 				elif self.name == 'standard':
 					Standard(self.itemQuantity, itemSpawnPos)
 				self.building.orders.remove(self)
+				self.constructionProgress = -1
 
 
 	def canConstruct(self):
