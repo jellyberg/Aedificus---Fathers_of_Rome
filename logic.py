@@ -1,4 +1,4 @@
-import pygame, my, input, ui, map, building, mob, item, random, mission
+import pygame, my, input, ui, map, building, mob, item, random, mission, event
 
 
 class Handler:
@@ -16,6 +16,7 @@ class Handler:
 		my.input = input.Input()
 		my.camera = map.Camera()
 		my.hud = ui.Hud()
+		my.eventHandler = event.EventHandler()
 
 		my.mode = 'look' 
 		my.resources = {}
@@ -80,6 +81,7 @@ class Handler:
 			except IndexError:
 				my.mission = None
 			my.map.update()
+			my.eventHandler.update()
 			building.updateBuildings()
 			item.update()
 			mob.updateMobs()

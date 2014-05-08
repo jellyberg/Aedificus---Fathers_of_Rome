@@ -1096,9 +1096,10 @@ class StatusText(pygame.sprite.Sprite):
 	statusLifetime = 200
 	recentStatusLifetime = 1000  # how long before a status pops up again when called repeatedly
 	eyeImg = pygame.image.load('assets/ui/eye.png').convert_alpha()
-	def __init__(self, text, zoomTo=None):
-		for obj in my.recentStatuses.sprites():
-			if obj.text == text: return # don't have duplicate messages at once
+	def __init__(self, text, zoomTo=None, allowRepeats=False):
+		if not allowRepeats:
+			for obj in my.recentStatuses.sprites():
+				if obj.text == text: return # don't have duplicate messages at once
 		pygame.sprite.Sprite.__init__(self)
 		self.add(my.statuses)
 		self.add(my.recentStatuses)

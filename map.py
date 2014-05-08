@@ -328,10 +328,13 @@ class River:
 	endRiverFreq = 4 # %
 	def __init__(self):
 		self.modifyMap()
+		my.rivers = []
+		my.rivers.append(self)
 
 
 	def modifyMap(self):
 		"""Modifies the my.map.map"""
+		self.allCoords = []
 		self.width = randint(2, 4)
 		self.startPoint = (randint(0, my.MAPXCELLS), randint(0, my.MAPYCELLS))
 		self.startDir = random.choice(list(DIAGONALDIR.keys()))
@@ -366,6 +369,7 @@ class River:
 		for x in range(self.width):
 			for y in range(self.width):
 				my.map.map[nextx + x][nexty + y] = 'water'
+				self.allCoords.append((nextx + x, nexty + y))
 		self.changeNextCell((nextx, nexty), nextDir)
 
 

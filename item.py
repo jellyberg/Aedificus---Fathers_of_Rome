@@ -62,7 +62,7 @@ class Item(pygame.sprite.Sprite):
 		self.lastCoords = None
 		if self.sound and my.camera.isVisible(self.rect):
 			sound.play(self.sound, 0.2)
-		self.initTooltip()
+		#self.initTooltip()
 
 
 	def update(self):
@@ -85,10 +85,10 @@ class Item(pygame.sprite.Sprite):
 				if not self.beingCarried and self.rect.colliderect(my.camera.viewArea):
 					my.surf.blit(self.image, self.rect)
 				
-				if self.reserved:
-					self.tooltip.text = 'my coords: %s, reservee coords %s' % (self.coords, self.reserved.coords)
-				if not self.beingCarried:
-					self.tooltip.simulate(1, True)
+				#if self.reserved:
+				#	self.tooltip.text = 'my coords: %s, reservee coords %s' % (self.coords, self.reserved.coords)
+				#if not self.beingCarried:
+				#	self.tooltip.simulate(1, True)
 
 			if self.beingCarried:
 				self.rect.topleft = (0, 0)
