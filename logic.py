@@ -74,7 +74,7 @@ class Handler:
 
 			self.sunx += my.SUNMOVESPEED
 			if self.sunx > my.MAPWIDTH: self.sunx = -30
-			my.sunPos = (self.sunx, my.MAPHEIGHT + 10)
+			my.sunPos = (self.sunx, my.MAPHEIGHT + 50)
 
 			try:
 				my.mission = my.MISSIONS[my.currentMissionNum]

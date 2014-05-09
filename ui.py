@@ -1033,13 +1033,7 @@ class Demolisher(pygame.sprite.Sprite):
 		if my.input.mousePressed == 3:
 			self.kill()
 			my.mode = 'look'
-		if my.input.hoveredCell not in ['grass', 'stone', 'tree', 'coal', 'iron', 'gold']:
-			for site in my.allBuildings:
-				if my.input.hoveredCell in site.allCoords:
-					return site
-			for buildSite in my.buildingsUnderConstruction:
-				if my.input.hoveredCell in site.allCoords:
-					return site
+		return building.findBuildingAtCoord(my.input.hoveredCell)
 
 
 

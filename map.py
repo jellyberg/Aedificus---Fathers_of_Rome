@@ -323,13 +323,13 @@ class Tree(pygame.sprite.Sprite):
 
 class River:
 	"""Randomly generates a river and modifies the my.map.map data"""
+	my.rivers = []
 	changeDirectionFreq = 40 # %
 	changeWidthFreq = 20 # %
 	endRiverFreq = 4 # %
 	def __init__(self):
-		self.modifyMap()
-		my.rivers = []
 		my.rivers.append(self)
+		self.modifyMap()
 
 
 	def modifyMap(self):
@@ -354,6 +354,8 @@ class River:
 		randomNum = randint(0, 100)
 		randomNum2 = randint(0, 100)
 		if randomNum < River.endRiverFreq:
+			if len(self.allCoords) < 1:
+				my.rivers.remove(self)
 			return
 		elif randomNum < River.changeDirectionFreq:
 			nextDir = random.choice(possibleChanges)
@@ -365,6 +367,8 @@ class River:
 		changex, changey = DIAGONALDIR[nextDir]
 		nextx, nexty = (currentx + changex, currenty + changey)
 		if nextx < 0 or nextx > my.MAPXCELLS - self.width or nexty < 0 or nexty > my.MAPYCELLS  - self.width:
+			if len(self.allCoords) < 1:
+				my.rivers.remove(self)
 			return
 		for x in range(self.width):
 			for y in range(self.width):

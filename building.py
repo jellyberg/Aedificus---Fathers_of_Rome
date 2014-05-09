@@ -56,7 +56,7 @@ my.blacksmithsWithSpace = pygame.sprite.Group()
 cross = pygame.image.load('assets/ui/cross.png').convert_alpha() # indicates invalid construction site
 unscaledConstructionImg = pygame.image.load('assets/buildings/underConstruction.png').convert_alpha()
 
-my.unlockedBuildings = my.STARTUNLOCKEDBUILDINGS.copy()
+my.unlockedBuildings = my.STARTUNLOCKEDBUILDINGS[:]
 
 
 def updateBuildings():
@@ -68,6 +68,16 @@ def updateBuildings():
 		building.handleShadow()
 	my.allBuildings.update()
 	my.buildingBeingPlaced.update()
+
+
+def findBuildingAtCoord(coord):
+	if coord not in ['grass', 'stone', 'tree', 'coal', 'iron', 'gold']:
+		for site in my.allBuildings:
+			if coord in site.allCoords:
+				return site
+		for buildSite in my.buildingsUnderConstruction:
+			if coord in buildSite.allCoords:
+				return buildSite
 
 
 
