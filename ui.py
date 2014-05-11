@@ -361,7 +361,7 @@ class BottomBar:
 	def update(self):
 		if my.unlockedBuildings != self.lastUnlockedBuildings:
 			self.SURFS[self.tab] = self.genSurf(self.imgsForGenSurf)
-			
+
 		self.handleInput()
 		if self.clickedCell != None:
 			if self.clickedCell == 0 and 'hut' in my.unlockedBuildings:

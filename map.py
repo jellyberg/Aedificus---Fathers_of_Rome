@@ -176,14 +176,16 @@ class Map:
 
 
 class Camera:
-	"""Allows for a scrolling game view, and camera shake."""
+	"""Allows for a scrolling game view, and camera shake (not implemented yet)."""
 	def __init__(self):
 		self.viewArea = pygame.Rect((0, 0), (my.WINDOWWIDTH, my.WINDOWHEIGHT))
 		self.width = my.WINDOWWIDTH
 		self.shake = 0
+
 		self.focus = (int(my.MAPWIDTH / 2), int(my.MAPHEIGHT / 2))
 		self.lastFocus = self.focus
 		self.targetFocus = None
+
 		self.xVel, self.yVel = 0, 0
 		self.boundRect = {'top':    pygame.Rect((0,0), (my.WINDOWWIDTH, my.MOUSESCROLL)), # for mouse camera movement
 				  'right':  pygame.Rect((my.WINDOWWIDTH - my.MOUSESCROLL,0), (my.MOUSESCROLL, my.WINDOWHEIGHT)),

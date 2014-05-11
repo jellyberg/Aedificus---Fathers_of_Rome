@@ -145,7 +145,7 @@ class MissionTemplate:
 
 
 def initMissions():
-	my.currentMissionNum = 0
+	my.currentMissionNum = -1
 	my.mission = 'BLANK'
 	my.MISSIONS = []
 	my.MISSIONS.append(MoveCamera())
@@ -154,8 +154,8 @@ def initMissions():
 	my.MISSIONS.append(RecruitOccupation('woodcutter'))
 	my.MISSIONS.append(ChopTrees())
 	my.MISSIONS.append(BuildShed())
+	my.MISSIONS.append(GrowPopulation(5))
 	my.MISSIONS.append(BuildBlacksmith())
 	my.MISSIONS.append(RecruitOccupation('miner'))
 	my.MISSIONS.append(MineOre())
-	my.MISSIONS.append(GrowPopulation(5))
 	my.MISSIONS.append(GrowPopulation(20))

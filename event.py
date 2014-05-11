@@ -11,7 +11,7 @@ class EventHandler:
 
 
 	def update(self):
-		if pygame.locals.K_f in my.input.pressedKeys or randint(0, Flood.frequency) == 0 and my.ticks - self.lastFloodTime > Flood.minInterval:
+		if pygame.locals.K_f in my.input.pressedKeys or (randint(0, Flood.frequency) == 0 and my.ticks - self.lastFloodTime > Flood.minInterval):
 			Flood()
 		my.allFloodTiles.update()
 
@@ -61,8 +61,8 @@ class FloodTile(pygame.sprite.Sprite):
 			tree.health = 1
 			tree.chop()
 		elif my.map.map[x][y] not in ['grass', 'rock', 'water', 'iron', 'coal', 'gold']:
+			ui.StatusText('Your %s was destroyed by the flood!' %(my.map.map[x][y]), self.coords)
 			site = building.findBuildingAtCoord(coords)
-			if not site: print(my.map.map[x][y])
 			site.demolish()
 
 
@@ -72,7 +72,7 @@ class FloodTile(pygame.sprite.Sprite):
 		if self.alpha != 'static':
 			self.alpha -= 5
 			if self.alpha < 1: self.kill()
-		if my.camera.isVisible(self.rect):
-			if self.alpha != 'static':
-				self.surf.set_alpha(self.alpha)
-			my.surf.blit(self.surf, self.rect)
+		#if my.camera.isVisible(self.rect):
+		if self.alpha != 'static':
+			self.surf.set_alpha(self.alpha)
+		my.surf.blit(self.surf, self.rect)

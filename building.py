@@ -233,7 +233,7 @@ class Building(pygame.sprite.Sprite):
 		except: pass
 		for coord in self.allCoords:
 			x, y = coord
-			my.map.map[x][y] = self.buildableTerrain[0]
+			my.map.map[x][y] = self.buildableTerrain
 			my.map.genSurf()
 			self.kill()
 			self.add(my.demolishedBuildings)
