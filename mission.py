@@ -21,10 +21,14 @@ class MoveCamera:
 class RecruitOccupation:
 	def __init__(self, occupation):
 		self.name = 'Recruit a %s' %(occupation)
-		self.description = "Use the '+' button next to the %s icon in the box on the mid-right\
-							 of your screen convert one of your jobless labourers (wearing brown) \
-							 to a %s. If you click the '-' button beside the %s icon it'll \
-							 convert one of your builders to a labourer" %(occupation, occupation, occupation)
+		if occupation != 'jobless':
+			self.description = "Click the '+' button next to the %s icon in the occupation box on the mid-right\
+								 of your screen to convert one of your jobless labourers (wearing brown) \
+								 to a %s. If you click the '-' button beside the %s icon it'll \
+								 convert one of your %s to a labourer" %(occupation, occupation, occupation, occupation)
+		if occupation == 'jobless':
+			self.description = "Use the '-' button next to an occupation that of your citizens does \
+								to make him a labourer. Labourers carry items to storage buildings."
 		self.occupation = occupation
 
 	def getProgress(self):
@@ -141,7 +145,8 @@ class MissionTemplate:
 
 
 def initMissions():
-	my.currentMissionNum = 5
+	my.currentMissionNum = 0
+	my.mission = 'BLANK'
 	my.MISSIONS = []
 	my.MISSIONS.append(MoveCamera())
 	my.MISSIONS.append(RecruitOccupation('builder'))

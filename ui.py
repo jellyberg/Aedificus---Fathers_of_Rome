@@ -283,7 +283,7 @@ class BottomBar:
 		self.surf.blit(self.backgroundImg, (0, 0))
 		self.surf.set_colorkey(my.BLACK)
 		self.genTooltips()
-		self.lastUnlockedBuildings = my.unlockedBuildings.copy()
+		self.lastUnlockedBuildings = my.unlockedBuildings[:]
 
 		stats = my.BUILDINGSTATS
 		self.imgsForGenSurf = [stats['hut']['img'], stats['shed']['img'],
@@ -361,6 +361,7 @@ class BottomBar:
 	def update(self):
 		if my.unlockedBuildings != self.lastUnlockedBuildings:
 			self.SURFS[self.tab] = self.genSurf(self.imgsForGenSurf)
+			
 		self.handleInput()
 		if self.clickedCell != None:
 			if self.clickedCell == 0 and 'hut' in my.unlockedBuildings:
@@ -384,12 +385,15 @@ class BottomBar:
 			else:
 				sound.play('error', 0.2, False)
 		my.screen.blit(self.surf, self.bounds)
+
 		i=0
 		for tooltip in self.tooltips:
 			if self.hovered == i: hovered = True
 			else: hovered = False
 			tooltip.simulate(hovered)
 			i += 1
+
+		self.lastUnlockedBuildings = my.unlockedBuildings[:]
 
 
 	def handleInput(self):
@@ -666,6 +670,7 @@ class OccupationAssigner:
 
 class MissionProgressBar:
 	"""Displays a progress bar showing progress through the current my.mission"""
+	showTooltipTicks = 300
 	def __init__(self):
 		self.fgImg = pygame.image.load('assets/ui/missionBar/bar.png').convert_alpha() # foreground img
 		self.progressImg = pygame.image.load('assets/ui/missionBar/progressBar.png').convert_alpha()
@@ -702,7 +707,7 @@ class MissionProgressBar:
 			if self.ticksTillNextMission == 0:
 				my.currentMissionNum += 1
 				self.missionComplete = False
-				self.showTooltipTicks = 100
+				self.showTooltipTicks = MissionProgressBar.showTooltipTicks
 			self.lastProgress = progress
 
 
@@ -736,7 +741,6 @@ class BuildingMenu(pygame.sprite.Sprite):
 		for i in range(len(self.tooltips)):
 			hovered = i == self.hoveredTooltip
 			self.tooltips[i].simulate(hovered, True)
-		self.lastUnlockedBuildings = my.unlockedBuildings.copy()
 
 
 	def genSurf(self):

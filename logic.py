@@ -48,6 +48,8 @@ class Handler:
 	def update(self):
 		my.UIhover = False
 		my.input.get()
+		my.updateCheats()
+
 		pauseText = ''
 		if pygame.locals.K_SPACE in my.input.unpressedKeys:
 			my.paused = not my.paused
@@ -55,12 +57,15 @@ class Handler:
 			self.pauseSurf = pygame.Surface((my.WINDOWWIDTH, my.WINDOWHEIGHT))
 			self.pauseTextSurf, self.pauseTextRect = ui.genText('PAUSED (press space to unpause)', (10, 10), my.WHITE, ui.MEGAFONT)
 			self.pauseTextRect.center = (int(my.WINDOWWIDTH / 2), int(my.WINDOWHEIGHT / 2))
+
 		if pygame.locals.K_m in my.input.unpressedKeys:
 			my.muted = not my.muted
 			if my.muted:
 				ui.StatusText('All sounds muted (M to unmute)')
 			if not my.muted:
 				ui.StatusText('All earmeltingly beautiful sounds activated')
+
+
 		if not my.paused:
 			self.pauseAlpha = 0
 			my.surf.blit(my.map.surf, (0, 0))
@@ -79,7 +84,10 @@ class Handler:
 			try:
 				my.mission = my.MISSIONS[my.currentMissionNum]
 			except IndexError:
+				if my.mission is not None:
+					ui.StatusText('Well done, you completed all missions!')
 				my.mission = None
+
 			my.map.update()
 			my.eventHandler.update()
 			building.updateBuildings()
