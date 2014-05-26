@@ -203,11 +203,15 @@ class Tooltip:
 		self.surf.set_colorkey(my.BLACK)
 		self.rect = self.surf.get_rect()
 		self.rect.topleft = self.pos
+		self.needNewSurf = False
 		
 
 	def simulate(self, isHovered, blitToLand=False):
 		if self.text != self.lastText:
+			self.needNewSurf = True
+		if self.alpha > 0 and self.needNewSurf:
 			self.newTooltip()
+
 		if isHovered and self.text != 'BLANK TOOLTIP':
 			if self.alpha < 200: self.alpha += 20
 		elif self.alpha > 0 and not self.lockAlpha:

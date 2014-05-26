@@ -12,7 +12,7 @@ FPSCLOCK = pygame.time.Clock()
 muted = False
 
 if DEBUGMODE:
-	WINDOWWIDTH = 1200
+	WINDOWWIDTH = 1600
 	WINDOWHEIGHT = 800
 	screen = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
 	loadingScreen = pygame.transform.scale(pygame.image.load('assets/ui/loadingScreen.png'), (WINDOWWIDTH, WINDOWHEIGHT))
@@ -72,7 +72,7 @@ STARTINGHAPPINESS = 20
 MAXHUNGER = 2000
 STARTINGHUNGER = MAXHUNGER
 FULLMARGIN = MAXHUNGER - 100
-HUNGERWARNING = 800 # when people are not eating look for food
+HUNGERWARNING = 1200 # when people are not eating look for food
 HUNGERURGENT = 300 # UH OH CRAZY HUNGRY NEED FOOD REAL QUICK
 STARVINGHEALTHLOSS = 50
 
