@@ -30,4 +30,8 @@ to
 			mob.Rabbit()
 			mob.Deer()
 
+![Screenshot](https://i.imgur.com/0tu0BE1.png)
+
+[More screenshots](https://imgur.com/a/n2ktG#0)
+
 pygame.org python.org
