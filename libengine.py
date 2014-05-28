@@ -12,7 +12,7 @@ pygame.display.set_caption('Real time strategy')
 my.screen.blit(my.loadingScreen, (0, 0))
 pygame.display.update()
 
-def main():
+def run():
 	runGame()
 
 
@@ -23,4 +23,4 @@ def runGame():
 
 
 if __name__ == '__main__':
-	main()
+	run()

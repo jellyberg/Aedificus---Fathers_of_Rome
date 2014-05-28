@@ -2,7 +2,7 @@ import pygame, random
 from pygame.locals import *
 
 DEBUGMODE = 1
-CHEATS = {'noHunger': 0, 'fastActions': 0, 'fastMoving': 0}
+CHEATS = {'noHunger': 0, 'fastActions': 1, 'fastMoving': 0}
 
 pygame.mixer.pre_init(44100,-16,2, 1024)
 pygame.init()
@@ -12,7 +12,7 @@ FPSCLOCK = pygame.time.Clock()
 muted = False
 
 if DEBUGMODE:
-	WINDOWWIDTH = 1600
+	WINDOWWIDTH = 1400
 	WINDOWHEIGHT = 800
 	screen = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
 	loadingScreen = pygame.transform.scale(pygame.image.load('assets/ui/loadingScreen.png'), (WINDOWWIDTH, WINDOWHEIGHT))
@@ -27,9 +27,9 @@ HALFWINDOWHEIGHT = int(WINDOWHEIGHT / 2)
 
 
 CELLSIZE = 20
-HALFCELL = 10
-MAPXCELLS = 200
-MAPYCELLS = 200
+HALFCELL = int(CELLSIZE / 2)
+MAPXCELLS = 150
+MAPYCELLS = 150
 MAPWIDTH = CELLSIZE * MAPXCELLS
 MAPHEIGHT = CELLSIZE * MAPYCELLS
 SCROLLACCEL = 1 # map scroll
@@ -43,8 +43,8 @@ SUNMOVESPEED = 0.1
 TREEFREQUENCY = random.randint(50, 100)   # 1/xth of tiles are trees
 TREEMAXHEALTH = 400
 WOODPERTREE = 50 # +/- a bit
-NUMRIVERS = 30
-NUMMOUNTAINS = 20
+NUMRIVERS = 15
+NUMMOUNTAINS = 10
 MASTEROREFREQ = 200
 IRONFREQ = 2 # / MASTEROREFREQ of rock tiles
 COALFREQ = 10 # / MASTEROREFREQ of rock tiles
@@ -80,15 +80,6 @@ BUBBLEMARGIN = 3
 HEALTHBARSHOWTIME = 200
 
 STARTUNLOCKEDBUILDINGS = ['hut', 'shed', 'orchard', 'blacksmith']
-
-def updateCheats():
-	if CHEATS['noHunger']:
-		STARTINGHUNGER = 10000000000000000000000000000000000000000000000000000000000000
-	if CHEATS['fastActions']:
-		TREECHOPSPEED = 100
-		CONSTRUCTIONSPEED = 1000
-	if CHEATS['fastMoving']:
-		HUMANMOVESPEED = 50
 
 
 

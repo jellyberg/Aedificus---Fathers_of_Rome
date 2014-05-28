@@ -1,6 +1,15 @@
 import pygame, my, input, ui, map, building, mob, item, random, mission, event
 
 
+def updateCheats():
+	if my.CHEATS['noHunger']:
+		my.STARTINGHUNGER = 10000000000000000000000000000000000000000000000000000000000000
+	if my.CHEATS['fastActions']:
+		my.TREECHOPSPEED = 100
+		my.CONSTRUCTIONSPEED = 100
+	if my.CHEATS['fastMoving']:
+		my.HUMANMOVESPEED = 50
+
 class Handler:
 	"""Keep the main.runGame() function nice and tidy"""
 	def __init__(self):
@@ -29,8 +38,8 @@ class Handler:
 		my.sunPos = (self.sunx, my.MAPHEIGHT + 10)
 
 		# HUMANS FOR TESTING
-		for i in range(3):
-			human = mob.Human((int(my.MAPXCELLS / 2), int(my.MAPYCELLS / 2)), None)
+		for i in range(1):
+			human = mob.Human((int(my.MAPXCELLS / 2), int(my.MAPYCELLS / 2)), 'builder')
 			human.destination = (random.randint(int(my.MAPXCELLS / 2) - 5, int(my.MAPXCELLS / 2) + 5),
 					   random.randint(int(my.MAPYCELLS / 2) - 5, int(my.MAPYCELLS / 2) + 5))
 
@@ -48,7 +57,7 @@ class Handler:
 	def update(self):
 		my.UIhover = False
 		my.input.get()
-		my.updateCheats()
+		updateCheats()
 
 		pauseText = ''
 		if pygame.locals.K_SPACE in my.input.unpressedKeys:

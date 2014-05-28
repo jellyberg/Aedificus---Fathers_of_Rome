@@ -559,12 +559,14 @@ class Human(Mob):
 		"""Find nearest free cell in a site and set as destination"""
 		done = False
 		sites = my.map.findNearestBuildings(self.coords, my.buildingsUnderConstruction)
+		print('find site')
 		if sites and (self.intention is None or self.intention == 'working'):
 			for site in sites:
+				print('check site')
 				for x in range(len(site.buildersPositions)):
 					for y in range(len(site.buildersPositions[0])):
 						if done: break
-						if site.buildersPositions[x][y] is None:
+						if site.buildersPositions[x][y] is None or site.buildersPositions[x][y] == self:
 							# go to, and reserve a place at, the site
 							self.destination = site.buildersPositionsCoords[x][y]
 							site.buildersPositions[x][y] = self
@@ -572,17 +574,20 @@ class Human(Mob):
 								self.removeSiteReservation()
 							self.destinationSite = site
 							self.buildPosx, self.buildPosy = x, y
+							print('reserved site!')
 							done = True
 						if done: break
+						print('space occupied')
 					if done: break
 				if done: break
+				print('site aint good')
 
 
 	def removeSiteReservation(self):
-		"""Removes the reserved spot at the lost construction site"""
+		"""Removes the reserved spot at the last construction site"""
 		if self.destinationSite and self.buildPosx and self.buildPosy:
 			self.destinationSite.buildersPositions[self.buildPosx][self.buildPosy] = None
-			self.buildPosx, self.buildPosy = None, None
+		self.buildPosx, self.buildPosy = None, None
 		self.building = None
 
 

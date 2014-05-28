@@ -1145,7 +1145,8 @@ class StatusText(pygame.sprite.Sprite):
 
 
 class Minimap:
-	borderImg = pygame.image.load('assets/ui/minimapBorder.png')
+	rawBorderImg = pygame.image.load('assets/ui/minimapBorder.png').convert_alpha()
+	borderImg = pygame.transform.scale(rawBorderImg, (my.MAPXCELLS + int(my.MAPXCELLS / 10), my.MAPYCELLS + int(my.MAPYCELLS / 10)))
 	"""A minimap displaying the world and the camera's viewarea, at the bottom right of the screen"""
 	def __init__(self):
 		self.rect = pygame.Rect((my.WINDOWWIDTH - my.MAPXCELLS - GAP * 4, my.WINDOWHEIGHT - my.MAPYCELLS - GAP * 4), (my.MAPXCELLS, my.MAPYCELLS))
@@ -1176,7 +1177,7 @@ class Minimap:
 			self.surf = self.mapSurf.copy()
 		self.updateCameraRect()
 		my.screen.blit(self.surf, self.rect)
-		my.screen.blit(Minimap.borderImg, (self.rect.left - 10, self.rect.top - 10))
+		my.screen.blit(Minimap.borderImg, (self.rect.left - int(my.MAPXCELLS / 20), self.rect.top - int(my.MAPYCELLS / 20)))
 		self.handleInput()
 
 

@@ -35,8 +35,10 @@ class Input:
             elif event.type == MOUSEBUTTONUP:
                 self.mousePressed = False
                 self.mouseUnpressed = event.button
+                
         self.hoveredPixel = my.map.screenToGamePix(self.mousePos)
-        if not my.UIhover:
+        hoveredCoords = my.map.screenToCellCoords(self.mousePos)
+        if not my.UIhover and my.map.inBounds(hoveredCoords):
             self.hoveredCell = my.map.screenToCellCoords(self.mousePos)
             self.hoveredCellType = my.map.cellType(self.hoveredCell)
         else:  
