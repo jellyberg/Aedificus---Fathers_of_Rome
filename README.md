@@ -6,7 +6,7 @@ RTS
 
 You can download an .exe: [DropBox](https://www.dropbox.com/s/3bm8x8i6uhnkyhs/Aedificus%201.0_win.zip),  [MediaFire](http://www.mediafire.com/download/s1c7fl8d8rnie25/Aedificus_1.0_win.zip)
 
-BROKEN AT THE MOMENT: /*If you're one of those Appley folk, you can grab the Mac .app [DropBox](https://www.dropbox.com/s/n3gxnz64xsyh0tk/Aedificus%201.0_mac.zip), [MediaFire](http://www.mediafire.com/download/c3891f0uqo06kou/Aedificus_1.0_mac.zip)*/
+BROKEN AT THE MOMENT: *If you're one of those Appley folk, you can grab the Mac .app [DropBox](https://www.dropbox.com/s/n3gxnz64xsyh0tk/Aedificus%201.0_mac.zip), [MediaFire](http://www.mediafire.com/download/c3891f0uqo06kou/Aedificus_1.0_mac.zip)*
 
 Once you've downloaded that, just right click the .zip, click Extract All, then when that's done you can run main.exe or main.app, depending on your platform obviously.
 
