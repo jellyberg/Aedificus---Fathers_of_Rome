@@ -1,6 +1,4 @@
-RTS
-===
-
+![Logo](https://i.imgur.com/prkEdUj.png)
 
 ### Installation
 
