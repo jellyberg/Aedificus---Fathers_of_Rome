@@ -38,8 +38,8 @@ class Handler:
 		my.sunPos = (self.sunx, my.MAPHEIGHT + 10)
 
 		# HUMANS FOR TESTING
-		for i in range(1):
-			human = mob.Human((int(my.MAPXCELLS / 2), int(my.MAPYCELLS / 2)), 'builder')
+		for i in range(5):
+			human = mob.Human((int(my.MAPXCELLS / 2), int(my.MAPYCELLS / 2)), None)
 			human.destination = (random.randint(int(my.MAPXCELLS / 2) - 5, int(my.MAPXCELLS / 2) + 5),
 					   random.randint(int(my.MAPYCELLS / 2) - 5, int(my.MAPYCELLS / 2) + 5))
 
@@ -70,12 +70,17 @@ class Handler:
 		if pygame.locals.K_m in my.input.unpressedKeys:
 			my.muted = not my.muted
 			if my.muted:
-				ui.StatusText('All sounds muted (M to unmute)')
+				ui.StatusText('All sounds muted (M to unmute)', None, True)
 			if not my.muted:
-				ui.StatusText('All earmeltingly beautiful sounds activated')
+				ui.StatusText('All earmeltingly beautiful sounds activated', None, True)
 
 
 		if not my.paused:
+			#TEMP
+			if pygame.locals.K_0 in my.input.unpressedKeys:
+				my.FPS = random.choice([5, 20, 120])
+				ui.StatusText('FPS cap: %s' %(my.FPS), None, True)
+
 			self.pauseAlpha = 0
 			my.surf.blit(my.map.surf, (0, 0))
 
@@ -85,6 +90,8 @@ class Handler:
 					my.tick[i] = True
 				else:
 					my.tick[i] = False
+			millisecondsSinceLastFrame = my.FPSCLOCK.tick(my.FPS)
+			deltaTime = millisecondsSinceLastFrame / 1000.0
 
 			self.sunx += my.SUNMOVESPEED
 			if self.sunx > my.MAPWIDTH: self.sunx = -30
@@ -94,14 +101,14 @@ class Handler:
 				my.mission = my.MISSIONS[my.currentMissionNum]
 			except IndexError:
 				if my.mission is not None:
-					ui.StatusText('Well done, you completed all missions!')
+					ui.StatusText('Congratulations, you completed all missions!')
 				my.mission = None
 
 			my.map.update()
 			my.eventHandler.update()
 			building.updateBuildings()
 			item.update()
-			mob.updateMobs()
+			mob.updateMobs(deltaTime)
 			ui.handleTooltips()
 			my.hud.updateWorldUI()
 			my.camera.update()
@@ -117,8 +124,7 @@ class Handler:
 			pauseText = '   **PAUSED**'
 
 		pygame.display.update()
-		my.FPSCLOCK.tick(my.FPS)
-		pygame.display.set_caption('Real time strategy' + ' ' * 10 + 'FPS: ' + str(int(my.FPSCLOCK.get_fps())) + pauseText)
+		pygame.display.set_caption('Aedificus: Fathers of Rome' + ' ' * 10 + 'FPS: ' + str(int(my.FPSCLOCK.get_fps())) + pauseText)
 
 		for key in my.resources.keys(): # DON'T FIX THE BUGS, HIDE 'EM!
 			if my.resources[key] < 0:

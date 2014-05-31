@@ -1,4 +1,4 @@
-import my, pygame, random, math, item, shadow
+import my, pygame, random, math, item
 from pygame.locals import *
 from random import randint
 
@@ -310,8 +310,8 @@ class Tree(pygame.sprite.Sprite):
 				self.kill()
 
 
-	def chop(self):
-		self.health -= my.TREECHOPSPEED
+	def chop(self, dt):
+		self.health -= my.TREECHOPSPEED * dt
 		if self.health < 1 and self.justDied:
 			item.Wood(my.WOODPERTREE + random.randint(0, 50), self.coords)
 			x, y = self.coords

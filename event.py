@@ -59,7 +59,7 @@ class FloodTile(pygame.sprite.Sprite):
 		if my.map.map[x][y] == 'tree':
 			tree = my.map.getObj(coords, 'tree')
 			tree.health = 1
-			tree.chop()
+			tree.chop(100)
 		elif my.map.map[x][y] not in ['grass', 'rock', 'water', 'iron', 'coal', 'gold']:
 			ui.StatusText('Your %s was destroyed by the flood!' %(my.map.map[x][y]), self.coords)
 			site = building.findBuildingAtCoord(coords)

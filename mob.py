@@ -1,4 +1,4 @@
-import my, pygame, ui, os, random, math, item, sound, shadow
+import my, pygame, ui, os, random, math, time, item, sound, shadow
 from random import randint
 
 my.allMobs = pygame.sprite.Group()
@@ -10,15 +10,15 @@ my.corpses = pygame.sprite.Group()
 
 OCCUPATIONS = ['None', 'builder', 'woodcutter', 'miner', 'fisherman', 'blacksmith']
 
-def updateMobs():
+def updateMobs(dt):
 	for mob in my.allMobs.sprites():
 		mob.handleShadow()
 	for corpse in my.corpses.sprites():
 		corpse.update()
 	for mob in my.animals.sprites():
-		mob.update()
+		mob.update(dt)
 	for mob in my.allHumans.sprites():
-		mob.update()
+		mob.update(dt)
 	for corpse in my.corpses.sprites():
 		corpse.handleTooltip()
 	if len(my.designatedTrees) > my.MAXTREESDESIGNATED:
@@ -76,7 +76,10 @@ class Mob(pygame.sprite.Sprite):
 		self.isDead = False
 		self.causeOfDeath = None
 		self.add(my.allMobs)
+
 		self.animFrame = 0
+		self.timeLastFrameChange = 0
+		self.animFrameDuration = 0.15
 		if type(img) == list:
 			self.animation = img
 			self.lastAnimation = self.animation
@@ -84,34 +87,39 @@ class Mob(pygame.sprite.Sprite):
 		else:
 			self.image = img
 			self.animation = None
+
 		self.direction = 'right'
 		self.rect = pygame.Rect(my.map.cellsToPixels(coords), size)
+		self.truePos = (self.rect.topleft)
+
 		self.destination = None
 		self.baseMoveSpeed = baseMoveSpeed
 		self.moveSpeed = self.baseMoveSpeed
+
 		self.health = health
 		self.startHealth = health
 		self.lastHealth = self.health
 		self.drawHealthBar = False
+
 		self.coords =  coords
 		self.tick = randint(1, 19)
 		self.initTooltip()
 		self.shadow = shadow.Shadow(self, self.animation[0])
 
 
-	def baseUpdate(self):
+	def baseUpdate(self, dt):
 		if not self.isDead:
 			self.coords =  my.map.pixelsToCell(self.rect.center)
-			self.updateMove()
+			self.updateMove(dt)
 			self.handleImage()
 			self.blit()
 			if self.health is not None: self.handleHealth()
 
 
-	def updateMove(self):
+	def updateMove(self, dt):
 		"""Move towards self.destination coords"""
 		if self.destination:
-			x, y = self.rect.topleft
+			x, y = self.truePos
 			destx, desty = my.map.cellsToPixels(self.destination)
 			destx += my.CELLSIZE / 4 # so mobs are less obviously gridlike
 			destx = int(destx)
@@ -125,24 +133,28 @@ class Mob(pygame.sprite.Sprite):
 					self.animCount = 0
 				return
 			# IF NOT, SET UP MOVE DISTANCE
-			xMoveDist, yMoveDist = self.moveSpeed, self.moveSpeed
-			if xDistanceToDest < self.moveSpeed:
+			currentMoveSpeed = self.moveSpeed * dt # account for FPS
+			xMoveDist, yMoveDist = currentMoveSpeed, currentMoveSpeed
+			if xDistanceToDest < currentMoveSpeed:
 				xMoveDist = xDistanceToDest
-			if yDistanceToDest < self.moveSpeed:
+			if yDistanceToDest < currentMoveSpeed:
 				yMoveDist = yDistanceToDest
 			# If moving diagonally, only move half as far in x and half as far in y
 			movex, movey = True, True
 			if x == destx: movex = False
 			if y == desty: movey = False
-			if (movex and movey) and xMoveDist == self.moveSpeed and yMoveDist == self.moveSpeed:
-				xMoveDist = math.ceil(self.moveSpeed / 2)
-				yMoveDist = math.ceil(self.moveSpeed / 2)
+			if (movex and movey) and xMoveDist > currentMoveSpeed and yMoveDist > currentMoveSpeed:
+				xMoveDist = math.ceil(currentMoveSpeed / 2)
+				yMoveDist = math.ceil(currentMoveSpeed / 2)
 			# AND MOVE
 			if x < destx:   movex = xMoveDist
 			elif x > destx: movex = -xMoveDist
 			if y < desty:   movey = yMoveDist
 			elif y > desty: movey = -yMoveDist
-			self.rect.move_ip(movex, movey)
+
+			self.truePos = (x + movex, y + movey)
+			self.rect.topleft = self.truePos
+
 			if self.animation == self.idleAnim:
 				self.animation = self.moveAnim
 				if self.animFrame > len(self.idleAnim) - 1:
@@ -205,8 +217,9 @@ class Mob(pygame.sprite.Sprite):
 				if self.animFrame > len(self.animation) - 1:
 					self.animFrame = 0
 			self.image = self.animation[self.animFrame]
-			if my.ticks % 6 == 0:
+			if time.time() - self.timeLastFrameChange > self.animFrameDuration:
 				self.animFrame += 1
+				self.timeLastFrameChange = time.time()
 			if self.animFrame > len(self.animation) - 1:
 				self.animFrame = 0
 			self.lastAnimation = self.animation
@@ -274,20 +287,20 @@ class Human(Mob):
 		self.destinationFoodSite = None
 
 
-	def update(self):
+	def update(self, dt):
 		if not self.isDead:
-			self.baseUpdate()
-			self.updateEmotions()
+			self.baseUpdate(dt)
+			self.updateEmotions(dt)
 			if self.occupation is None:
 				self.updateSerf()
 			if self.occupation == 'builder':
-				self.updateBuilder()
+				self.updateBuilder(dt)
 			if self.occupation == 'woodcutter':
-				self.updateWoodcutter()
+				self.updateWoodcutter(dt)
 			if self.occupation == 'fisherman':
-				self.updateFisherman()
+				self.updateFisherman(dt)
 			if self.occupation == 'miner':
-				self.updateMiner()
+				self.updateMiner(dt)
 			if self.occupation == 'blacksmith':
 				self.updateBlacksmith()
 			if my.map.cellType(self.coords) == 'water' and self.animation == self.moveAnim:
@@ -348,10 +361,10 @@ class Human(Mob):
 		self.bubble = ThoughtBubble(self.thought, bubblePos, self.thoughtIsUrgent)
 
 
-	def updateEmotions(self):
+	def updateEmotions(self, dt):
 		"""Update the human's wants and needs, and kills it if need be!"""
 		# HUNGER
-		self.hunger -= 1
+		self.hunger -= my.HUNGERLOSSRATE * dt
 		if self.hunger < my.HUNGERWARNING:
 			self.thought = 'hungry'
 			if not self.intention == 'find food': # is hungry or eating?
@@ -365,9 +378,8 @@ class Human(Mob):
 			self.destinationFoodSite = None
 
 		if self.hunger < 1: # starving?
-			self.health -= my.STARVINGHEALTHLOSS
+			self.health -= my.STARVINGHEALTHLOSS * dt
 			self.causeOfDeath = 'starved to death'
-			self.die()
 		self.lastHunger = self.hunger
 
 		if self.destinationFoodSite and self.destinationFoodSite in my.demolishedBuildings:
@@ -535,11 +547,11 @@ class Human(Mob):
 		self.buildPosx, self.buildPosy = None, None
 
 
-	def updateBuilder(self):
+	def updateBuilder(self, dt):
 		if not self.isDead:
 			if self.building is None and my.tick[self.tick]:
 				self.findConstructionSite()
-			self.build()
+			self.build(dt)
 			if self.destinationSite and my.builtBuildings.has(self.destinationSite):
 				self.removeSiteReservation()
 				self.destination = None
@@ -559,10 +571,8 @@ class Human(Mob):
 		"""Find nearest free cell in a site and set as destination"""
 		done = False
 		sites = my.map.findNearestBuildings(self.coords, my.buildingsUnderConstruction)
-		print('find site')
 		if sites and (self.intention is None or self.intention == 'working'):
 			for site in sites:
-				print('check site')
 				for x in range(len(site.buildersPositions)):
 					for y in range(len(site.buildersPositions[0])):
 						if done: break
@@ -574,13 +584,10 @@ class Human(Mob):
 								self.removeSiteReservation()
 							self.destinationSite = site
 							self.buildPosx, self.buildPosy = x, y
-							print('reserved site!')
 							done = True
 						if done: break
-						print('space occupied')
 					if done: break
 				if done: break
-				print('site aint good')
 
 
 	def removeSiteReservation(self):
@@ -596,7 +603,7 @@ class Human(Mob):
 		self.destinationSite = None
 
 
-	def build(self):
+	def build(self, dt):
 		"""If at site, construct it. If site is done, look for a new one."""
 		done = False
 		for site in my.buildingsUnderConstruction:
@@ -606,7 +613,7 @@ class Human(Mob):
 					if site.buildersPositionsCoords[x][y] == self.coords:
 						self.building = site
 						self.destinationSite = None
-						self.building.buildProgress += my.CONSTRUCTIONSPEED
+						self.building.buildProgress += my.CONSTRUCTIONSPEED * dt
 						self.intention = 'working'
 						done = True
 					if done: break
@@ -623,8 +630,7 @@ class Human(Mob):
 			if self.animFrame != 6:
 				self.buildSoundPlaying = False
 			elif self.animFrame == 6 and my.camera.isVisible(self.rect) and not self.buildSoundPlaying:
-				num = randint(1, 6)
-				sound.play('hammering%s' %(num))
+				sound.play('hammering%s' %(randint(1, 6)))
 				self.buildSoundPlaying = True
 		if my.builtBuildings.has(self.building):
 			self.building = None
@@ -645,7 +651,7 @@ class Human(Mob):
 		self.chopSoundPlaying = False
 
 
-	def updateWoodcutter(self):
+	def updateWoodcutter(self, dt):
 		if self.intention in [None, 'working'] and not self.chopping and my.tick[self.tick]:
 			self.intention = 'working'
 			self.findTree()
@@ -653,7 +659,7 @@ class Human(Mob):
 		if self.destinationSite and self.coords == self.destinationSite.coords:
 			self.chopping = True
 			self.thought = 'working'
-			self.destinationSite.chop()
+			self.destinationSite.chop(dt)
 			if self.animFrame != 6:
 				self.chopSoundPlaying = False
 			if self.animFrame == 6 and my.camera.isVisible(self.rect) and not self.chopSoundPlaying:
@@ -720,12 +726,12 @@ class Human(Mob):
 		self.mineSoundPlaying = False
 
 
-	def updateMiner(self):
+	def updateMiner(self, dt):
 		if (not self.destinationSeam or (my.tick[self.tick] and not self.mining)) and self.intention in [None, 'working']\
 					and len(my.oreOnTheFloor) < my.MAXOREONFLOOR:
 			self.findMiningSpot()
 		elif len(my.oreOnTheFloor) < my.MAXOREONFLOOR: # for performance
-			self.mine()
+			self.mine(dt)
 		self.lastSeam = self.destinationSeam
 
 
@@ -757,7 +763,7 @@ class Human(Mob):
 			self.animCount = 0
 
 
-	def mine(self):
+	def mine(self, dt):
 		"""If at seam, mine, occasionally spawning Ore() items"""
 		if self.intention == 'working' and self.coords == self.destinationSeam.coords:
 			if self.animation != Human.mineAnim:
@@ -768,12 +774,12 @@ class Human(Mob):
 			if self.animFrame == 0 and my.camera.isVisible(self.rect) and not self.mineSoundPlaying:
 				sound.play('mining%s' %(randint(1, 4)), 0.5)
 				self.mineSoundPlaying = True
-			self.destinationSeam.durability -= my.OREMINESPEED
+			self.destinationSeam.durability -= my.OREMINESPEED * dt
 			if self.destinationSeam.durability < 1:
 				self.destinationSeam = None
 				self.mining = False
 				self.intention = None
-			elif randint(0, 1000) < my.OREABUNDANCE[self.destinationSeam.mineral]:
+			elif randint(0, 35000 * dt) < my.OREABUNDANCE[self.destinationSeam.mineral]:
 				x, y = self.coords
 				item.Ore(1, (x + randint(-1, 1), y + randint(-1, 1)), self.destinationSeam.mineral)
 		elif self.animation == Human.mineAnim:
@@ -805,12 +811,12 @@ class Human(Mob):
 		self.seatCoords = None
 
 
-	def updateFisherman(self):
+	def updateFisherman(self, dt):
 		if not self.destinationSite and len(my.fishOnTheFloor) < my.MAXFISHONFLOOR\
 										and self.intention in ['working', None] and my.tick[self.tick]:
 			self.findFishingSpot()
 		elif self.destinationSite and len(my.fishOnTheFloor) < my.MAXFISHONFLOOR:
-			self.fish()
+			self.fish(dt)
 		if len(my.fishOnTheFloor) >= my.MAXFISHONFLOOR or self.destinationSite and self.destinationSite in my.demolishedBuildings:
 			self.stopFishingJob()
 		self.lastSite = self.destinationSite
@@ -837,13 +843,13 @@ class Human(Mob):
 		self.intention = None
 		
 
-	def fish(self):
+	def fish(self, dt):
 		"""If on seat, fish (occasionally spawn a Fish() item)"""
 		if self.intention == 'working' and self.coords == self.seatCoords:
 			if not self.animation == Human.fishAnim:
 				self.animation = Human.fishAnim
 				self.animCount = 0
-			if randint(0, my.FISHFREQUENCY) < 100:
+			if randint(0, my.FISHFREQUENCY) < 100 * dt:
 				x, y = self.coords
 				item.Fish(randint(my.FISHPERFISH - 20, my.FISHPERFISH + 20),
 						  (randint(x - 1, x + 1), randint(y - 1, y + 1)))
@@ -1036,7 +1042,7 @@ class HostileAnimal(Mob):
 		self.hunting = None
 
 
-	def animalUpdate(self):
+	def animalUpdate(self, dt):
 		if not self.hunting and my.tick[self.tick]:
 			self.findPrey()
 		if self.hunting:
@@ -1049,7 +1055,7 @@ class HostileAnimal(Mob):
 			elif self.rect.colliderect(self.hunting.rect):
 				if my.camera.isVisible(self.rect) and my.ticks % 50 == 0:
 					sound.play(random.choice(self.attackSounds))
-		self.baseUpdate()
+		self.baseUpdate(dt)
 
 
 	def findPrey(self):
@@ -1068,11 +1074,11 @@ class DeathWolf(HostileAnimal):
 		self.moveAnim = DeathWolf.runAnim
 		self.chaseSound = 'wolfHowl'
 		self.attackSounds = ['growl1', 'growl2', 'growl3']
-		HostileAnimal.__init__(self, 5, self.idleAnim, coords, (25, 15), 100, 200, 80)
+		HostileAnimal.__init__(self, 80, self.idleAnim, coords, (25, 15), 100, 200, 80)
 
 
-	def update(self):
-		self.animalUpdate()
+	def update(self, dt):
+		self.animalUpdate(dt)
 
 
 
@@ -1090,7 +1096,7 @@ class PassiveAnimal(Mob):
 		self.add(my.passiveAnimals)
 
 
-	def animalUpdate(self):
+	def animalUpdate(self, dt):
 		if my.camera.isVisible(self.rect):
 			if randint(0, 50) == 0:
 				x, y = self.coords
@@ -1099,7 +1105,7 @@ class PassiveAnimal(Mob):
 					if my.map.inBounds((newx, newy)) and my.map.map[newx][newy] == 'grass' or i == 5:
 						self.destination = (newx, newy)
 						break
-			self.baseUpdate()
+			self.baseUpdate(dt)
 
 
 class Rabbit(PassiveAnimal):
@@ -1111,12 +1117,12 @@ class Rabbit(PassiveAnimal):
 			self.animRight.append(pygame.transform.flip(frame, 1, 0))
 		self.idleAnim = self.animLeft
 		self.moveAnim = self.idleAnim
-		self.moveSpeed = 1
+		self.moveSpeed = 100
 		PassiveAnimal.__init__(self, 1, self.idleAnim, 'randomGrass', (10, 10))
 
 
-	def update(self):
-		self.animalUpdate()
+	def update(self, dt):
+		self.animalUpdate(dt)
 		if self.direction == 'left':
 			self.idleAnim, self.moveAnim = self.animLeft, self.animLeft
 		else:
@@ -1133,11 +1139,11 @@ class Deer(PassiveAnimal):
 			self.animRight.append(img)
 		self.idleAnim = self.animLeft
 		self.moveAnim = self.idleAnim
-		self.moveSpeed = 1
+		self.moveSpeed = 40
 		PassiveAnimal.__init__(self, 1, self.idleAnim, 'randomGrass', (15, 15))
 
-	def update(self):
-		self.animalUpdate()
+	def update(self, dt):
+		self.animalUpdate(dt)
 		if self.direction == 'left':
 			self.idleAnim, self.moveAnim = self.animLeft, self.animLeft
 		else:

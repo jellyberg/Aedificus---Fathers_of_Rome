@@ -2,7 +2,7 @@ import pygame, random
 from pygame.locals import *
 
 DEBUGMODE = 1
-CHEATS = {'noHunger': 0, 'fastActions': 1, 'fastMoving': 0}
+CHEATS = {'noHunger': 0, 'fastActions': 0, 'fastMoving': 0}
 
 pygame.mixer.pre_init(44100,-16,2, 1024)
 pygame.init()
@@ -55,31 +55,33 @@ OREDURABILITY = {'coal': 500, 'iron': 700, 'gold': 1000}
 OREABUNDANCE  = {'coal':   5, 'iron':   3, 'gold': 2} # % of mining time that an ore item drops
 
 
-TREECHOPSPEED = 1
+TREECHOPSPEED = 35
 MAXTREESDESIGNATED = 30 # to help performance
 treesChopped = 0
-OREMINESPEED = 1
-CONSTRUCTIONSPEED = 3 # progress towards completion added per tick per builder
-FISHFREQUENCY = 2000 # lower is higher chance of fish per frame
+OREMINESPEED = 35
+CONSTRUCTIONSPEED = 200 # progress towards completion added per tick per builder
+FISHFREQUENCY = 70000 # lower is higher chance of fish per frame
 FISHPERFISH = 100 # fish per Fish() caught by fishermen (+/- 20)
 FISHCONSUMEDPERTICK = 0.2 # fish consumed per frame by each person eating at the fishmongers
 MAXFISHONFLOOR = 10
 STARTRESOURCES    = {'wood': 300, 'iron': 0, 'coal': 0, 'gold': 0, 'ingot': 0, 'nail': 0, 'standard': 0}
 
 HUMANMAXHEALTH = 2000
-HUMANMOVESPEED = 3
-STARTINGHAPPINESS = 20
+HUMANMOVESPEED = 50
+STARTINGHAPPINESS = 20 # unimplemented at the moment
+
+HUNGERLOSSRATE = 20
 MAXHUNGER = 2000
 STARTINGHUNGER = MAXHUNGER
 FULLMARGIN = MAXHUNGER - 100
 HUNGERWARNING = 1200 # when people are not eating look for food
 HUNGERURGENT = 300 # UH OH CRAZY HUNGRY NEED FOOD REAL QUICK
-STARVINGHEALTHLOSS = 50
+STARVINGHEALTHLOSS = 200
 
 BUBBLEMARGIN = 3
 HEALTHBARSHOWTIME = 200
 
-STARTUNLOCKEDBUILDINGS = ['hut', 'shed', 'orchard', 'blacksmith']
+STARTUNLOCKEDBUILDINGS = ['hut', 'shed', 'orchard', 'fishing boat', 'fish mongers', 'blacksmith']
 
 
 
