@@ -1048,7 +1048,7 @@ class HostileAnimal(Mob):
 		if self.hunting:
 			self.destination = self.hunting.coords
 			if my.tick[self.tick] and self.rect.colliderect(self.hunting.rect):
-				self.hunting.health -= self.damage
+				self.hunting.health -= self.damage * dt
 				if self.hunting.health < 1:
 					self.hunting.causeOfDeath = 'been eaten by a %s' %(self.name)
 					self.hunting = None
@@ -1074,7 +1074,7 @@ class DeathWolf(HostileAnimal):
 		self.moveAnim = DeathWolf.runAnim
 		self.chaseSound = 'wolfHowl'
 		self.attackSounds = ['growl1', 'growl2', 'growl3']
-		HostileAnimal.__init__(self, 80, self.idleAnim, coords, (25, 15), 100, 200, 80)
+		HostileAnimal.__init__(self, 80, self.idleAnim, coords, (25, 15), 100, 200, 2600)
 
 
 	def update(self, dt):

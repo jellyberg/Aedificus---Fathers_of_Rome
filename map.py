@@ -193,7 +193,7 @@ class Camera:
 				  'left':   pygame.Rect((0, 0), (my.MOUSESCROLL, my.WINDOWHEIGHT))}
 
 
-	def update(self):
+	def update(self, dt):
 		"""Updates camera pos and shake, and blits the to my.screen"""
 		x, y = self.focus
 
@@ -211,12 +211,10 @@ class Camera:
 					or self.boundRect['right'].collidepoint(my.input.mousePos):
 			if self.xVel < 0: self.xVel = 0
 			self.xVel += my.SCROLLACCEL
-			if self.xVel > my.MAXSCROLLSPEED: xVel = my.MAXSCROLLSPEED
 		elif K_LEFT in my.input.pressedKeys or K_a in my.input.pressedKeys\
 					or self.boundRect['left'].collidepoint(my.input.mousePos):
 			if self.xVel > 0: self.xVel = 0
 			self.xVel -= my.SCROLLACCEL
-			if self.xVel < -my.MAXSCROLLSPEED: xVel = -my.MAXSCROLLSPEED
 		# DECELLERATE X
 		elif self.xVel > -my.SCROLLDRAG and self.xVel < my.SCROLLDRAG:
 			self.xVel = 0
@@ -224,19 +222,17 @@ class Camera:
 			self.xVel -= my.SCROLLDRAG
 		elif self.xVel < 0:
 			self.xVel += my.SCROLLDRAG
-		x += self.xVel
+		x += self.xVel * dt * 35
 
 		# ACELLERATE Y
 		if K_DOWN in my.input.pressedKeys or K_s in my.input.pressedKeys\
 					or self.boundRect['bottom'].collidepoint(my.input.mousePos):
 			if self.yVel < 0: self.yVel = 0
 			self.yVel += my.SCROLLACCEL
-			if self.yVel > my.MAXSCROLLSPEED: yVel = my.MAXSCROLLSPEED
 		elif K_UP in my.input.pressedKeys or K_w in my.input.pressedKeys\
 					or self.boundRect['top'].collidepoint(my.input.mousePos):
 			if self.yVel > 0: self.yVel = 0
 			self.yVel -= my.SCROLLACCEL
-			if self.yVel < -my.MAXSCROLLSPEED: yVel = -my.MAXSCROLLSPEED
 		# DECELLERATE Y
 		elif self.yVel > -my.SCROLLDRAG and self.yVel < my.SCROLLDRAG:
 			self.yVel = 0
@@ -244,7 +240,7 @@ class Camera:
 			self.yVel -= my.SCROLLDRAG
 		elif self.yVel < 0:
 			self.yVel += my.SCROLLDRAG
-		y += self.yVel
+		y += self.yVel * dt * 35
 
 		# UPDATE SELF.VIEWAREA AND BLIT
 		self.focus = (x, y)

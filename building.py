@@ -59,15 +59,15 @@ unscaledConstructionImg = pygame.image.load('assets/buildings/underConstruction.
 my.unlockedBuildings = my.STARTUNLOCKEDBUILDINGS[:]
 
 
-def updateBuildings():
+def updateBuildings(dt):
 	"""To keep logic.update() nice and tidy"""
 	if my.input.mousePressed == 3: # right click
 		my.buildingBeingPlaced.empty()
 		my.mode = 'look'
 	for building in my.builtBuildings.sprites():
 		building.handleShadow()
-	my.allBuildings.update()
-	my.buildingBeingPlaced.update()
+	my.allBuildings.update(dt)
+	my.buildingBeingPlaced.update(dt)
 
 
 def findBuildingAtCoord(coord):
@@ -313,7 +313,7 @@ class FoodBuilding(Building):
 		self.feedSpeed, self.maxCustomers = feedSpeed, maxCustomers
 
 
-	def updateFood(self):
+	def updateFood(self, dt):
 		"""Update self.currentCustomers and feed those in it. Update my.foodBuildingsWithSpace too."""
 		if my.builtBuildings.has(self):
 			self.currentCustomers = pygame.sprite.Group()
@@ -321,12 +321,12 @@ class FoodBuilding(Building):
 			for customer in self.lastCustomers.sprites():
 				if customer in self.AOEhumansAffected.sprites() and customer.hunger < my.FULLMARGIN\
 							 and customer.intention  == 'find food':
-					self.feedCustomer(customer)
+					self.feedCustomer(customer, dt)
 			# if there's still space, feed any new customers
 			for customer in self.AOEhumansAffected.sprites():
 				if customer.hunger < my.FULLMARGIN and customer.intention == 'find food'\
 						 and len(self.currentCustomers) < self.maxCustomers and customer not in self.currentCustomers:
-					self.feedCustomer(customer)
+					self.feedCustomer(customer, dt)
 			self.tooltip.text = '%s/%s customers being fed at this %s' \
 								%(len(self.currentCustomers), self.maxCustomers, self.name)
 			if len(self.currentCustomers) >= self.maxCustomers:
@@ -346,9 +346,9 @@ class FoodBuilding(Building):
 		self.lastCustomers = self.currentCustomers.copy()
 
 
-	def feedCustomer(self, customer):
+	def feedCustomer(self, customer, dt):
 		"""Feeds the customer, adds them to self.currentCustomers"""
-		customer.hunger += self.feedSpeed
+		customer.hunger += self.feedSpeed * dt
 		customer.thought = 'eating'
 		customer.thoughtIsUrgent = False
 		self.currentCustomers.add(customer)
@@ -424,7 +424,7 @@ class Hut(Building):
 		self.add(my.huts)
 
 
-	def update(self):
+	def update(self, dt):
 		self.updateBasic()
 
 
@@ -445,7 +445,7 @@ class Shed(StorageBuilding):
 		self.add(my.sheds)
 
 
-	def update(self):
+	def update(self, dt):
 		if my.builtBuildings.has(self):
 			self.updateStorage()
 		self.updateBasic()
@@ -461,7 +461,7 @@ class Orchard(FoodBuilding):
 	"""Basic food place"""
 	my.orchardHasBeenPlaced = False
 	def __init__(self):
-		FoodBuilding.__init__(self, 'orchard', (4, 2), my.BUILDINGSTATS['orchard'], (3, 2), 4, 5)
+		FoodBuilding.__init__(self, 'orchard', (4, 2), my.BUILDINGSTATS['orchard'], (3, 2), 100, 5)
 
 
 	def onPlace(self):
@@ -469,10 +469,10 @@ class Orchard(FoodBuilding):
 		self.onPlaceFood()
 
 
-	def update(self):
+	def update(self, dt):
 		self.updateBasic()
 		if my.builtBuildings.has(self):
-			self.updateFood()
+			self.updateFood(dt)
 
 
 
@@ -490,7 +490,7 @@ class FishingBoat(Building):
 		self.add(my.fishingBoats)
 
 
-	def update(self):
+	def update(self, dt):
 		self.updateBasic()
 		if my.builtBuildings.has(self):
 			self.tooltip.text = 'Fishing boat'
@@ -500,8 +500,7 @@ class FishingBoat(Building):
 class FishMongers(FoodBuilding):
 	"""Fish() are taken here, then can be eaten"""
 	def __init__(self):
-		stats = my.BUILDINGSTATS['fish mongers']
-		FoodBuilding.__init__(self, 'fishMongers', (2, 2), my.BUILDINGSTATS['fish mongers'] (3, 2), 9, 9)
+		FoodBuilding.__init__(self, 'fishMongers', (2, 2), my.BUILDINGSTATS['fish mongers'] (3, 2), 315, 9)
 
 
 	def onPlace(self):
@@ -513,12 +512,12 @@ class FishMongers(FoodBuilding):
 		self.storageCapacity = 500
 
 
-	def update(self):
+	def update(self, dt):
 		"""If has fish, act like a food building. Else, do nowt."""
 		self.updateBasic()
 		if my.builtBuildings.has(self):
 			if self.totalStored > 0:
-				self.updateFood()
+				self.updateFood(dt)
 				self.totalStored -= len(self.currentCustomers) * my.FISHCONSUMEDPERTICK
 				self.tooltip.text = '%s/%s customers being fed at this %s. It contains %s/%s fish.' \
 								%(len(self.currentCustomers), self.maxCustomers, self.name, int(self.totalStored), self.storageCapacity)
@@ -546,7 +545,7 @@ class Pool(Building):
 		self.displayShadow = False
 
 
-	def update(self):
+	def update(self, dt):
 		self.updateBasic()
 
 
@@ -561,7 +560,7 @@ class Blacksmith(StorageBuilding):
 		StorageBuilding.__init__(self, 'blacksmith', (4, 4), my.BUILDINGSTATS['blacksmith'], 20, my.blacksmithsWithSpace)
 
 
-	def update(self):
+	def update(self, dt):
 		self.updateBasic()
 		if my.builtBuildings.has(self):
 			self.updateStorage()
@@ -606,13 +605,12 @@ class Blacksmith(StorageBuilding):
 class TownHall(Building):
 	"""Control town legislation etc"""
 	def __init__(self):
-		stats = my.BUILDINGSTATS['town hall']
 		Building.__init__(self, 'townHall', (4, 3), my.BUILDINGSTATS['town hall'])
 		self.add(my.townHall)
 		self.menu = False
 
 
-	def update(self):
+	def update(self, dt):
 		self.updateBasic()
 		if my.input.mousePressed == 1 and my.input.hoveredCell and my.input.hoveredCellType == 'townHall':# or self.menu:
 			self.showMenu()

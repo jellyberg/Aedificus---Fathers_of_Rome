@@ -106,12 +106,12 @@ class Handler:
 
 			my.map.update()
 			my.eventHandler.update()
-			building.updateBuildings()
+			building.updateBuildings(deltaTime)
 			item.update()
 			mob.updateMobs(deltaTime)
 			ui.handleTooltips()
 			my.hud.updateWorldUI()
-			my.camera.update()
+			my.camera.update(deltaTime)
 			my.hud.updateHUD()
 
 		else:

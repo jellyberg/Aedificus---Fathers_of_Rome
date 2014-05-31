@@ -7,7 +7,7 @@ CHEATS = {'noHunger': 0, 'fastActions': 0, 'fastMoving': 0}
 pygame.mixer.pre_init(44100,-16,2, 1024)
 pygame.init()
 
-FPS = 40
+FPS = 60
 FPSCLOCK = pygame.time.Clock()
 muted = False
 
@@ -60,7 +60,7 @@ MAXTREESDESIGNATED = 30 # to help performance
 treesChopped = 0
 OREMINESPEED = 35
 CONSTRUCTIONSPEED = 200 # progress towards completion added per tick per builder
-FISHFREQUENCY = 70000 # lower is higher chance of fish per frame
+FISHFREQUENCY = 60000 # lower is higher chance of fish per frame
 FISHPERFISH = 100 # fish per Fish() caught by fishermen (+/- 20)
 FISHCONSUMEDPERTICK = 0.2 # fish consumed per frame by each person eating at the fishmongers
 MAXFISHONFLOOR = 10
