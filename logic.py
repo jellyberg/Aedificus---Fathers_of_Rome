@@ -5,8 +5,8 @@ def updateCheats():
 	if my.CHEATS['noHunger']:
 		my.STARTINGHUNGER = 10000000000000000000000000000000000000000000000000000000000000
 	if my.CHEATS['fastActions']:
-		my.TREECHOPSPEED = 100
-		my.CONSTRUCTIONSPEED = 100
+		my.TREECHOPSPEED = 1000
+		my.CONSTRUCTIONSPEED = 1000
 	if my.CHEATS['fastMoving']:
 		my.HUMANMOVESPEED = 50
 
@@ -105,7 +105,7 @@ class Handler:
 				my.mission = None
 
 			my.map.update()
-			my.eventHandler.update()
+			my.eventHandler.update(deltaTime)
 			building.updateBuildings(deltaTime)
 			item.update()
 			mob.updateMobs(deltaTime)

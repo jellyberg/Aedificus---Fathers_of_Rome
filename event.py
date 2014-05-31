@@ -1,4 +1,4 @@
-import my, ui, building, pygame, random
+import time, pygame, my, ui, building, random
 
 from random import randint
 
@@ -7,12 +7,13 @@ my.allFloodTiles = pygame.sprite.Group()
 
 class EventHandler:
 	def __init__(self):
-		self.lastFloodTime = 0
+		self.lastFloodTime = time.time()
 
 
-	def update(self):
-		if pygame.locals.K_f in my.input.pressedKeys or (randint(0, Flood.frequency) == 0 and my.ticks - self.lastFloodTime > Flood.minInterval):
+	def update(self, dt):
+		if pygame.locals.K_f in my.input.pressedKeys or (randint(0, Flood.frequency * dt) == 0 and time.time() - self.lastFloodTime > Flood.minInterval):
 			Flood()
+			self.lastFloodTime = time.time()
 		my.allFloodTiles.update()
 
 
@@ -23,7 +24,7 @@ class Flood:
 	"""
 	lifespan = 500 # higher is greater chance of lasting a long time
 	frequency = 5000
-	minInterval = 1000
+	minInterval = 60
 	def __init__(self):
 		my.currentEvents.append(self)
 

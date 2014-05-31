@@ -423,7 +423,7 @@ class Human(Mob):
 			self.stopJob()
 			self.destinationFoodSite = site
 		else:
-			ui.StatusText("%s can't find anywhere to eat. Build more orchards" %(self.name), self.coords)
+			ui.StatusText("Your citizens can't find anywhere to eat. Build more orchards", self.coords)
 
 
 #   SERF
