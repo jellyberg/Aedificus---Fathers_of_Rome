@@ -11,7 +11,7 @@ def play(sound, volume=0.8, varyVolume=True ,loops=0):
 	"""Plays the given sound"""
 	if not my.muted:
 		if varyVolume:
-			volume -= random.uniform(0.0, 0.4)
-			if volume < 0.0: volume == 0.1
+			volume -= random.uniform(0.0, 0.2)
+			if volume < 0.1: volume == 0.1
 			SOUND[sound].set_volume(volume)
 		SOUND[sound].play(loops)

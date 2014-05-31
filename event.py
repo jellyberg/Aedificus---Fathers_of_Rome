@@ -11,7 +11,7 @@ class EventHandler:
 
 
 	def update(self, dt):
-		if pygame.locals.K_f in my.input.pressedKeys or (randint(0, Flood.frequency * dt) == 0 and time.time() - self.lastFloodTime > Flood.minInterval):
+		if pygame.locals.K_f in my.input.pressedKeys or (randint(0, int(Flood.frequency * dt)) == 0 and time.time() - self.lastFloodTime > Flood.minInterval):
 			Flood()
 			self.lastFloodTime = time.time()
 		my.allFloodTiles.update()
