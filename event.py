@@ -1,4 +1,4 @@
-import time, pygame, my, ui, building, random
+import time, random, pygame, my, ui, building, map
 
 from random import randint
 
@@ -11,7 +11,7 @@ class EventHandler:
 
 
 	def update(self, dt):
-		if pygame.locals.K_f in my.input.pressedKeys or (randint(0, int(Flood.frequency * dt)) == 0 and time.time() - self.lastFloodTime > Flood.minInterval):
+		if pygame.locals.K_f in my.input.unpressedKeys or (randint(0, int(Flood.frequency * dt)) == 0 and time.time() - self.lastFloodTime > Flood.minInterval):
 			Flood()
 			self.lastFloodTime = time.time()
 		my.allFloodTiles.update()
@@ -30,15 +30,13 @@ class Flood:
 
 		self.originRiver = random.choice(my.rivers)
 		self.originCoords = random.choice(self.originRiver.allCoords)
-		self.xMagnitude = randint(4, 20) # distance from self.originCoords that is flooded
-		self.yMagnitude = randint(4, 20)
+		self.radius = randint(4, 20) # radius from self.originCoords that is flooded
 
 		self.floodTiles = []
-		originx, originy = self.originCoords
-		for x in range(-self.xMagnitude, self.xMagnitude):
-			for y in range(-self.yMagnitude, self.yMagnitude):
-				if randint(0, 3) < 3:
-					FloodTile((originx + x, originy + y))
+		coords = map.getCircleCoords(self.originCoords, self.radius)
+		for coord in coords:
+			if randint(0, 3) < 3:
+				FloodTile((coord[0], coord[1]))
 
 		ui.StatusText('A flood has struck!', (self.originCoords), True)
 

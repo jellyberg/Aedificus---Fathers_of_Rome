@@ -17,6 +17,16 @@ def loadTerrainImgs(terrainNames):
 		imgs[name] = (pygame.image.load('assets/terrain/' + name + '.png').convert_alpha())
 	return imgs
 
+def getCircleCoords(centre, radius):
+	"""Returns a circle of map coordinates from the specified centre"""
+	centrex, centrey = centre
+	coords = []
+	for x in range( -radius, radius):
+		for y in range(-radius, radius):
+			if x*x + y*y <= radius*radius and my.map.inBounds((centrex + x, centrey + y)):
+				coords.append((centrex + x, centrey + y))
+	return coords
+
 
 class Map:
 #   WORLD GEN
@@ -412,14 +422,12 @@ class Mountain:
 
 
 	def modifyCircle(self, centre, radius):
-		"""Makes all my.map.map tiles in a circle rock. WARNING: """
-		centrex, centrey = centre
-		for x in range( -radius, radius):
-			for y in range(-radius, radius):
-				if x*x + y*y <= radius*radius and 0 <= (centrex + x) < my.MAPXCELLS and 0 < (centrey + y) < my.MAPYCELLS:
-					my.map.map[centrex + x][centrey + y] = 'rock'
-					if (centrex + x, centrey + y) not in self.allCoords:
-						self.allCoords.append((centrex + x, centrey + y))
+		"""Makes all my.map.map tiles in a circle rock"""
+		coords = getCircleCoords(centre, radius)
+		for coord in coords:
+			my.map.map[coord[0]][coord[1]] = 'rock'
+			if coord not in self.allCoords:
+				self.allCoords.append(coord)
 
 
 	def genOre(self):
