@@ -92,6 +92,7 @@ class Handler:
 					my.tick[i] = False
 			millisecondsSinceLastFrame = my.FPSCLOCK.tick(my.FPS)
 			deltaTime = millisecondsSinceLastFrame / 1000.0
+			my.dt = deltaTime
 
 			self.sunx += my.SUNMOVESPEED
 			if self.sunx > my.MAPWIDTH: self.sunx = -30

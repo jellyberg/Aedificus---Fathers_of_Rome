@@ -1,7 +1,8 @@
-import pygame, my, math, random, building, mob, sound
+import pygame, my, math, random, time, building, mob, sound
 
 my.selectionBoxGroup = pygame.sprite.GroupSingle()
 my.demolisher = pygame.sprite.GroupSingle()
+my.UItips = pygame.sprite.Group()
 my.pulseLights = pygame.sprite.Group()
 my.buildingMenus = pygame.sprite.Group()
 
@@ -70,6 +71,7 @@ class Hud:
 		self.designator.update()
 		self.minimap.update()
 		self.statusArea.update()
+		my.UItips.update(False)
 		# RESOURCE AMOUNTS
 		i = 0
 		currentWidth = 0
@@ -180,9 +182,8 @@ class Button:
 
 class Tooltip:
 	"""A multiline text box, displayed when isHovered=True"""
-	def __init__(self, text, pos, font=BASICFONT):
-		self.pos, self.text, self.font = pos, text, font
-		self.x, self.y = pos
+	def __init__(self, text, pos, font=BASICFONT, colour=my.CREAM, arrowSide='left'):
+		self.pos, self.text, self.font, self.colour, self.arrowSide = pos, text, font, colour, arrowSide
 		self.alpha = 0
 		self.newTooltip()
 		self.lastText = self.text
@@ -196,10 +197,19 @@ class Tooltip:
 		self.textWidth = self.getLongestTextLine(self.textObjs)
 		# CREATE SURF
 		self.surf = pygame.Surface((self.textWidth + GAP * 3, self.textHeight + GAP * 2))
-		pygame.draw.rect(self.surf, my.CREAM, (GAP, 0, self.surf.get_width() - GAP, self.surf.get_height()))
-		pygame.draw.polygon(self.surf, my.CREAM, [(0, 10), (GAP, 5), (GAP, 15)])
+
+		width, height = self.surf.get_width(), self.surf.get_height()
+		if self.arrowSide == 'left':
+			pygame.draw.rect(self.surf, self.colour, (GAP, 0, width - GAP, height))
+			pygame.draw.polygon(self.surf, self.colour, [(0, 10), (GAP, 5), (GAP, 15)])
+
+		elif self.arrowSide == 'right':
+			pygame.draw.rect(self.surf, self.colour, (0, 0, width - GAP, height))
+			pygame.draw.polygon(self.surf, self.colour, [(width, 10), (width - GAP, 5), (width - GAP, 15)])
+
 		for i in range(len(self.textObjs)):
 			self.surf.blit(self.textObjs[i][0], self.textObjs[i][1])
+
 		self.surf.set_colorkey(my.BLACK)
 		self.rect = self.surf.get_rect()
 		self.rect.topleft = self.pos
@@ -680,12 +690,12 @@ class MissionProgressBar:
 		self.progressImg = pygame.image.load('assets/ui/missionBar/progressBar.png').convert_alpha()
 		self.bgImg = pygame.image.load('assets/ui/missionBar/barBg.png').convert_alpha() # background img
 		self.rect = pygame.Rect((0, 0), self.fgImg.get_size())
-		self.rect.midtop = (int(my.WINDOWWIDTH / 2), GAP * 2)
+		self.rect.midtop = (int(my.WINDOWWIDTH / 2), GAP * 3)
 		self.lastProgress = -1 # always gen surf on first update
 		self.ticksTillNextMission = 0
 		self.showTooltipTicks = 200
 		self.missionComplete = False
-		self.tooltip = Tooltip('BLANK TOOLTIP', (self.rect.right + GAP, self.rect.top), BIGFONT)
+		self.tooltip = Tooltip('BLANK TOOLTIP', (self.rect.right + GAP, self.rect.top), BIGFONT, my.WHITE)
 
 
 	def update(self):
@@ -719,7 +729,41 @@ class MissionProgressBar:
 		self.surf = self.bgImg.copy()
 		self.surf.blit(self.progressImg, (2,2), pygame.Rect(2, 2, int(my.mission.getProgress() / 100 * 117) , 20))
 		self.surf.blit(self.fgImg, (0,0))
-		
+
+
+
+class UItip(pygame.sprite.Sprite):
+	"""A tooltip that appears beside a UI element when the player forgets to click on something"""
+	dismissImg = pygame.image.load('assets/ui/cross.png').convert_alpha()
+	dismissImg = pygame.transform.scale(dismissImg, (10, 10))
+	currentTips = []
+
+	def __init__(self, toprightPos, text):
+		if text in UItip.currentTips: # UItip is already active or has been manually dismissed
+			return
+
+		pygame.sprite.Sprite.__init__(self)
+		my.UItips.add(self)
+		self.text = text
+		UItip.currentTips.append(text)
+
+		self.tooltip = Tooltip(text, (0, 0), BASICFONT, my.WHITE, 'right')
+		self.tooltip.rect.topright = toprightPos
+		self.tooltip.lockAlpha = True
+		self.tooltip.alpha = 200
+
+		self.dismissButtonRect = pygame.Rect((self.tooltip.rect.right - GAP*3, self.tooltip.rect.top + GAP),
+											  UItip.dismissImg.get_size())
+		w, h = self.tooltip.surf.get_size()
+		self.tooltip.surf.blit(UItip.dismissImg, (w - GAP * 3, h - 10))
+
+
+	def update(self, manualDismiss):
+		if manualDismiss or self.dismissButtonRect.collidepoint(my.input.mousePos) and my.input.mouseUnpressed == 1:
+			if not manualDismiss: self.remove(UItip.currentTips)
+			self.tooltip.lockAlpha = False
+
+		self.tooltip.simulate(False, 0)
 
 
 class BuildingMenu(pygame.sprite.Sprite):
@@ -889,6 +933,8 @@ class BuildingMenu(pygame.sprite.Sprite):
 
 class Highlight:
 	"""Highlight the cell the mouse is hovering over"""
+	animateInterval = 0.15
+
 	IMGS = {}
 	colours = ['red', 'yellow', 'blue']
 	for colour in colours:
@@ -899,6 +945,8 @@ class Highlight:
 	def __init__(self, colour):
 		"""Execute once for each colour, then just update its cell when need be"""
 		self.animNum = 0
+		self.lastAnimTime = 0
+
 		self.numChange = 1
 		self.imgs = Highlight.IMGS[colour]
 		self.numImgs = len(self.imgs) - 1
@@ -906,15 +954,15 @@ class Highlight:
 
 
 	def update(self, cell):
-		self.frames += 1
 		cellx, celly = cell
 		x, y = cellx * my.CELLSIZE, celly * my.CELLSIZE
 		my.surf.blit(self.imgs[self.animNum], (x, y))
-		if self.frames % 5 == 0:
+
+		if time.time() - self.lastAnimTime > Highlight.animateInterval:
 			if self.animNum == self.numImgs: self.numChange = -1
 			elif self.animNum == 0: self.numChange = 1
 			self.animNum += self.numChange
-		my.updateSurf = True
+			self.lastAnimTime = time.time()
 
 
 

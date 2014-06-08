@@ -69,6 +69,17 @@ def updateBuildings(dt):
 	my.allBuildings.update(dt)
 	my.buildingBeingPlaced.update(dt)
 
+	# if there are no builders and an unconstructed building, alert the player via a UItip
+	if my.buildingsUnderConstruction:
+		unconstructedSite = None
+		for site in my.buildingsUnderConstruction.sprites():
+			if site.buildProgress == 0: unconstructedSite = site.name
+		if unconstructedSite:
+			for human in my.allHumans:
+				if human.occupation == 'builder': return
+			ui.UItip((my.hud.occupationAssigner.rect.left - 5, my.hud.occupationAssigner.rect.top + 40), 
+					  'You need a builder to build your %s' %(unconstructedSite))
+
 
 def findBuildingAtCoord(coord):
 	if coord not in ['grass', 'stone', 'tree', 'coal', 'iron', 'gold']:
