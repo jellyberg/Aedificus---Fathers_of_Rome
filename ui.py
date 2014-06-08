@@ -1,8 +1,9 @@
-import pygame, my, math, random, time, building, mob, sound
+import pygame, my, math, random, time, building, mob, ui, sound
 
 my.selectionBoxGroup = pygame.sprite.GroupSingle()
 my.demolisher = pygame.sprite.GroupSingle()
 my.UItips = pygame.sprite.Group()
+my.ongoingUItipTexts = []
 my.pulseLights = pygame.sprite.Group()
 my.buildingMenus = pygame.sprite.Group()
 
@@ -41,6 +42,12 @@ def handleTooltips():
 		mob.handleTooltip()
 
 
+def updateUItips():
+	"""Handles UI tip updating and dismissing"""
+	for tip in my.UItips:
+		tip.update(tip.text not in my.ongoingUItipTexts)
+	my.ongoingUItipTexts = []
+
 
 
 class Hud:
@@ -71,7 +78,7 @@ class Hud:
 		self.designator.update()
 		self.minimap.update()
 		self.statusArea.update()
-		my.UItips.update(False)
+		updateUItips()
 		# RESOURCE AMOUNTS
 		i = 0
 		currentWidth = 0
@@ -739,6 +746,7 @@ class UItip(pygame.sprite.Sprite):
 	currentTips = []
 
 	def __init__(self, toprightPos, text):
+		my.ongoingUItipTexts.append(text)
 		if text in UItip.currentTips: # UItip is already active or has been manually dismissed
 			return
 
@@ -758,12 +766,13 @@ class UItip(pygame.sprite.Sprite):
 		self.tooltip.surf.blit(UItip.dismissImg, (w - GAP * 3, h - 10))
 
 
-	def update(self, manualDismiss):
-		if manualDismiss or self.dismissButtonRect.collidepoint(my.input.mousePos) and my.input.mouseUnpressed == 1:
-			if not manualDismiss: self.remove(UItip.currentTips)
+	def update(self, autoDismiss):
+		if autoDismiss or self.dismissButtonRect.collidepoint(my.input.mousePos) and my.input.mouseUnpressed == 1:
+			if autoDismiss and self.text in UItip.currentTips: UItip.currentTips.remove(self.text)
 			self.tooltip.lockAlpha = False
 
 		self.tooltip.simulate(False, 0)
+
 
 
 class BuildingMenu(pygame.sprite.Sprite):

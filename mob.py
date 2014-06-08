@@ -21,8 +21,25 @@ def updateMobs(dt):
 		mob.update(dt)
 	for corpse in my.corpses.sprites():
 		corpse.handleTooltip()
+
 	if len(my.designatedTrees) > my.MAXTREESDESIGNATED:
 		list(iter(my.designatedTrees))[0].remove()
+
+	hasWoodcutter = checkForOccupation('woodcutter')
+	if my.designatedTrees and not hasWoodcutter:
+		ui.UItip((my.hud.occupationAssigner.rect.left - 5, my.hud.occupationAssigner.rect.top + 70), 
+				  'You need a woodcutter to chop down those trees')
+	elif not my.designatedTrees and hasWoodcutter:
+		ui.UItip((my.hud.designator.rect.left - 5, my.hud.designator.rect.top + 5), 
+				  'Designate some trees for your woodcutters')
+
+	hasMiner = checkForOccupation('miner')
+	if my.designatedOres and not hasMiner:
+		ui.UItip((my.hud.occupationAssigner.rect.left - 5, my.hud.occupationAssigner.rect.top + 5), 
+				  'You need a miner to mine that ore')
+	elif not my.designatedOres and hasMiner:
+		ui.UItip((my.hud.designator.rect.left, my.hud.designator.rect.top + 65), 
+				  'Designate some ore for your miners')
 
 
 def loadAnimationFiles(directory):
@@ -66,6 +83,11 @@ def blitClothes(baseAnim, moveAnim, clothes, swimmingMask=None):
 	else:
 		return (clothedIdleAnim, clothedMoveAnim)
 
+
+def checkForOccupation(occupation):
+	"""Checks if any humans have the specified occupation"""
+	for human in my.allHumans:
+		if human.occupation == occupation: return True
 
 
 

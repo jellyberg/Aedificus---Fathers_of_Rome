@@ -75,10 +75,9 @@ def updateBuildings(dt):
 		for site in my.buildingsUnderConstruction.sprites():
 			if site.buildProgress == 0: unconstructedSite = site.name
 		if unconstructedSite:
-			for human in my.allHumans:
-				if human.occupation == 'builder': return
-			ui.UItip((my.hud.occupationAssigner.rect.left - 5, my.hud.occupationAssigner.rect.top + 40), 
-					  'You need a builder to build your %s' %(unconstructedSite))
+			if not mob.checkForOccupation('builder'):
+				ui.UItip((my.hud.occupationAssigner.rect.left - 5, my.hud.occupationAssigner.rect.top + 40), 
+						  'You need a builder to build your %s' %(unconstructedSite))
 
 
 def findBuildingAtCoord(coord):

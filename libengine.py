@@ -11,7 +11,7 @@ pygame.display.set_icon(pygame.image.load('assets/ui/icon.png'))
 pygame.display.set_caption('Aedificus: Fathers of Rome')
 
 my.screen.blit(my.loadingScreen, (0, 0))
-pygame.display.update() 
+pygame.display.update()
 
 def run():
 	runGame()
