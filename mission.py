@@ -11,6 +11,10 @@ class MoveCamera:
 	def getProgress(self):
 		if 'blacksmith' in my.unlockedBuildings:
 			my.unlockedBuildings.remove('blacksmith')
+
+		my.defaultHungerLossRate = my.HUNGERLOSSRATE
+		my.HUNGERLOSSRATE = 0 # make the game a bit more forgiving for new players
+
 		if my.camera.focus != self.startFocus: return 100
 		return 0
 
@@ -47,6 +51,8 @@ class BuildOrchard:
 							then click on a tile to place it. Make sure you have some builders!'
 
 	def getProgress(self):
+		try: my.HUNGERLOSSRATE = my.defaultHungerLossRate
+		except: my.HUNGERLOSSRATE = 20
 		if my.orchardHasBeenPlaced: return 100
 		return 0
 
@@ -145,7 +151,7 @@ class MissionTemplate:
 
 
 def initMissions():
-	my.currentMissionNum = -1
+	my.currentMissionNum = 0
 	my.mission = 'BLANK'
 	my.MISSIONS = []
 	my.MISSIONS.append(MoveCamera())

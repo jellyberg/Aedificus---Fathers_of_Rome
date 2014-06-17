@@ -1,4 +1,4 @@
-import pygame, my, math, random, time, building, mob, ui, sound
+import pygame, my, math, random, time, building, mob, sound
 
 my.selectionBoxGroup = pygame.sprite.GroupSingle()
 my.demolisher = pygame.sprite.GroupSingle()
@@ -278,6 +278,81 @@ class Tooltip:
 
 
 
+class Slider:
+	"""A slider looking thing that allows for selection of numbers in a specified range"""
+	size = (200, 80)
+	pointerImg = pygame.image.load('assets/ui/pointer.png').convert_alpha()
+	pointerHoverImg = pygame.image.load('assets/ui/pointerHover.png').convert_alpha()
+
+	def __init__(self, pos, rangeVals, label, defaultNum, barColour=my.PASTELBLUE, bgColour=my.SKYBLUE):
+		self.min, self.max = rangeVals # tuple of minimum and maximum values the slider can output
+		assert self.min < self.max and self.min != self.max, 'Slider range values are invalid'
+		assert self.min <= defaultNum <= self.max, 'Slider default num is invalid'
+		self.range = self.max - self.min
+
+		self.label = label # describe what the slider is changing
+		self.barColour, self.bgColour = barColour, bgColour
+
+		self.rect = pygame.Rect((pos[0], pos[1]), Slider.size)
+		self.genSurf()
+		self.pointerRect.midbottom = (defaultNum * (self.rect.width / self.range), 45)
+
+		self.currentlyClicked = False
+
+
+
+
+	def update(self):
+		"""Renders the slider, changes self.pointerRect based on input, returns the pointer value"""
+		self.surf.blit(self.baseSurf, (0, 0))
+		self.surf.blit(Slider.pointerImg, self.pointerRect)
+
+		if my.input.mousePressed != 1: self.currentlyClicked = False
+
+		if self.currentlyClicked or self.globalBarRect.collidepoint(my.input.mousePos) or self.pointerRectGlobal.collidepoint(my.input.mousePos):
+			self.surf.blit(Slider.pointerHoverImg, self.pointerRect)
+			if my.input.mousePressed == 1:
+				self.currentlyClicked = True
+				self.surf.blit(Slider.pointerHoverImg, self.pointerRect)
+
+				if 0 < (my.input.mousePos[0] - self.globalBarRect.x) < self.globalBarRect.width:
+					self.pointerRect.x = my.input.mousePos[0] - self.globalBarRect.x
+				elif 0 > (my.input.mousePos[0] - self.globalBarRect.x):
+					self.pointerRect.x = self.barRect.left
+				elif (my.input.mousePos[0] - self.globalBarRect.x) > self.globalBarRect.width:
+					self.pointerRect.right = self.barRect.right
+
+				self.pointerRectGlobal = self.globaliseRect(self.pointerRect)
+
+		my.screen.blit(self.surf, self.rect)
+		return int(self.min + self.pointerRect.x / float(self.rect.width) * self.range)
+
+
+
+	def genSurf(self):
+		"""Generate a new slider baseSurf and rects, with labels"""
+		self.baseSurf = pygame.Surface(Slider.size)
+		self.surf = pygame.Surface(self.baseSurf.get_size())
+		if self.bgColour:
+			self.baseSurf.fill(self.bgColour)
+		else:
+			self.baseSurf.set_colorkey(my.COLOURKEY)
+			self.baseSurf.fill(my.COLOURKEY)
+
+		self.barRect = pygame.Rect((GAP, 40), (190, 10))
+		self.globalBarRect = self.globaliseRect(self.barRect)
+		pygame.draw.rect(self.baseSurf, self.barColour, self.barRect)
+
+		self.pointerRect = Slider.pointerImg.get_rect()
+		self.pointerRectGlobal = self.globaliseRect(self.pointerRect)
+
+
+	def globaliseRect(self, localRect):
+		"""Returns a new rect with the Slider's topleft coords added on to the rect's coords"""
+		return pygame.Rect((localRect.x + self.rect.x, localRect.y + self.rect.y), localRect.size)
+
+
+
 class BottomBar:
 	"""A multi-tab menu at the bottom of the screen which allows contruction of buildings"""
 	height = 50
@@ -404,7 +479,7 @@ class BottomBar:
 			elif self.clickedCell == 11:
 				Demolisher()
 			else:
-				sound.play('error', 0.2, False)
+				sound.play('error', 0.4, False)
 		my.screen.blit(self.surf, self.bounds)
 
 		i=0
@@ -691,16 +766,19 @@ class OccupationAssigner:
 
 class MissionProgressBar:
 	"""Displays a progress bar showing progress through the current my.mission"""
-	showTooltipTicks = 300
+	showTooltipTime = 10
+	missionCompleteDisplayTime = 3
 	def __init__(self):
 		self.fgImg = pygame.image.load('assets/ui/missionBar/bar.png').convert_alpha() # foreground img
 		self.progressImg = pygame.image.load('assets/ui/missionBar/progressBar.png').convert_alpha()
 		self.bgImg = pygame.image.load('assets/ui/missionBar/barBg.png').convert_alpha() # background img
 		self.rect = pygame.Rect((0, 0), self.fgImg.get_size())
 		self.rect.midtop = (int(my.WINDOWWIDTH / 2), GAP * 3)
+
 		self.lastProgress = -1 # always gen surf on first update
-		self.ticksTillNextMission = 0
-		self.showTooltipTicks = 200
+		self.lastTipShowTime = 0
+		self.lastMissionEndTime = 0
+
 		self.missionComplete = False
 		self.tooltip = Tooltip('BLANK TOOLTIP', (self.rect.right + GAP, self.rect.top), BIGFONT, my.WHITE)
 
@@ -718,17 +796,16 @@ class MissionProgressBar:
 				my.mission.onComplete()
 			if not self.missionComplete:
 				self.tooltip.text = my.mission.name.upper() + ' :  ' + my.mission.description
-			self.tooltip.simulate(self.rect.collidepoint(my.input.mousePos) or self.ticksTillNextMission > 0 or self.showTooltipTicks > 0)
-			
+				self.lastMissionEndTime = time.time()
+
+			self.tooltip.simulate(self.shouldShowTooltip())
 			my.screen.blit(self.surf, self.rect)
 
-			self.ticksTillNextMission -= 1
-			self.showTooltipTicks -= 1
-
-			if self.ticksTillNextMission == 0:
+			if self.lastMissionEndTime and time.time() - self.lastMissionEndTime > MissionProgressBar.missionCompleteDisplayTime:
 				my.currentMissionNum += 1
 				self.missionComplete = False
-				self.showTooltipTicks = MissionProgressBar.showTooltipTicks
+				self.lastTipShowTime = time.time()
+				self.lastMissionEndTime = 0
 			self.lastProgress = progress
 
 
@@ -736,6 +813,13 @@ class MissionProgressBar:
 		self.surf = self.bgImg.copy()
 		self.surf.blit(self.progressImg, (2,2), pygame.Rect(2, 2, int(my.mission.getProgress() / 100 * 117) , 20))
 		self.surf.blit(self.fgImg, (0,0))
+
+
+	def shouldShowTooltip(self):
+		"""A little function that decides if the tooltip should be shown"""
+		return (self.rect.collidepoint(my.input.mousePos) or\
+				time.time() - self.lastTipShowTime < MissionProgressBar.showTooltipTime or\
+				time.time() - self.lastMissionEndTime < MissionProgressBar.missionCompleteDisplayTime)
 
 
 

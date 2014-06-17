@@ -1,4 +1,4 @@
-import pygame, my, input, ui, map, building, mob, item, random, mission, event
+import pygame, my, ui, map, building, mob, item, random, mission, event
 
 
 def updateCheats():
@@ -22,7 +22,6 @@ class Handler:
 		my.statusMessage = 'None'
 		my.map = map.Map()
 		my.map.completeGen()
-		my.input = input.Input()
 		my.camera = map.Camera()
 		my.hud = ui.Hud()
 		my.eventHandler = event.EventHandler()
@@ -76,11 +75,6 @@ class Handler:
 
 
 		if not my.paused:
-			#TEMP
-			if pygame.locals.K_0 in my.input.unpressedKeys:
-				my.FPS = random.choice([5, 20, 120])
-				ui.StatusText('FPS cap: %s' %(my.FPS), None, True)
-
 			self.pauseAlpha = 0
 			my.surf.blit(my.map.surf, (0, 0))
 
@@ -90,8 +84,7 @@ class Handler:
 					my.tick[i] = True
 				else:
 					my.tick[i] = False
-			millisecondsSinceLastFrame = my.FPSCLOCK.tick(my.FPS)
-			deltaTime = millisecondsSinceLastFrame / 1000.0
+			deltaTime = my.FPSCLOCK.tick(my.FPS) / 1000.0
 			my.dt = deltaTime
 
 			self.sunx += my.SUNMOVESPEED
@@ -116,7 +109,8 @@ class Handler:
 			my.hud.updateHUD()
 
 		else:
-			if self.pauseAlpha < 150: self.pauseAlpha += 5
+			deltaTime = my.FPSCLOCK.tick(my.FPS) / 1000.0
+			if self.pauseAlpha < 150: self.pauseAlpha += 600 * deltaTime
 			self.pauseSurf.fill(my.DARKGREY)
 			self.pauseSurf.set_alpha(self.pauseAlpha)
 			self.pauseSurf.blit(self.pauseTextSurf, self.pauseTextRect)
