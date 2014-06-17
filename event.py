@@ -1,3 +1,7 @@
+# AEDIFICUS: FATHERS OF ROME
+# by Adam Binks   www.github.com/jellyberg/Aedificus---Fathers_of_Rome
+# Read the devblog on Tumblr: bit.ly/Aedificus
+
 import time, random, pygame, my, ui, building, map
 
 from random import randint

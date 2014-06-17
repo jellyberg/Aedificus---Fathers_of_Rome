@@ -1,5 +1,8 @@
-import my, ui
+# AEDIFICUS: FATHERS OF ROME
+# by Adam Binks   www.github.com/jellyberg/Aedificus---Fathers_of_Rome
+# Read the devblog on Tumblr: bit.ly/Aedificus
 
+import my, ui
 
 
 class MoveCamera:
