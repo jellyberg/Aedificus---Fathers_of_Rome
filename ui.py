@@ -147,6 +147,10 @@ class Button:
 		self.buttonSurf.blit(self.textSurf, (int(self.padding /2), int(self.padding /2)))
 		self.currentSurf = self.buttonSurf
 		self.rect = pygame.Rect(self.screenPos, self.buttonSurf.get_size())
+		if self.posIsTopRight:
+			self.rect.topright = self.screenPos
+		else:
+			self.rect.topleft = self.screenPos
 		# CREATE ADDITIONAL SURFS
 		if isClickable:
 			# MOUSE HOVER
@@ -158,6 +162,7 @@ class Button:
 			self.clickSurf.fill(my.BROWNBLACK)
 			self.clickSurf.blit(self.textSurf, (int(self.padding /2), int(self.padding /2)))
 			self.isClicked = False
+			self.isHovered = False
 		self.hasTooltip = False
 		if tooltip:
 			self.hasTooltip = True
@@ -166,22 +171,18 @@ class Button:
 	def simulate(self, userInput):
 		if self.isClickable or self.hasTooltip: self.handleClicks(userInput)
 		if self.hasTooltip: self.tooltip.simulate(self.isHovered)
-		self.draw()
-
-	def draw(self):
-		if self.posIsTopRight:
-			self.rect.topright = self.screenPos
-		else:
-			self.rect.topleft = self.screenPos
 		my.screen.blit(self.currentSurf, self.rect)
 
 	def handleClicks(self, userInput=None):
 		self.isClicked = False
+		wasHovered = self.isHovered
 		self.isHovered = False
 		if self.rect.collidepoint(my.input.mousePos):
 			if userInput.mousePressed == 1:
 				self.currentSurf = self.clickSurf
 			else:
+				if not wasHovered:
+					sound.play('tick', 0.8, False)
 				self.currentSurf = self.hoverSurf
 				self.isHovered = True
 		else:
@@ -303,6 +304,7 @@ class Slider:
 		self.pointerRect.midbottom = ((defaultNum - self.min) / float(self.range) * self.rect.width, 45)
 
 		self.currentlyClicked = False
+		self.wasHovered = False
 
 		self.lastNum = -1 # always update number text on first update loop 
 		self.lastNumRect = None
@@ -318,6 +320,8 @@ class Slider:
 		if my.input.mousePressed != 1: self.currentlyClicked = False
 
 		if self.currentlyClicked or self.globalBarRect.collidepoint(my.input.mousePos) or self.pointerRectGlobal.collidepoint(my.input.mousePos):
+			if not self.wasHovered: sound.play('tick', 0.8, False)
+			self.wasHovered = True
 			self.surf.blit(Slider.pointerHoverImg, self.pointerRect)
 			if my.input.mousePressed == 1:
 				self.currentlyClicked = True
@@ -331,6 +335,8 @@ class Slider:
 					self.pointerRect.right = self.barRect.right
 
 				self.pointerRectGlobal = self.globaliseRect(self.pointerRect)
+
+		else: self.wasHovered = False
 
 		sliderValue = int(self.min + self.pointerRect.x / float(self.rect.width) * self.range)
 

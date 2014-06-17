@@ -2,7 +2,7 @@
 # by Adam Binks   www.github.com/jellyberg/Aedificus---Fathers_of_Rome
 # Read the devblog on Tumblr: bit.ly/Aedificus
 
-import pygame, my, logic, input, ui, os
+import pygame, my, logic, input, ui, os, math
 
 os.environ['SDL_VIDEO_CENTERED'] = '1'
 pygame.mixer.pre_init(44100,-16,2, 1024)
@@ -18,17 +18,16 @@ my.gameRunning = False
 def run():
 	my.input = input.Input()
 	menu = EmbarkMenu()
+
 	while True:
-		menu.update()
-
-	if my.gameRunning:
-		runGame()
-
-
-def runGame():
-	handler = logic.Handler()
-	while my.gameRunning:
-		handler.update()
+		if my.gameRunning:
+			try:
+				handler.update()
+			except:
+				handler = logic.Handler()
+	
+		else:
+			menu.update()
 
 
 class EmbarkMenu:
@@ -43,6 +42,13 @@ class EmbarkMenu:
 								 data['valRange'], data['label'], data['default']))
 			i += 1
 
+		self.backButton = ui.Button('Back', 0, (my.HALFWINDOWWIDTH - 100, my.WINDOWHEIGHT), 1, 1)
+		self.embarkButton = ui.Button('Embark', 0, (my.HALFWINDOWWIDTH + 20, my.WINDOWHEIGHT), 1, 1)
+
+		self.logoImg = pygame.image.load('assets/aedificus title smaller.png').convert_alpha()
+		self.logoRect = self.logoImg.get_rect()
+		self.logoRect.midtop = (my.HALFWINDOWWIDTH, -155)
+
 
 	def update(self):
 		my.input.get()
@@ -56,6 +62,22 @@ class EmbarkMenu:
 				my.NUMRIVERS = value
 			elif slider.label == 'Tree density':
 				my.TREEFREQUENCY = 200 - value
+
+		if self.backButton.rect.y != my.HALFWINDOWWIDTH - 100:
+			self.backButton.rect.y -= math.fabs(int(my.WINDOWHEIGHT * 0.75) - self.backButton.rect.y) * 0.1
+			self.embarkButton.rect.y = self.backButton.rect.y
+
+		self.backButton.simulate(my.input)
+		if self.backButton.isClicked: my.input.terminate()
+
+		self.embarkButton.simulate(my.input)
+		if self.embarkButton.isClicked:
+			my.gameRunning = True
+			return 'embark'
+
+		if self.logoRect.y != 30:
+			self.logoRect.y += math.fabs(30 - self.logoRect.y) * 0.1
+		my.screen.blit(self.logoImg, self.logoRect)
 
 		my.FPSCLOCK.tick(my.FPS)
 		pygame.display.update()
