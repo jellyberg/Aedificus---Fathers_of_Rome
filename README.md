@@ -1,5 +1,7 @@
 ![Logo](https://i.imgur.com/prkEdUj.png)
 
+[READ THE DEVBLOG FOR THE LATEST NEWS](http://jellybergfish.tumblr.com/)
+
 ### Installation
 
 You can download an .exe: [DropBox](https://www.dropbox.com/s/3bm8x8i6uhnkyhs/Aedificus%201.0_win.zip),  [MediaFire](http://www.mediafire.com/download/s1c7fl8d8rnie25/Aedificus_1.0_win.zip)
