@@ -33,15 +33,29 @@ def runGame():
 
 class EmbarkMenu:
 	def __init__(self):
-		#sliderData = [{'name': , 'range': ( , )}]
-		self.testSlider1 = ui.Slider((400, 400), (10, 20), 'Number of pies', 13)
+		self.sliders = []
+		self.sliderData = [{'label': 'Number of mountains', 'valRange': (5 , 20), 'default': 10},
+							{'label': 'Number of rivers', 'valRange': (5 , 40), 'default': 20},
+							{'label': 'Tree density', 'valRange': (50 , 150), 'default': 125}]
+		i = 0
+		for data in self.sliderData:
+			self.sliders.append(ui.Slider((int(my.WINDOWWIDTH / 2 - ui.Slider.size[0] / 2), 200 + i*ui.Slider.size[1] + i*ui.GAP),
+								 data['valRange'], data['label'], data['default']))
+			i += 1
 
 
 	def update(self):
 		my.input.get()
-		my.screen.fill(my.BLACK)
+		my.screen.fill(my.PASTELBLUE)
 
-		self.testSlider1.update()
+		for slider in self.sliders:
+			value = slider.update()
+			if slider.label == 'Number of mountains':
+				my.NUMMOUNTAINS = value
+			elif slider.label == 'Number of rivers':
+				my.NUMRIVERS = value
+			elif slider.label == 'Tree density':
+				my.TREEFREQUENCY = 200 - value
 
 		my.FPSCLOCK.tick(my.FPS)
 		pygame.display.update()

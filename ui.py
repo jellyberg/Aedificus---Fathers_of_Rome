@@ -12,6 +12,7 @@ my.pulseLights = pygame.sprite.Group()
 my.buildingMenus = pygame.sprite.Group()
 
 BASICFONT = pygame.font.Font('assets/fonts/olympus bold.ttf', 14)
+MEDIUMFONT =pygame.font.Font('assets/fonts/olympus thin.ttf', 20) 
 BIGFONT   = pygame.font.Font('assets/fonts/olympus thin.ttf', 25)
 MEGAFONT  = pygame.font.Font('assets/fonts/olympus thin.ttf', 42)
 GAP = 5
@@ -358,7 +359,10 @@ class Slider:
 		self.pointerRect = Slider.pointerImg.get_rect()
 		self.pointerRectGlobal = self.globaliseRect(self.pointerRect)
 
+		# GENERATE THE TEXT LABEL, USING THE BIGGEST FONT THAT FITS
 		titleSurf, titleRect = genText(self.label, (GAP, 2), my.WHITE, BIGFONT)
+		if titleRect.width > self.rect.width - GAP:
+			titleSurf, titleRect = genText(self.label, (GAP, 2), my.WHITE, MEDIUMFONT)
 		if titleRect.width > self.rect.width - GAP:
 			titleSurf, titleRect = genText(self.label, (GAP, 2), my.WHITE, BASICFONT)
 		self.baseSurf.blit(titleSurf, titleRect)

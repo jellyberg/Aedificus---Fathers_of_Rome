@@ -44,7 +44,7 @@ MAXSCROLLSPEED = 4
 MINIMAPUPDATESPEED = 3 # update [num] minimap rows per frame, so minimap is updated every YCELLS / [num] frames. reduces fps
 
 SUNMOVESPEED = 0.1
-TREEFREQUENCY = random.randint(50, 100)   # 1/xth of tiles are trees
+TREEFREQUENCY = 75   # 1/xth of tiles are trees
 TREEMAXHEALTH = 400
 WOODPERTREE = 50 # +/- a bit
 NUMRIVERS = 20
