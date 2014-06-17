@@ -36,7 +36,6 @@ class Handler:
 			my.resources[resourceName] = my.STARTRESOURCES[resourceName]
 		my.RESOURCENAMEORDER = ['wood', 'coal', 'iron', 'gold', 'ingot'] # displayed on the screen at all times
 		my.updateSurf = True
-		my.gameRunning = True
 		self.sunx = 0
 		my.sunPos = (self.sunx, my.MAPHEIGHT + 10)
 

@@ -299,9 +299,12 @@ class Slider:
 
 		self.rect = pygame.Rect((pos[0], pos[1]), Slider.size)
 		self.genSurf()
-		self.pointerRect.midbottom = (defaultNum * (self.rect.width / self.range), 45)
+		self.pointerRect.midbottom = ((defaultNum - self.min) / float(self.range) * self.rect.width, 45)
 
 		self.currentlyClicked = False
+
+		self.lastNum = -1 # always update number text on first update loop 
+		self.lastNumRect = None
 
 
 
@@ -328,8 +331,13 @@ class Slider:
 
 				self.pointerRectGlobal = self.globaliseRect(self.pointerRect)
 
+		sliderValue = int(self.min + self.pointerRect.x / float(self.rect.width) * self.range)
+
+		if sliderValue != self.lastNum:
+			self.updateNumText(sliderValue)
+
 		my.screen.blit(self.surf, self.rect)
-		return int(self.min + self.pointerRect.x / float(self.rect.width) * self.range)
+		return sliderValue
 
 
 
@@ -349,6 +357,24 @@ class Slider:
 
 		self.pointerRect = Slider.pointerImg.get_rect()
 		self.pointerRectGlobal = self.globaliseRect(self.pointerRect)
+
+		titleSurf, titleRect = genText(self.label, (GAP, 2), my.WHITE, BIGFONT)
+		if titleRect.width > self.rect.width - GAP:
+			titleSurf, titleRect = genText(self.label, (GAP, 2), my.WHITE, BASICFONT)
+		self.baseSurf.blit(titleSurf, titleRect)
+
+
+	def updateNumText(self, num):
+		"""Updates the text showing the current selected value of the slider"""
+		if self.lastNumRect:
+			self.baseSurf.fill(self.bgColour, self.lastNumRect)
+
+		numSurf, numRect = genText(str(num), (0, 0), my.WHITE, BIGFONT)
+		numRect.bottomright = (180, 80)
+		self.baseSurf.blit(numSurf, numRect)
+
+		self.lastNum = num
+		self.lastNumRect = numRect
 
 
 	def globaliseRect(self, localRect):

@@ -13,13 +13,16 @@ pygame.display.set_caption('Aedificus: Fathers of Rome')
 my.screen.blit(my.loadingScreen, (0, 0))
 pygame.display.update()
 
+my.gameRunning = False
+
 def run():
 	my.input = input.Input()
-	menu = TestMenu()
+	menu = EmbarkMenu()
 	while True:
 		menu.update()
 
-	runGame()
+	if my.gameRunning:
+		runGame()
 
 
 def runGame():
@@ -28,17 +31,17 @@ def runGame():
 		handler.update()
 
 
-class TestMenu:
+class EmbarkMenu:
 	def __init__(self):
-		my.gameRunning = False
-		self.testSlider1 = ui.Slider((400, 300), (1000, 20000), 'Test values', 19999)
+		#sliderData = [{'name': , 'range': ( , )}]
+		self.testSlider1 = ui.Slider((400, 400), (10, 20), 'Number of pies', 13)
 
 
 	def update(self):
 		my.input.get()
 		my.screen.fill(my.BLACK)
 
-		print self.testSlider1.update()
+		self.testSlider1.update()
 
 		my.FPSCLOCK.tick(my.FPS)
 		pygame.display.update()
