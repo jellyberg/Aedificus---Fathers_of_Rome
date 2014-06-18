@@ -887,11 +887,10 @@ class UItip(pygame.sprite.Sprite):
 		self.dismissButtonRect = pygame.Rect((self.tooltip.rect.right - GAP*3, self.tooltip.rect.top + GAP),
 											  UItip.dismissImg.get_size())
 		w, h = self.tooltip.surf.get_size()
-		self.tooltip.surf.blit(UItip.dismissImg, (w - GAP * 3, h - 10))
 
 
 	def update(self, autoDismiss):
-		if autoDismiss or self.dismissButtonRect.collidepoint(my.input.mousePos) and my.input.mouseUnpressed == 1:
+		if autoDismiss:
 			if autoDismiss and self.text in UItip.currentTips: UItip.currentTips.remove(self.text)
 			self.tooltip.lockAlpha = False
 

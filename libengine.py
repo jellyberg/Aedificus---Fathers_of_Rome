@@ -49,6 +49,8 @@ class EmbarkMenu:
 		self.logoRect = self.logoImg.get_rect()
 		self.logoRect.midtop = (my.HALFWINDOWWIDTH, -155)
 
+		self.animateOut = False
+
 
 	def update(self):
 		my.input.get()
@@ -63,21 +65,39 @@ class EmbarkMenu:
 			elif slider.label == 'Tree density':
 				my.TREEFREQUENCY = 200 - value
 
-		if self.backButton.rect.y != my.HALFWINDOWWIDTH - 100:
-			self.backButton.rect.y -= math.fabs(int(my.WINDOWHEIGHT * 0.75) - self.backButton.rect.y) * 0.1
-			self.embarkButton.rect.y = self.backButton.rect.y
+		self.embarkButton.simulate(my.input)
+		if self.embarkButton.isClicked:
+			self.animateOut = True
 
 		self.backButton.simulate(my.input)
 		if self.backButton.isClicked: my.input.terminate()
 
-		self.embarkButton.simulate(my.input)
-		if self.embarkButton.isClicked:
-			my.gameRunning = True
-			return 'embark'
-
-		if self.logoRect.y != 30:
-			self.logoRect.y += math.fabs(30 - self.logoRect.y) * 0.1
 		my.screen.blit(self.logoImg, self.logoRect)
+
+
+		# ANIMATE
+		if self.animateOut: # animate out
+			animateDone = True
+			if self.backButton.rect.y < my.WINDOWHEIGHT - 1:
+				animateDone = False
+				self.backButton.rect.y += (my.WINDOWHEIGHT + 50 - self.backButton.rect.y) * 0.1
+				self.embarkButton.rect.y = self.backButton.rect.y
+			if self.logoRect.y > -160:
+				animateDone = False
+				self.logoRect.y -= math.fabs(-180 - self.logoRect.y) * 0.1
+
+		else: # animate in
+			if self.backButton.rect.y != my.HALFWINDOWWIDTH - 100:
+				self.backButton.rect.y -= math.fabs(my.WINDOWHEIGHT * 0.75 - self.backButton.rect.y) * 0.1
+				self.embarkButton.rect.y = self.backButton.rect.y
+
+			if self.logoRect.y != 30:
+				self.logoRect.y += math.fabs(30 - self.logoRect.y) * 0.1
+
+		if self.animateOut and animateDone:
+			my.gameRunning = True
+			my.screen.blit(my.loadingScreen, (0,0))
+
 
 		my.FPSCLOCK.tick(my.FPS)
 		pygame.display.update()
