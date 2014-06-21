@@ -56,7 +56,7 @@ class Handler:
 		mission.initMissions()
 
 
-	def update(self):
+	def update(self, deltaTime):
 		my.UIhover = False
 		my.input.get()
 		updateCheats()
@@ -87,7 +87,6 @@ class Handler:
 					my.tick[i] = True
 				else:
 					my.tick[i] = False
-			deltaTime = my.FPSCLOCK.tick(my.FPS) / 1000.0
 			my.dt = deltaTime
 
 			self.sunx += my.SUNMOVESPEED
@@ -97,7 +96,7 @@ class Handler:
 			try:
 				my.mission = my.MISSIONS[my.currentMissionNum]
 			except IndexError:
-				if my.mission is not None:
+				if not my.DEBUGMODE and my.mission is not None:
 					ui.StatusText('Congratulations, you completed all missions!')
 				my.mission = None
 
@@ -112,17 +111,12 @@ class Handler:
 			my.hud.updateHUD()
 
 		else:
-			deltaTime = my.FPSCLOCK.tick(my.FPS) / 1000.0
 			if self.pauseAlpha < 150: self.pauseAlpha += 600 * deltaTime
 			self.pauseSurf.fill(my.DARKGREY)
 			self.pauseSurf.set_alpha(self.pauseAlpha)
 			self.pauseSurf.blit(self.pauseTextSurf, self.pauseTextRect)
 			my.screen.blit(self.screenCache, (0, 0))
 			my.screen.blit(self.pauseSurf, (0, 0))
-			pauseText = '   **PAUSED**'
-
-		pygame.display.update()
-		pygame.display.set_caption('Aedificus: Fathers of Rome' + ' ' * 10 + 'FPS: ' + str(int(my.FPSCLOCK.get_fps())) + pauseText)
 
 		for key in my.resources.keys(): # DON'T FIX THE BUGS, HIDE 'EM!
 			if my.resources[key] < 0:

@@ -154,7 +154,7 @@ class MissionTemplate:
 
 
 def initMissions():
-	my.currentMissionNum = 0
+	my.currentMissionNum = 100
 	my.mission = 'BLANK'
 	my.MISSIONS = []
 	my.MISSIONS.append(MoveCamera())

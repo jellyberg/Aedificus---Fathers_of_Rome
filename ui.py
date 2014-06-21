@@ -394,7 +394,7 @@ class Slider:
 
 
 class BottomBar:
-	"""A multi-tab menu at the bottom of the screen which allows contruction of buildings"""
+	"""A multi-tab (only 1 tab is used atm) menu at the bottom of the screen which allows contruction of buildings"""
 	height = 50
 	margin = 14 # at left hand side
 	cell   = 52 # width
@@ -403,7 +403,7 @@ class BottomBar:
 		self.tab = 0
 		self.cellBackgrounds = []
 
-		bgImg = pygame.image.load('assets/ui/bottomBar/cellBg.png').convert_alpha()
+		bgImg = pygame.image.load('assets/ui/bottomBar/cellBg.png')
 		flippedBgImg = pygame.transform.flip(bgImg, 1, 1)
 		for i in range(0, 360, 90):
 			self.cellBackgrounds.append(pygame.transform.rotate(bgImg, i))
