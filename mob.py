@@ -974,7 +974,6 @@ class ThoughtBubble:
 		self.thought = str(thought)
 		self.isUrgent = isUrgent
 		self.updateSurf()
-		self.update(self.thought, pos, self.isUrgent) # blit
 
 
 	def updateSurf(self):

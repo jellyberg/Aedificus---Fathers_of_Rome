@@ -24,36 +24,17 @@ class Handler:
 
 		my.paused = False
 		my.statusMessage = 'None'
-		my.map = map.Map()
-		my.map.completeGen()
-		my.camera = map.Camera()
-		my.hud = ui.Hud()
-		my.eventHandler = event.EventHandler()
 
-		my.mode = 'look' 
-		my.resources = {}
-		for resourceName in my.STARTRESOURCES.keys():
-			my.resources[resourceName] = my.STARTRESOURCES[resourceName]
-		my.RESOURCENAMEORDER = ['wood', 'coal', 'iron', 'gold', 'ingot'] # displayed on the screen at all times
-		my.updateSurf = True
+		self.newGame()
+
+		my.hud = ui.Hud()
+		my.mode = 'look'
 		self.sunx = 0
 		my.sunPos = (self.sunx, my.MAPHEIGHT + 10)
-
-		# HUMANS FOR TESTING
-		for i in range(5):
-			human = mob.Human((int(my.MAPXCELLS / 2), int(my.MAPYCELLS / 2)), None)
-			human.destination = (random.randint(int(my.MAPXCELLS / 2) - 5, int(my.MAPXCELLS / 2) + 5),
-					   random.randint(int(my.MAPYCELLS / 2) - 5, int(my.MAPYCELLS / 2) + 5))
 
 		for i in range(20):
 			mob.Rabbit()
 			mob.Deer()
-
-		#for i in range(1):
-		#	mob.DeathWolf((random.randint(int(my.MAPXCELLS / 2) - 5, int(my.MAPXCELLS / 2) + 5),
-		#						random.randint(int(my.MAPYCELLS / 2) - 5, int(my.MAPYCELLS / 2) + 5)))
-
-		mission.initMissions()
 
 
 	def update(self, deltaTime):
@@ -76,6 +57,9 @@ class Handler:
 			if not my.muted:
 				ui.StatusText('All earmeltingly beautiful sounds activated', None, True)
 
+
+		if pygame.locals.K_p in my.input.unpressedKeys:
+			save.saveGame()
 
 		if not my.paused:
 			self.pauseAlpha = 0
@@ -121,3 +105,27 @@ class Handler:
 		for key in my.resources.keys(): # DON'T FIX THE BUGS, HIDE 'EM!
 			if my.resources[key] < 0:
 				my.resources[key] = 0
+
+
+	def newGame(self):
+		"""Sets up a brand new game"""
+		my.map = map.Map()
+		my.map.completeGen()
+		my.camera = map.Camera()
+		my.eventHandler = event.EventHandler()
+
+		my.resources = {}
+		for resourceName in my.STARTRESOURCES.keys():
+			my.resources[resourceName] = my.STARTRESOURCES[resourceName]
+			my.RESOURCENAMEORDER = ['wood', 'coal', 'iron', 'gold', 'ingot'] # displayed on the screen at all times
+
+		# HUMANS FOR TESTING
+		for i in range(5):
+			human = mob.Human((int(my.MAPXCELLS / 2), int(my.MAPYCELLS / 2)), None)
+			human.destination = (random.randint(int(my.MAPXCELLS / 2) - 5, int(my.MAPXCELLS / 2) + 5),
+					   random.randint(int(my.MAPYCELLS / 2) - 5, int(my.MAPYCELLS / 2) + 5))
+		#for i in range(1):
+		#	mob.DeathWolf((random.randint(int(my.MAPXCELLS / 2) - 5, int(my.MAPXCELLS / 2) + 5),
+		#						random.randint(int(my.MAPYCELLS / 2) - 5, int(my.MAPYCELLS / 2) + 5)))
+
+		mission.initMissions(0)
