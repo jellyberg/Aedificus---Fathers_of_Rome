@@ -271,7 +271,7 @@ class Tooltip:
 		lastLine = ' '.join(extraWords)
 		newText.append(lastLine)
 		# CONVERT STRINGS TO TEXT SURFS AND RECTS
-		testText, testRect = genText(newText[0], (0, 0), my.BLACK, self.font)
+		testText, testRect = genText('This is a test', (0, 0), my.BLACK, self.font)
 		textHeight = testText.get_height()
 		totalHeight = textHeight * (len(newText)) + GAP * (len(newText))
 		for lineNum in range(len(newText)):
@@ -464,10 +464,10 @@ class BottomBar:
 			width, height = imgs[i].get_rect().size
 			if width > height:
 				widthScale = 40
-				heightScale = int(height / width * 40)
+				heightScale = int(float(height) / width * 40)
 			else:
 				heightScale = 40
-				widthScale = int(width / height * 40)
+				widthScale = int(float(width) / height * 40)
 			img = pygame.transform.scale(imgs[i], (widthScale, heightScale))
 			imgRect = img.get_rect()
 			imgRect.center = self.localRects[i].center

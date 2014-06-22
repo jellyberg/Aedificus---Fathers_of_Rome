@@ -13,25 +13,25 @@ pygame.display.set_caption('Aedificus: Fathers of Rome')
 my.screen.blit(my.loadingScreen, (0, 0))
 pygame.display.update()
 
-my.gameRunning = False
+my.gameRunning = 1 # set to 1 to skip menus
 
 def run():
 	my.input = input.Input()
 	menu = EmbarkMenu()
 	my.transition = -1 # fade between menus/game states
 
-	while True:
+	while True: # main game loop
 		deltaTime = my.FPSCLOCK.tick(my.FPS)
 		if my.gameRunning:
 			try:
-				handler.update(deltaTime / 1000.0)
-			except:
-				handler = logic.Handler()
+				handler.update(deltaTime / 1000.0) # update the game
+			except NameError:
+				handler = logic.Handler() # start a new game
 	
 		else:
 			menu.update()
 
-		if my.transition == 'begin':
+		if my.transition == 'begin': 
 			my.transition = 255
 		if my.transition > 0:
 			my.transition -= 3 * deltaTime / 17
