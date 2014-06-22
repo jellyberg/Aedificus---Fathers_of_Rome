@@ -185,7 +185,6 @@ class EmbarkMenu:
 				my.screen.blit(self.loadingSurf, self.loadingRect)
 			if self.sliderAlpha > 0:
 				self.sliderAlpha -= 20
-			print self.sliderAlpha
 
 		else: # animate in
 			if self.backButton.rect.y > my.HALFWINDOWWIDTH - 100:
@@ -203,7 +202,11 @@ class EmbarkMenu:
 				my.lastSurf = my.screen.copy().convert()
 				return
 			return 'main'
-			
+
+
+
+class CreditsMenu:
+	pass
 
 
 
