@@ -18,7 +18,6 @@ MEGAFONT  = pygame.font.Font('assets/fonts/olympus thin.ttf', 42)
 GAP = 5
 TOOLTIPWORDSPERLINE = 6  # subtract 1!
 
-
 def genText(text, topLeftPos, colour, font=BASICFONT):
 	surf = font.render(text, 1, colour)
 	rect = surf.get_rect()
@@ -224,8 +223,14 @@ class Tooltip:
 			self.surf.blit(self.textObjs[i][0], self.textObjs[i][1])
 
 		self.surf.set_colorkey(my.BLACK)
+		try:
+			oldPos = self.rect.topleft
+		except: pass
 		self.rect = self.surf.get_rect()
-		self.rect.topleft = self.pos
+		try: 
+			self.rect.topleft = oldPos
+		except:
+			self.rect.topleft = self.pos			
 		self.needNewSurf = False
 		
 
@@ -239,6 +244,7 @@ class Tooltip:
 			if self.alpha < 200: self.alpha += 20
 		elif self.alpha > 0 and not self.lockAlpha:
 			self.alpha -= self.fadeRate
+
 		if self.alpha > 0:
 			self.surf.set_alpha(self.alpha)
 			if not blitToLand:

@@ -81,6 +81,8 @@ class EmbarkMenu:
 		self.embarkButton.simulate(my.input)
 		if self.embarkButton.isClicked:
 			self.animateOut = True
+			self.loadingSurf, self.loadingRect = ui.genText('GENERATING WORLD', (0,0), my.WHITE, ui.MEGAFONT)
+			self.loadingRect.center = (my.HALFWINDOWWIDTH, my.HALFWINDOWHEIGHT)
 
 		self.backButton.simulate(my.input)
 		if self.backButton.isClicked: my.input.terminate()
@@ -98,6 +100,9 @@ class EmbarkMenu:
 			if self.logoRect.y > -160:
 				animateDone = False
 				self.logoRect.y -= math.fabs(-180 - self.logoRect.y) * 0.1
+			my.screen.fill(my.DARKBLUE, pygame.Rect(self.loadingRect.x - 20, self.loadingRect.y - 20, 
+													self.loadingRect.width + 40, self.loadingRect.height + 40))
+			my.screen.blit(self.loadingSurf, self.loadingRect)
 
 		else: # animate in
 			if self.backButton.rect.y > my.HALFWINDOWWIDTH - 100:
@@ -109,11 +114,6 @@ class EmbarkMenu:
 
 		if self.animateOut and animateDone:
 			my.gameRunning = True
-			loadingSurf, loadingRect = ui.genText('GENERATING WORLD', (0,0), my.WHITE, ui.MEGAFONT)
-			loadingRect.center = (my.HALFWINDOWWIDTH, my.HALFWINDOWHEIGHT)
-			my.screen.fill(my.DARKBLUE, pygame.Rect(loadingRect.x - 20, loadingRect.y - 20, 
-													loadingRect.width + 40, loadingRect.height + 40))
-			my.screen.blit(loadingSurf, loadingRect)
 
 			my.transition = 'begin'
 			my.lastSurf = my.screen.copy().convert()
