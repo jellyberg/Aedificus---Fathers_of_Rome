@@ -57,10 +57,6 @@ class Handler:
 			if not my.muted:
 				ui.StatusText('All earmeltingly beautiful sounds activated', None, True)
 
-
-		if pygame.locals.K_p in my.input.unpressedKeys:
-			save.saveGame()
-
 		if not my.paused:
 			self.pauseAlpha = 0
 			my.surf.blit(my.map.surf, (0, 0))

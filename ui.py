@@ -129,13 +129,15 @@ class Hud:
 
 
 class Button:
-	"""A button, can be clickable, can have tooltip. When clicked, self.isClicked=True"""
+	"""A simple button, can be clickable, can have tooltip. When clicked, self.isClicked=True"""
 	def __init__(self, text, style, screenPos, isClickable=0, isTitle=0, screenPosIsTopRight=0, tooltip=None):
 		"""style is redundant atm, tooltip should be a string"""
 		self.text, self.style, self.screenPos, self.isClickable, self.posIsTopRight = \
 		(text, style, screenPos, isClickable, screenPosIsTopRight)
-		if isTitle:
+		if isTitle == 1:
 			self.textSurf = BIGFONT.render(self.text, 1, my.LIGHTGREY)
+		elif isTitle == 2:
+			self.textSurf = MEGAFONT.render(self.text, 1, my.LIGHTGREY)
 		else:
 			self.textSurf = BASICFONT.render(self.text, 1, my.WHITE)
 		# CREATE BASIC SURF
