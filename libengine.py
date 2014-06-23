@@ -62,7 +62,7 @@ class MainMenu:
 		self.playButton = ui.Button('Play', 0, (0, 0), 1, 2)
 		self.playButton.rect.midtop = (my.HALFWINDOWWIDTH, my.WINDOWHEIGHT)
 
-		self.quitButton = ui.Button('Quit', 0, (my.HALFWINDOWWIDTH - 100, my.WINDOWHEIGHT), 1, 1)
+		self.quitButton = ui.Button(' Quit ', 0, (my.HALFWINDOWWIDTH - 100, my.WINDOWHEIGHT), 1, 1)
 		self.creditsButton = ui.Button('Credits', 0, (0, my.WINDOWHEIGHT), 1, 1)
 		self.creditsButton.rect.right = my.HALFWINDOWWIDTH + 100
 
@@ -128,7 +128,7 @@ class EmbarkMenu:
 
 		self.sliderAlpha = 0
 
-		self.backButton = ui.Button('Back', 0, (my.HALFWINDOWWIDTH - 100, my.WINDOWHEIGHT), 1, 1)
+		self.backButton = ui.Button(' Back ', 0, (my.HALFWINDOWWIDTH - 100, my.WINDOWHEIGHT), 1, 1)
 		self.embarkButton = ui.Button('Embark', 0, (my.HALFWINDOWWIDTH + 20, my.WINDOWHEIGHT), 1, 1)
 
 		self.logoImg = pygame.image.load('assets/aedificus title smaller.png').convert_alpha()
@@ -146,7 +146,7 @@ class EmbarkMenu:
 			if self.sliderAlpha < 255:
 				slider.surf.set_alpha(self.sliderAlpha)
 				if not self.animateOut:
-					self.sliderAlpha += 20
+					self.sliderAlpha += 15
 
 			value = slider.update()
 			if slider.label == 'Number of mountains':
@@ -184,7 +184,7 @@ class EmbarkMenu:
 														self.loadingRect.width + 40, self.loadingRect.height + 40))
 				my.screen.blit(self.loadingSurf, self.loadingRect)
 			if self.sliderAlpha > 0:
-				self.sliderAlpha -= 20
+				self.sliderAlpha -= 15
 
 		else: # animate in
 			if self.backButton.rect.y > my.HALFWINDOWWIDTH - 100:
@@ -238,8 +238,8 @@ class CreditsMenu:
 		my.screen.blit(self.thanksSurf, self.thanksRect)
 
 		if not self.animateOut:
-			if self.coderRect.y < 50:
-				self.coderRect.y += math.fabs(30 - self.coderRect.y) * 0.05
+			if self.coderRect.y < 80:
+				self.coderRect.y += math.fabs(80 - self.coderRect.y) * 0.05
 
 			if self.backButton.rect.y > my.HALFWINDOWHEIGHT + 100:
 				self.backButton.rect.y -= math.fabs(my.HALFWINDOWHEIGHT + 100 - self.backButton.rect.y) * 0.1
