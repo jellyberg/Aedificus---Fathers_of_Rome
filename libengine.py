@@ -2,7 +2,7 @@
 # by Adam Binks   www.github.com/jellyberg/Aedificus---Fathers_of_Rome
 # Read the devblog on Tumblr: bit.ly/Aedificus
 
-import pygame, my, logic, input, ui, os, math
+import pygame, my, logic, input, ui, os, math, webbrowser
 
 os.environ['SDL_VIDEO_CENTERED'] = '1'
 pygame.mixer.pre_init(44100,-16,2, 1024)
@@ -37,7 +37,7 @@ def run():
 			elif nextMenu == 'embark':
 				menu = EmbarkMenu()
 			elif nextMenu == 'credits':
-				pass
+				menu = CreditsMenu()
 			elif nextMenu == 'quit':
 				my.input.terminate()
 
@@ -109,7 +109,7 @@ class MainMenu:
 		elif self.quitButton.isClicked:
 			self.animateOut = 'quit'
 		elif self.creditsButton.isClicked:
-			self.animateOut = 'credit'
+			self.animateOut = 'credits'
 
 
 
@@ -206,7 +206,64 @@ class EmbarkMenu:
 
 
 class CreditsMenu:
-	pass
+	def __init__(self):
+		self.coderImg = pygame.image.load('assets/ui/credits/coder.png').convert_alpha()
+		self.coderRect = self.coderImg.get_rect()
+		self.coderRect.midbottom = (my.HALFWINDOWWIDTH, 0)
+
+		self.thanksSurf, self.thanksRect = ui.genText('With thanks to Mekire', (0, 0), my.WHITE, ui.BIGFONT)
+		self.thanksRect.midtop = (my.HALFWINDOWWIDTH, my.WINDOWHEIGHT)
+
+		self.backButton = ui.Button('Back', 0, (0, 0), 1, 1)
+		self.backButton.rect.midtop = (my.HALFWINDOWWIDTH, my.WINDOWHEIGHT)
+
+		self.soundsButton = ui.Button('Sounds courtesy of all these lovely people', 0, (0, 0), 1, 1)
+		self.soundsButton.rect.midtop = (my.HALFWINDOWWIDTH, my.WINDOWHEIGHT)
+
+		self.animateOut = False
+
+
+	def update(self):
+		my.input.get()
+		my.screen.fill(my.PASTELBLUE)
+
+		self.backButton.simulate(my.input)
+		self.soundsButton.simulate(my.input)
+		if self.backButton.isClicked:
+			self.animateOut = 'main'
+		if self.soundsButton.isClicked:
+			webbrowser.open('http://www.freesound.org/people/jellyberg/bookmarks/category/27033/', 2)
+
+		my.screen.blit(self.coderImg, self.coderRect)
+		my.screen.blit(self.thanksSurf, self.thanksRect)
+
+		if not self.animateOut:
+			if self.coderRect.y < 50:
+				self.coderRect.y += math.fabs(30 - self.coderRect.y) * 0.05
+
+			if self.backButton.rect.y > my.HALFWINDOWHEIGHT + 100:
+				self.backButton.rect.y -= math.fabs(my.HALFWINDOWHEIGHT + 100 - self.backButton.rect.y) * 0.1
+			if self.thanksRect.y > my.HALFWINDOWHEIGHT + 60:
+				self.thanksRect.y -= math.fabs(my.HALFWINDOWHEIGHT + 50 - self.thanksRect.y) * 0.1
+			if self.soundsButton.rect.y > my.HALFWINDOWHEIGHT + 10:
+				self.soundsButton.rect.y -= math.fabs(my.HALFWINDOWHEIGHT + 10 - self.soundsButton.rect.y) * 0.1
+
+		elif self.animateOut:
+			animateDone = True
+			if self.backButton.rect.y < my.WINDOWHEIGHT - 1:
+				animateDone = False
+				self.backButton.rect.y += (my.WINDOWHEIGHT + 50 - self.backButton.rect.y) * 0.1
+				self.soundsButton.rect.y += (my.WINDOWHEIGHT + 50 - self.soundsButton.rect.y) * 0.1
+			if self.coderRect.bottom > 0:
+				animateDone = False
+				self.coderRect.y -= math.fabs(-400 - self.coderRect.y) * 0.1
+			if self.thanksRect.y < my.WINDOWHEIGHT - 1:
+				animateDone = False
+				self.thanksRect.y += (my.WINDOWHEIGHT + 50 - self.thanksRect.y) * 0.1
+
+		if self.animateOut and animateDone:
+			return 'main'
+
 
 
 
