@@ -5,10 +5,10 @@
 import pygame
 from pygame.locals import *
 
-VERSIONNUMBER = 0.1
+VERSIONNUMBER = 'Alpha 10.1'
 
 DEBUGMODE = 0
-CHEATS = {'noHunger': 1, 'fastActions': 0, 'fastMoving': 0}
+CHEATS = {'noHunger': 0, 'fastActions': 0, 'fastMoving': 0}
 
 pygame.mixer.pre_init(44100,-16,2, 1024)
 pygame.init()

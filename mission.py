@@ -10,12 +10,12 @@ class MoveCamera:
 		self.name = 'Move the camera'
 		self.description = 'Use WASD keys or the mouse at the edge of the screen to pan the camera'
 		self.startFocus = my.camera.focus
+		my.defaultHungerLossRate = my.HUNGERLOSSRATE
 
 	def getProgress(self):
 		if 'blacksmith' in my.unlockedBuildings:
 			my.unlockedBuildings.remove('blacksmith')
 
-		my.defaultHungerLossRate = my.HUNGERLOSSRATE
 		my.HUNGERLOSSRATE = 0 # make the game a bit more forgiving for new players
 
 		if my.camera.focus != self.startFocus: return 100
@@ -54,8 +54,10 @@ class BuildOrchard:
 							then click on a tile to place it. Make sure you have some builders!'
 
 	def getProgress(self):
-		try: my.HUNGERLOSSRATE = my.defaultHungerLossRate
-		except: my.HUNGERLOSSRATE = 20
+		try:
+			my.HUNGERLOSSRATE = my.defaultHungerLossRate
+		except NameError:
+			my.HUNGERLOSSRATE = 20
 		if my.orchardHasBeenPlaced: return 100
 		return 0
 

@@ -2,7 +2,7 @@
 # by Adam Binks   www.github.com/jellyberg/Aedificus---Fathers_of_Rome
 # Read the devblog on Tumblr: bit.ly/Aedificus
 
-import time, random, pygame, my, ui, building, map
+import time, random, pygame, my, ui, building, map, sound
 
 from random import randint
 
@@ -43,6 +43,7 @@ class Flood:
 				FloodTile((coord[0], coord[1]))
 
 		ui.StatusText('A flood has struck!', (self.originCoords), True)
+		sound.play('splash')
 
 
 class FloodTile(pygame.sprite.Sprite):
