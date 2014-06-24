@@ -5,6 +5,8 @@
 import pygame
 from pygame.locals import *
 
+VERSIONNUMBER = 0.1
+
 DEBUGMODE = 0
 CHEATS = {'noHunger': 1, 'fastActions': 0, 'fastMoving': 0}
 

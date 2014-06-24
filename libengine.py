@@ -59,6 +59,9 @@ class MainMenu:
 		self.logoRect = self.logoImg.get_rect()
 		self.logoRect.midtop = (my.HALFWINDOWWIDTH, -773)
 
+		self.versionSurf, self.versionRect = ui.genText('Aedificus ' + str(my.VERSIONNUMBER), (0, 0), my.WHITE, ui.BIGFONT)
+		self.versionRect.bottomright = (my.WINDOWWIDTH - ui.GAP, my.WINDOWHEIGHT + 20)
+
 		self.playButton = ui.Button('Play', 0, (0, 0), 1, 2)
 		self.playButton.rect.midtop = (my.HALFWINDOWWIDTH, my.WINDOWHEIGHT)
 
@@ -74,6 +77,7 @@ class MainMenu:
 		my.screen.fill(my.PASTELBLUE)
 
 		my.screen.blit(self.logoImg, self.logoRect)
+		my.screen.blit(self.versionSurf, self.versionRect)
 
 		if not self.animateOut:
 			if self.playButton.rect.y > my.HALFWINDOWHEIGHT + 20:
@@ -83,6 +87,8 @@ class MainMenu:
 				self.creditsButton.rect.y = self.quitButton.rect.y
 			if self.logoRect.y < 50:
 				self.logoRect.y += math.fabs(30 - self.logoRect.y) * 0.05
+			if self.versionRect.bottom > my.WINDOWHEIGHT - ui.GAP:
+				self.versionRect.bottom -= math.fabs(my.WINDOWHEIGHT - 5 - self.versionRect.bottom) * 0.1
 
 		elif self.animateOut:
 			animateDone = True
@@ -93,6 +99,7 @@ class MainMenu:
 				animateDone = False
 				self.quitButton.rect.y += (my.WINDOWHEIGHT + 50 - self.quitButton.rect.y) * 0.1
 				self.creditsButton.rect.y = self.quitButton.rect.y
+				self.versionRect.y += 5
 			if self.logoRect.y > -750:
 				animateDone = False
 				self.logoRect.y -= math.fabs(-773 - self.logoRect.y) * 0.1
