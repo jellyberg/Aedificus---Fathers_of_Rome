@@ -68,9 +68,8 @@ class BuildOrchard:
 class ChopTrees:
 	def __init__(self):
 		self.name = 'Chop down 5 trees'
-		self.description = 'Make sure you have a woodcutter, then click the tree icon in the top\
-							 right of the screen and draw a box with the right mouse button to \
-							 designate some trees'
+		self.description = 'Make sure you have a woodcutter, then click the tree icon in the top \
+							right of the screen and click and drag a box to designate some trees'
 
 	def getProgress(self):
 		return my.treesChopped * 20
@@ -84,7 +83,7 @@ class BuildShed:
 		self.name = 'Build a shed'
 		self.description = 'Click the shed icon on the bar at the bottom of the screen and \
 							then click on a tile to place it. Make sure you have some builders\
-							 and enough wood!'
+							and enough wood!'
 
 	def getProgress(self):
 		if my.shedHasBeenPlaced: return 100
@@ -114,8 +113,8 @@ class MineOre:
 	def __init__(self):
 		self.name = 'Mine some ore'
 		self.description = 'Make sure you have a miner, then click the ore icon in the top\
-							 right of the screen and draw a box with the right mouse button to \
-							 designate some ore'
+							 right of the screen and click and drag a box  to designate some\
+							 ore'
 
 	def getProgress(self):
 		for resource in ['coal', 'iron', 'gold']:

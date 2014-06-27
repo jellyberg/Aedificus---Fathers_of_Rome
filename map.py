@@ -181,7 +181,7 @@ class Map:
 			return None
 		if objName == 'tree':
 			group = my.allTrees
-		elif objName in ['coal', 'iron']:
+		elif objName in ['coal', 'iron', 'gold']:
 			group = my.allOres
 		for obj in group:
 			if obj.coords == coords:

@@ -13,7 +13,7 @@ pygame.display.set_caption('Aedificus: Fathers of Rome')
 my.screen.fill(my.PASTELBLUE)
 pygame.display.update()
 
-my.gameRunning = my.DEBUGMODE # set to 1 to skip menus and use default worldgen settings
+my.gameRunning = my.DEBUGMODE # set to True to skip menus and use default worldgen settings
 
 def run():
 	my.input = input.Input()

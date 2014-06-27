@@ -102,9 +102,9 @@ class Hud:
 					currentHighlight = self.HIGHLIGHTS['blue']
 			currentHighlight.update(my.input.hoveredCell)
 		# SELECTION BOX
-		if my.input.mousePressed == 3 and not my.selectionBoxGroup.sprite and my.designationMode == 'tree':
+		if my.input.mousePressed == 1 and not my.selectionBoxGroup.sprite and my.designationMode == 'tree':
 			SelectionBox('trees', False)
-		if my.input.mousePressed == 3 and not my.selectionBoxGroup.sprite and my.designationMode == 'ore':
+		if my.input.mousePressed == 1 and not my.selectionBoxGroup.sprite and my.designationMode == 'ore':
 			SelectionBox(False, 'ores')
 		if my.selectionBoxGroup.sprite:
 			my.selectionBoxGroup.sprite.update()
@@ -657,17 +657,26 @@ class Designator:
 			i = 0
 			for rect in self.buttonRects:
 				if rect.collidepoint(my.input.mousePos):
+
 					my.screen.blit(self.highlight, rect)
 					if rect != self.lastHovered:
 						sound.play('tick', 0.8, False)
 					self.lastHovered = rect
+
 					if my.input.mousePressed == 1:
 						my.screen.blit(self.highlight, rect)
+
 					if my.input.mouseUnpressed == 1:
 						if i == 0:
-							my.designationMode = 'tree'
+							if my.designationMode != 'tree':
+								my.designationMode = 'tree'
+							else:
+								my.designationMode = None
 						elif i == 1:
-							my.designationMode = 'ore'
+							if my.designationMode != 'ore':
+								my.designationMode = 'ore'
+							else:
+								my.designationMode = None
 						sound.play('click', 0.8, False)
 				i += 1
 
@@ -850,7 +859,19 @@ class MissionProgressBar:
 			my.screen.blit(self.surf, self.rect)
 
 			if self.lastMissionEndTime and time.time() - self.lastMissionEndTime > MissionProgressBar.missionCompleteDisplayTime:
-				my.currentMissionNum += 1
+				firstTime = True
+				while my.mission.getProgress() == 100: # skip missions until an uncompleted one is found
+					my.currentMissionNum += 1
+					try:
+						my.mission = my.MISSIONS[my.currentMissionNum]
+					except IndexError:
+						if not my.DEBUGMODE and my.mission is not None:
+							ui.StatusText('Congratulations, you completed all missions!')
+						my.mission = None
+					if not firstTime:
+						my.mission.onComplete()
+						firstTime = False
+
 				self.missionComplete = False
 				self.lastTipShowTime = time.time()
 				self.lastMissionEndTime = 0
@@ -1163,7 +1184,7 @@ class SelectionBox(pygame.sprite.Sprite):
 		elif self.designateOres:
 			group = my.designatedOres
 			maxDesignated = my.MAXORESDESIGNATED
-			terrainTypes = ['coal', 'iron']
+			terrainTypes = ['coal', 'iron', 'gold']
 		selected = pygame.sprite.Group()
 		alerted = False
 		for terrainType in terrainTypes:
@@ -1177,6 +1198,7 @@ class SelectionBox(pygame.sprite.Sprite):
 						StatusText('Woah, too many %s designated! Your workers have forgotten some.' %(terrainTypes))
 						alerted = True
 		self.kill()
+		my.designationMode == None
 
 
 	def findTerrainType(self, terrainType, currentGroup):
