@@ -18,8 +18,8 @@ FPSCLOCK = pygame.time.Clock()
 muted = False
 
 if DEBUGMODE:
-	WINDOWWIDTH = 1600
-	WINDOWHEIGHT = 900
+	WINDOWWIDTH = 1400
+	WINDOWHEIGHT = 700
 	screen = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
 	loadingScreen = pygame.transform.scale(pygame.image.load('assets/ui/loadingScreen.png'), (WINDOWWIDTH, WINDOWHEIGHT))
 if not DEBUGMODE:

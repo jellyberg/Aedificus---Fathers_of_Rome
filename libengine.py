@@ -13,23 +13,23 @@ pygame.display.set_caption('Aedificus: Fathers of Rome')
 my.screen.fill(my.PASTELBLUE)
 pygame.display.update()
 
-my.gameRunning = 0 # set to 1 to skip menus
+my.gameRunning = my.DEBUGMODE # set to 1 to skip menus and use default worldgen settings
 
 def run():
 	my.input = input.Input()
 	menu = MainMenu()
 	my.transition = -1 # fade between menus/game states
 	pygame.time.wait(600) # pause for effect
+	if my.gameRunning: # debug mode
+		handler = logic.Handler()
 
 	while True: # main game loop
+	
 		deltaTime = my.FPSCLOCK.tick(my.FPS)
 		if my.gameRunning:
-			try:
-				handler.update(deltaTime / 1000.0) # update the game
-			except NameError:
-				handler = logic.Handler() # start a new game
+			handler.update(deltaTime / 1000.0) # update the game
 	
-		else:
+		else: # display menu
 			nextMenu = menu.update()
 
 			if nextMenu == 'main':
@@ -40,6 +40,8 @@ def run():
 				menu = CreditsMenu()
 			elif nextMenu == 'quit':
 				my.input.terminate()
+			elif nextMenu == 'play':
+				handler = logic.Handler() # start a new game
 
 		if my.transition == 'begin': 
 			my.transition = 255
@@ -207,7 +209,7 @@ class EmbarkMenu:
 
 				my.transition = 'begin'
 				my.lastSurf = my.screen.copy().convert()
-				return
+				return 'play'
 			return 'main'
 
 

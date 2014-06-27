@@ -314,6 +314,16 @@ class Tree(pygame.sprite.Sprite):
 		if self.rect.colliderect(my.camera.viewArea):
 			if not self.isDead:
 				my.surf.blit(self.image, self.pos)
+
+				# if self.reserved is not None:
+					# self.image.fill(my.BLUE)
+					# if self.coords not in [self.reserved.destination, self.reserved.coords]:
+						# print str(self.reserved.destination) + ', my cooords: ' + str(self.coords)
+						# self.reserved = None
+					# print str(self.reserved)
+				# if self.reserved is None:
+					# self.image.fill(my.GREEN)
+
 			elif my.map.map[x][y] == 'grass':
 				my.surf.blit(Tree.stumpImg, my.map.cellsToPixels(self.coords))
 			else:

@@ -706,6 +706,7 @@ class Human(Mob):
 				self.animFrame = 0
 
 		if self.chopping:
+			self.destinationSite.reserved = self
 			self.animation = Human.chopAnim
 		self.lastSite = self.destinationSite
 
@@ -715,7 +716,6 @@ class Human(Mob):
 		if my.designatedTrees:
 			sites = my.map.findNearestBuildings(self.coords, my.designatedTrees)
 			if sites:
-				done = False
 				for site in sites:
 					if site.reserved is None or site.reserved == self:
 						self.destinationSite = site
@@ -725,8 +725,7 @@ class Human(Mob):
 
 						if self.lastSite and self.lastSite != self.destinationSite:
 							self.lastSite.reserved = None
-						done = True
-					if done: return
+						return
 		self.thought = None
 		self.intention = None
 
@@ -779,7 +778,7 @@ class Human(Mob):
 					site.reserved = self
 					self.intention = 'working'
 					if self.lastSeam and self.lastSeam != self.destinationSeam:
-						self.lastSeam.reserved = False
+						self.lastSeam.reserved = None
 					done = True
 				if done: return
 		self.thought = None
@@ -805,7 +804,7 @@ class Human(Mob):
 				self.destinationSeam = None
 				self.mining = False
 				self.intention = None
-			elif randint(0, 35000 * dt) < my.OREABUNDANCE[self.destinationSeam.mineral]:
+			elif randint(0, int(35000 * dt)) < my.OREABUNDANCE[self.destinationSeam.mineral]:
 				x, y = self.coords
 				item.Ore(1, (x + randint(-1, 1), y + randint(-1, 1)), self.destinationSeam.mineral)
 		elif self.animation == Human.mineAnim:
@@ -819,7 +818,7 @@ class Human(Mob):
 			self.animCount = 0
 		self.mining = False
 		if self.destinationSeam:
-			self.destinationSeam.reserved = False
+			self.destinationSeam.reserved = None
 			self.destinationSeam = None
 
 
