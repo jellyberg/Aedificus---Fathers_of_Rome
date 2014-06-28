@@ -29,18 +29,26 @@ class RecruitOccupation:
 	def __init__(self, occupation):
 		self.name = 'Recruit a %s' %(occupation)
 		if occupation != 'jobless':
-			self.description = "Click the '+' button next to the %s icon in the occupation box on the mid-right\
-								 of your screen to convert one of your jobless labourers (wearing brown) \
-								 to a %s. If you click the '-' button beside the %s icon it'll \
-								 convert one of your %s to a labourer" %(occupation, occupation, occupation, occupation)
+			self.description = "Convert a jobless labourer to a %s" %(occupation)
 		if occupation == 'jobless':
-			self.description = "Use the '-' button next to an occupation that of your citizens does \
+			self.description = "Use the '-' button next to an occupation that one of your citizens does \
 								to make him a labourer. Labourers carry items to storage buildings."
 		self.occupation = occupation
 
 	def getProgress(self):
 		for human in my.allHumans:
 			if human.occupation == self.occupation: return 100
+
+		if self.occupation == 'jobless': return 0
+
+		occupationNameOrder = [None, 'builder', 'woodcutter', 'miner', 'fisherman', 'blacksmith']
+		isSecondColumn = occupationNameOrder.index(self.occupation) >= 3
+		yValue = occupationNameOrder.index(self.occupation) % 3
+		tip = ui.UItip((0, 0), 'Click the + button next to the %s' %(self.occupation))
+		if tip in my.UItips: # if a new tip was created
+			occAssRect = my.hud.occupationAssigner.rect
+			tip.tooltip.rect.topright = (occAssRect.left + 28 * isSecondColumn - ui.GAP, occAssRect.top + yValue * 28 + ui.GAP*2)
+
 		return 0
 
 	def onComplete(self):
@@ -155,6 +163,7 @@ class MissionTemplate:
 
 
 def initMissions(currentMissionNum):
+	"""Set up mission order"""
 	my.currentMissionNum = currentMissionNum
 	my.mission = 'BLANK'
 	my.MISSIONS = []

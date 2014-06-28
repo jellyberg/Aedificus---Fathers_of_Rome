@@ -514,7 +514,7 @@ class FishingBoat(Building):
 class FishMongers(FoodBuilding):
 	"""Fish() are taken here, then can be eaten"""
 	def __init__(self):
-		FoodBuilding.__init__(self, 'fishMongers', (2, 2), my.BUILDINGSTATS['fish mongers'] (3, 2), 315, 9)
+		FoodBuilding.__init__(self, 'fishMongers', (2, 2), my.BUILDINGSTATS['fish mongers'], (3, 2), 315, 9)
 
 
 	def onPlace(self):

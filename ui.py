@@ -516,7 +516,7 @@ class BottomBar:
 				building.Orchard()
 			elif self.clickedCell == 3 and 'fishing boat' in my.unlockedBuildings:
 				building.FishingBoat()
-			elif self.clickedCell == 4 and 'fishmongers' in my.unlockedBuildings:
+			elif self.clickedCell == 4 and 'fish mongers' in my.unlockedBuildings:
 				building.FishMongers()
 			elif self.clickedCell == 5 and 'pool' in my.unlockedBuildings:
 				building.Pool()
@@ -714,12 +714,14 @@ class OccupationAssigner:
 		yMargin = 10
 		yInterval = 30
 		self.surf = OccupationAssigner.IMGS['background'].copy()
+
 		self.humanRectsLocal = []
 		self.humanRectsGlobal = []
 		self.plusRectsLocal = []
 		self.minusRectsLocal = []
 		self.plusRectsGlobal = []
 		self.minusRectsGlobal = []
+
 		numOccupations = len(OccupationAssigner.OCCUPATIONIMGS)
 		numColumns = math.ceil(numOccupations / OccupationAssigner.MAXCOLUMNS)
 		if numColumns < 3:
@@ -728,6 +730,7 @@ class OccupationAssigner:
 			numRows = 3
 		currentColumn = 0
 		currentRow = 0
+
 		# SET UP SURFS AND RECTS
 		for i in range(len(OccupationAssigner.OCCUPATIONIMGS)):
 			# HUMAN IMGS
@@ -902,6 +905,7 @@ class UItip(pygame.sprite.Sprite):
 		my.ongoingUItipTexts.append(text)
 		if text in UItip.currentTips: # UItip is already active or has been manually dismissed
 			return
+
 
 		pygame.sprite.Sprite.__init__(self)
 		my.UItips.add(self)

@@ -204,7 +204,7 @@ class Mob(pygame.sprite.Sprite):
 			pygame.draw.rect(my.surf, my.RED, pygame.Rect((self.rect.topleft), (self.rect.width, 2)))
 			if self.health > 0:
 				pygame.draw.rect(my.surf, my.GREEN, pygame.Rect((self.rect.topleft),
-														 (int(self.rect.width / self.startHealth * self.health), 2)))
+														 ((float(self.rect.width) / self.startHealth * self.health), 2)))
 		self.drawHealthBar -= 1
 		if self.health < 1: self.die()
 		self.lastHealth = self.health
