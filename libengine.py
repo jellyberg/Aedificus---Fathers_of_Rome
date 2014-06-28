@@ -54,7 +54,6 @@ def run():
 		pygame.display.set_caption('Aedificus: Fathers of Rome' + ' ' * 10 + 'FPS: ' + str(int(my.FPSCLOCK.get_fps())))
 
 
-
 class MainMenu:
 	def __init__(self):
 		self.logoImg = pygame.image.load('assets/aedificus title and dude.png').convert_alpha()
@@ -64,7 +63,7 @@ class MainMenu:
 		self.versionSurf, self.versionRect = ui.genText('Aedificus ' + str(my.VERSIONNUMBER), (0, 0), my.WHITE, ui.BIGFONT)
 		self.versionRect.bottomright = (my.WINDOWWIDTH - ui.GAP, my.WINDOWHEIGHT + 20)
 
-		self.playButton = ui.Button('Play', 0, (0, 0), 1, 2)
+		self.playButton = ui.Button(' Play ', 0, (0, 0), 1, 2)
 		self.playButton.rect.midtop = (my.HALFWINDOWWIDTH, my.WINDOWHEIGHT)
 
 		self.quitButton = ui.Button(' Quit ', 0, (my.HALFWINDOWWIDTH - 100, my.WINDOWHEIGHT), 1, 1)

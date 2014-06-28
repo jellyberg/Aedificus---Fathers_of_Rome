@@ -601,7 +601,7 @@ class Designator:
 
 
 	def update(self):
-		self.handleTab()
+		#self.handleTab()
 		my.screen.blit(self.surf, self.rect)
 		if self.collapsed == False and not self.animate:
 			self.handleButtons()
@@ -668,15 +668,15 @@ class Designator:
 
 					if my.input.mouseUnpressed == 1:
 						if i == 0:
-							if my.designationMode != 'tree':
+							if my.designationMode == 'tree':
+								my.designationMode = None
+							else:
 								my.designationMode = 'tree'
-							else:
-								my.designationMode = None
 						elif i == 1:
-							if my.designationMode != 'ore':
-								my.designationMode = 'ore'
-							else:
+							if my.designationMode == 'ore':
 								my.designationMode = None
+							else:
+								my.designationMode = 'ore'
 						sound.play('click', 0.8, False)
 				i += 1
 

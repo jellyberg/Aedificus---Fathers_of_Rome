@@ -5,25 +5,39 @@
 import pygame
 from pygame.locals import *
 
-VERSIONNUMBER = 'Alpha 10.1'
+VERSIONNUMBER = 'Alpha 10.1 dev build'
+WINDOWEDMODE = False
 
-DEBUGMODE = 1
+def loadSettings():
+	"""Loads some settings from a .txt file"""
+	settingsFile = open('settings.txt', 'r')
+	for line in settingsFile:
+		if 'windowed_mode' in line:
+			if 'True' in line or '1' in line or 'true' in line:
+				global WINDOWEDMODE
+				WINDOWEDMODE = True
+
+
+DEBUGMODE = 0
+if DEBUGMODE: WINDOWEDMODE = True
 CHEATS = {'noHunger': 0, 'fastActions': 0, 'fastMoving': 0}
 
 pygame.mixer.pre_init(44100,-16,2, 1024)
 pygame.init()
 
+loadSettings()
+
 FPS = 60
 FPSCLOCK = pygame.time.Clock()
 muted = False
 
-if DEBUGMODE:
-	WINDOWWIDTH = 1400
-	WINDOWHEIGHT = 700
+screenfo = pygame.display.Info()
+if WINDOWEDMODE:
+	WINDOWWIDTH = screenfo.current_w - 200
+	WINDOWHEIGHT = screenfo.current_h - 200
 	screen = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
 	loadingScreen = pygame.transform.scale(pygame.image.load('assets/ui/loadingScreen.png'), (WINDOWWIDTH, WINDOWHEIGHT))
-if not DEBUGMODE:
-	screenfo = pygame.display.Info()
+if not WINDOWEDMODE:
 	WINDOWWIDTH = screenfo.current_w
 	WINDOWHEIGHT = screenfo.current_h
 	screen = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT), FULLSCREEN)
