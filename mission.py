@@ -67,6 +67,10 @@ class BuildOrchard:
 		except NameError:
 			my.HUNGERLOSSRATE = 20
 		if my.orchardHasBeenPlaced: return 100
+
+		# orchardButtonRect = my.hud.bottomBar.globalRects[2]
+		# ui.UItip((orchardButtonRect.left - ui.GAP, orchardButtonRect.top), 'Build an orchard')
+
 		return 0
 
 	def onComplete(self):

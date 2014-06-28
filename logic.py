@@ -124,4 +124,4 @@ class Handler:
 		# 	mob.DeathWolf((random.randint(int(my.MAPXCELLS / 2) - 5, int(my.MAPXCELLS / 2) + 5),
 		# 						random.randint(int(my.MAPYCELLS / 2) - 5, int(my.MAPYCELLS / 2) + 5)))
 
-		mission.initMissions(1)
+		mission.initMissions(2)

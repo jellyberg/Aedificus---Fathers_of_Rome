@@ -11,10 +11,10 @@ my.ongoingUItipTexts = []
 my.pulseLights = pygame.sprite.Group()
 my.buildingMenus = pygame.sprite.Group()
 
-BASICFONT = pygame.font.Font('assets/fonts/olympus bold.ttf', 14)
-MEDIUMFONT =pygame.font.Font('assets/fonts/olympus thin.ttf', 20) 
-BIGFONT   = pygame.font.Font('assets/fonts/olympus thin.ttf', 25)
-MEGAFONT  = pygame.font.Font('assets/fonts/olympus thin.ttf', 42)
+BASICFONT = pygame.font.Font('assets/fonts/garreg.ttf', 14)
+MEDIUMFONT =pygame.font.Font('assets/fonts/garreg.ttf', 20) 
+BIGFONT   = pygame.font.Font('assets/fonts/garreg.ttf', 25)
+MEGAFONT  = pygame.font.Font('assets/fonts/diogenes.ttf', 42)
 GAP = 5
 TOOLTIPWORDSPERLINE = 6  # subtract 1!
 
