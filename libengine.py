@@ -82,7 +82,7 @@ class MainMenu:
 
 		if not self.animateOut:
 			if self.playButton.rect.y > my.HALFWINDOWHEIGHT + 20:
-				self.playButton.rect.y -= math.fabs(my.HALFWINDOWHEIGHT + 320 - self.playButton.rect.y) * 0.1
+				self.playButton.rect.y -= math.fabs(my.HALFWINDOWHEIGHT + 300 - self.playButton.rect.y) * 0.1
 			if self.quitButton.rect.y > my.HALFWINDOWHEIGHT + 100:
 				self.quitButton.rect.y -= math.fabs(my.HALFWINDOWHEIGHT + 380 - self.quitButton.rect.y) * 0.1
 				self.creditsButton.rect.y = self.quitButton.rect.y

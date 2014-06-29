@@ -11,10 +11,10 @@ my.ongoingUItipTexts = []
 my.pulseLights = pygame.sprite.Group()
 my.buildingMenus = pygame.sprite.Group()
 
-BASICFONT = pygame.font.Font('assets/fonts/garreg.ttf', 14)
-MEDIUMFONT =pygame.font.Font('assets/fonts/garreg.ttf', 20) 
-BIGFONT   = pygame.font.Font('assets/fonts/garreg.ttf', 25)
-MEGAFONT  = pygame.font.Font('assets/fonts/diogenes.ttf', 42)
+BASICFONT = pygame.font.Font('assets/fonts/roboto medium.ttf', 14)
+MEDIUMFONT =pygame.font.Font('assets/fonts/roboto regular.ttf', 16)
+BIGFONT   = pygame.font.Font('assets/fonts/roboto regular.ttf', 20)
+MEGAFONT  = pygame.font.Font('assets/fonts/roboto regular.ttf', 42)
 GAP = 5
 TOOLTIPWORDSPERLINE = 6  # subtract 1!
 
@@ -28,7 +28,7 @@ def genText(text, topLeftPos, colour, font=BASICFONT):
 def resourceText(text, topLeftPos):
 	"""Generates and blits resource amount indicators"""
 	x, y = topLeftPos
-	textSurf, textRect = genText(text, (GAP, GAP), my.WHITE, BASICFONT)
+	textSurf, textRect = genText(text.capitalize(), (GAP, GAP), my.WHITE, BASICFONT)
 	bgRect = pygame.Rect((x, y), (textRect.width + GAP * 2, textRect.height + GAP * 2))
 	bgSurf = pygame.Surface((bgRect.width, bgRect.height))
 	bgSurf.fill(my.BROWN)
