@@ -8,6 +8,7 @@ from random import randint
 
 my.currentEvents = []
 my.allFloodTiles = pygame.sprite.Group()
+my.allowFloods = True
 
 class EventHandler:
 	def __init__(self):
@@ -15,7 +16,8 @@ class EventHandler:
 
 
 	def update(self, dt):
-		if pygame.locals.K_f in my.input.unpressedKeys or (randint(0, int(Flood.frequency * dt)) == 0 and time.time() - self.lastFloodTime > Flood.minInterval):
+		if my.allowFloods and \
+					(randint(0, int(Flood.frequency * dt)) == 0 and time.time() - self.lastFloodTime > Flood.minInterval):
 			Flood()
 			self.lastFloodTime = time.time()
 		my.allFloodTiles.update()

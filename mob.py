@@ -12,7 +12,7 @@ my.passiveAnimals = pygame.sprite.Group()
 my.hostileAnimals = pygame.sprite.Group()
 my.corpses = pygame.sprite.Group()
 
-OCCUPATIONS = ['None', 'builder', 'woodcutter', 'miner', 'fisherman', 'blacksmith']
+OCCUPATIONS = ['None', 'builder', 'woodcutter', 'miner', 'fisherman', 'blacksmith', 'swordsman']
 
 def updateMobs(dt):
 	for mob in my.allMobs.sprites():
@@ -278,6 +278,8 @@ class Human(Mob):
 	"""Base class for humans, with methods for the different occupations."""
 	idleAnimation = loadAnimationFiles('assets/mobs/idle')
 	moveAnimation = loadAnimationFiles('assets/mobs/move')
+	soldierIdleAnim = loadAnimationFiles('assets/mobs/soldierIdle')
+	soldierMoveAnim = loadAnimationFiles('assets/mobs/soldierMove')
 	swimmingMask = pygame.image.load('assets/mobs/swimmingMask.png').convert_alpha()
 	swimAnim = blitClothes(idleAnimation, moveAnimation, None, swimmingMask)
 	builderIdleAnim, builderMoveAnim, builderSwimAnim = blitClothes(idleAnimation, moveAnimation, 'builder', swimmingMask)
@@ -290,6 +292,7 @@ class Human(Mob):
 	mineAnim = loadAnimationFiles('assets/mobs/mine')
 	blacksmithIdleAnim, blacksmithMoveAnim, blacksmithSwimAnim = blitClothes(idleAnimation, moveAnimation, 'blacksmith', swimmingMask)
 	smithAnim = loadAnimationFiles('assets/mobs/smith')
+	swordsmanIdleAnim, swordsmanMoveAnim, swordsmanSwimAnim = blitClothes(soldierIdleAnim, soldierMoveAnim, 'swordsman', swimmingMask)
 #   BASE CLASS
 	def __init__(self, coords, occupation=None):
 		pygame.sprite.Sprite.__init__(self)
@@ -316,7 +319,9 @@ class Human(Mob):
 	def update(self, dt):
 		if not self.isDead:
 			self.baseUpdate(dt)
-			self.updateEmotions(dt)
+			if self.occupation not in ['swordsman', 'archer']:
+				self.updateEmotions(dt)
+
 			if self.occupation is None:
 				self.updateSerf()
 			if self.occupation == 'builder':
@@ -329,6 +334,9 @@ class Human(Mob):
 				self.updateMiner(dt)
 			if self.occupation == 'blacksmith':
 				self.updateBlacksmith()
+			if self.occupation == 'swordsman':
+				self.updateSwordsman()
+
 			if my.map.cellType(self.coords) == 'water' and self.animation == self.moveAnim:
 				self.animation = self.swimAnim
 			elif my.map.cellType(self.coords) != 'water' and self.animation == self.swimAnim:
@@ -343,6 +351,7 @@ class Human(Mob):
 		except AttributeError:
 			pass
 		self.occupation = newOccupation
+
 		if self.occupation is None:
 			self.initSerf()
 		elif self.occupation == 'builder':
@@ -355,6 +364,8 @@ class Human(Mob):
 			self.initMiner()
 		elif self.occupation == 'blacksmith':
 			self.initBlacksmith()
+		elif self.occupation == 'swordsman':
+			self.initSwordsman()
 
 
 	def stopJob(self):
@@ -373,6 +384,8 @@ class Human(Mob):
 			self.stopMiningJob()
 		elif self.occupation == 'blacksmith':
 			self.stopBlacksmithJob()
+		elif self.occupation in ['swordsman', 'archer']:
+			self.becomeCivilian()
 
 
 	def initEmotions(self):
@@ -488,6 +501,9 @@ class Human(Mob):
 			if items:
 				for theItem in items:
 					destGroup = theItem.destinationGroup
+					if destGroup == None: # item shouldnt be taken to a building by a serf (eg swords)
+						continue
+
 					if not theItem.reserved or theItem.reserved == self:
 						if self.isStorageSpace(destGroup, theItem.quantity):
 							if theItem != self.lastDestItem and self.lastDestItem:
@@ -951,6 +967,68 @@ class Human(Mob):
 		if self.animation == Human.smithAnim:
 			self.animation = self.idleAnim
 			self.animFrame = 0
+
+
+#   SOLDIER BASE CLASS
+	def initSoldier(self):
+		"""
+		A soldier does not need to eat. A soldier without a weapon will go pick one up. A soldier with a weapon 
+		may be commanded by the player and will attack enemies.
+		"""
+		self.weapon = None
+		self.destination = None
+		self.targetWeapon = None
+
+
+	def updateSoldier(self):
+		if not self.weapon:
+			self.findWeapon()
+
+
+	def findWeapon(self):
+		weapons = my.map.findNearestBuildings(self.coords, self.desiredWeaponGroup)
+		if not weapons: return
+		
+		for weapon in weapons:
+			if not weapon.beingCarried and weapon.reserved in [self, None]:
+				self.targetWeapon = weapon
+				weapon.reserved = self
+				self.destination = weapon.coords
+				break
+
+		if self.targetWeapon and self.coords == self.targetWeapon.coords:
+			self.weapon = self.targetWeapon
+			self.weapon.beingCarried = True
+
+
+
+	def becomeCivilian(self):
+		self.destination = None
+		if self.weapon:
+			self.weapon.beingCarried = None
+			self.weapon.coords = self.coords
+		if self.targetWeapon:
+			self.targetWeapon.reserved = None
+
+
+# SWORDSMAN
+	def initSwordsman(self):
+		"""
+		A melee soldier who attacks when enemies are in range. A swordsman needs a sword.
+		"""
+		self.initSoldier()
+		self.desiredWeaponGroup = my.swords
+
+		self.idleAnim = Human.swordsmanIdleAnim
+		self.moveAnim = Human.swordsmanMoveAnim
+		self.swimAnim = Human.swordsmanSwimAnim
+		self.animation = self.idleAnim
+		self.animNum = 0
+
+
+	def updateSwordsman(self):
+		self.updateSoldier()
+
 
 
 

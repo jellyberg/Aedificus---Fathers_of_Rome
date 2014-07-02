@@ -17,6 +17,7 @@ class MoveCamera:
 			my.unlockedBuildings.remove('blacksmith')
 
 		my.HUNGERLOSSRATE = 0 # make the game a bit more forgiving for new players
+		my.allowFloods = False
 
 		if my.camera.focus != self.startFocus: return 100
 		return 0
@@ -129,6 +130,7 @@ class MineOre:
 							 ore'
 
 	def getProgress(self):
+		my.allowFloods = True
 		for resource in ['coal', 'iron', 'gold']:
 			if my.resources[resource] > 0: return 100
 		return 0

@@ -102,10 +102,13 @@ class Hud:
 					currentHighlight = self.HIGHLIGHTS['blue']
 			currentHighlight.update(my.input.hoveredCell)
 		# SELECTION BOX
-		if my.input.mousePressed == 1 and not my.selectionBoxGroup.sprite and my.designationMode == 'tree':
-			SelectionBox('trees', False)
-		if my.input.mousePressed == 1 and not my.selectionBoxGroup.sprite and my.designationMode == 'ore':
-			SelectionBox(False, 'ores')
+		if my.input.mousePressed == 1 and not my.selectionBoxGroup.sprite:
+			if my.designationMode == 'tree':
+				SelectionBox('trees', False, False)
+			elif my.designationMode == 'ore':
+				SelectionBox(False, 'ores', False)
+			elif my.designationMode == None:
+				SelectionBox(False, False, 'soldiers')
 		if my.selectionBoxGroup.sprite:
 			my.selectionBoxGroup.sprite.update()
 		my.pulseLights.update()
@@ -688,7 +691,8 @@ class OccupationAssigner:
 	for name in ['background', 'plus', 'plusHover', 'plusClick', 'minus', 'minusHover', 'minusClick']:
 		IMGS[name] = pygame.image.load('assets/ui/occupationAssigner/%s.png' %(name)).convert_alpha()
 	OCCUPATIONIMGS = [mob.Human.idleAnimation[0], mob.Human.builderIdleAnim[0], mob.Human.woodcutterIdleAnim[0],
-					  mob.Human.minerIdleAnim[0], mob.Human.fishermanIdleAnim[0], mob.Human.blacksmithIdleAnim[0]]
+					  mob.Human.minerIdleAnim[0], mob.Human.fishermanIdleAnim[0], mob.Human.blacksmithIdleAnim[0],
+					  mob.Human.soldierIdleAnim[0]]
 	MAXCOLUMNS = 3
 	def __init__(self):
 		self.leftx = my.WINDOWWIDTH - OccupationAssigner.IMGS['background'].get_width() - GAP
@@ -1133,14 +1137,16 @@ class Highlight:
 
 class SelectionBox(pygame.sprite.Sprite):
 	"""A click and drag selected area, detects the presence of tiles within"""
-	def __init__(self, designateTrees, designateOres):
+	def __init__(self, designateTrees, designateOres, designateSoldiers):
 		pygame.sprite.Sprite.__init__(self)
 		self.add(my.selectionBoxGroup)
-		self.designateTrees, self.designateOres = designateTrees, designateOres
+		self.designateTrees, self.designateOres, self.designateSoldiers = designateTrees, designateOres, designateSoldiers
 		if self.designateTrees:
 			self.colour = my.GREEN
 		elif self.designateOres:
 			self.colour = my.DARKGREY
+		elif self.designateSoldiers:
+			self.colour = my.RED
 		else:
 			self.colour = my.BLUE
 		if my.input.hoveredCell:
@@ -1181,19 +1187,32 @@ class SelectionBox(pygame.sprite.Sprite):
 	def finishSelection(self):
 		"""Calculates the selected stuff, called when mouse is released"""
 		my.mode = 'look'
-		if self.designateTrees:
-			group = my.designatedTrees
-			maxDesignated = my.MAXTREESDESIGNATED
-			terrainTypes = ['tree']
-		elif self.designateOres:
-			group = my.designatedOres
-			maxDesignated = my.MAXORESDESIGNATED
-			terrainTypes = ['coal', 'iron', 'gold']
 		selected = pygame.sprite.Group()
+
+		if not self.designateSoldiers:
+			if self.designateTrees:
+				group = my.designatedTrees
+				maxDesignated = my.MAXTREESDESIGNATED
+				terrainTypes = ['tree']
+
+			elif self.designateOres:
+				group = my.designatedOres
+				maxDesignated = my.MAXORESDESIGNATED
+				terrainTypes = ['coal', 'iron', 'gold']
+
+			for terrainType in terrainTypes:
+				selected.add((self.findTerrainType(terrainType, group)).sprites())
+
+		if self.designateSoldiers:
+			for human in my.allHumans:
+				if human.occupation in ['swordsman', 'archer']:
+					for i in range(1):
+						if self.origin[i] < human.coords[i] < self.end[i] or self.origin[i] > human.coords[i] > self.end[i]:
+							selected.add(human)
+							PulseLight(human.coords, my.ORANGE)
+
 		alerted = False
-		for terrainType in terrainTypes:
-			selected.add((self.findTerrainType(terrainType, group)).sprites())
-		if selected:
+		if selected and not self.designateSoldiers:
 			for sprite in selected.sprites():
 				if len(group) < maxDesignated:
 					group.add(sprite)
@@ -1201,8 +1220,8 @@ class SelectionBox(pygame.sprite.Sprite):
 					if not alerted: 
 						StatusText('Woah, too many %s designated! Your workers have forgotten some.' %(terrainTypes))
 						alerted = True
+		my.designationMode = None
 		self.kill()
-		my.designationMode == None
 
 
 	def findTerrainType(self, terrainType, currentGroup):

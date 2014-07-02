@@ -8,6 +8,7 @@ my.allItems = pygame.sprite.Group()
 my.itemsOnTheFloor = pygame.sprite.Group()
 my.fishOnTheFloor = pygame.sprite.Group()
 my.oreOnTheFloor = pygame.sprite.Group()
+my.swords = pygame.sprite.Group()
 
 my.designatedTrees = pygame.sprite.Group()
 my.designatedOres = pygame.sprite.Group()
@@ -39,7 +40,7 @@ def spendResource(resource, quantity):
 class Item(pygame.sprite.Sprite):
 	"""Base class for items dropped when resources are harvested etc"""
 	IMG = {}
-	for item in ['wood', 'fish', 'coal', 'iron', 'gold', 'nail', 'ingot', 'standard']:
+	for item in ['wood', 'fish', 'coal', 'iron', 'gold', 'nail', 'ingot', 'standard', 'sword']:
 		IMG[item] = loadImg(item)
 	def __init__(self, name, quantity, coords, destinationGroup='default', imageName=None):
 		"""imageName need only be specified if it's not the same as the item name"""
@@ -66,7 +67,7 @@ class Item(pygame.sprite.Sprite):
 		self.lastCoords = None
 		if self.sound and my.camera.isVisible(self.rect):
 			sound.play(self.sound, 0.2)
-		#self.initTooltip()
+		#self.tooltip = ui.Tooltip('BLANK TOOLTIP', (self.rect.left + 3, self.rect.top))
 
 
 	def update(self):
@@ -88,6 +89,8 @@ class Item(pygame.sprite.Sprite):
 						self.bobDir = 'up'
 				if not self.beingCarried and self.rect.colliderect(my.camera.viewArea):
 					my.surf.blit(self.image, self.rect)
+				if self.reserved and self.reserved.destination != self.coords:
+					self.reserved = None
 				
 				#if self.reserved:
 				#	self.tooltip.text = 'my coords: %s, reservee coords %s' % (self.coords, self.reserved.coords)
@@ -101,12 +104,7 @@ class Item(pygame.sprite.Sprite):
 			else:
 				self.add(my.itemsOnTheFloor)
 			self.lastCoords = self.coords
-
-
-
-	def initTooltip(self):
-		"""For bugfixing"""
-		self.tooltip = ui.Tooltip('BLANK TOOLTIP', (self.rect.left + 3, self.rect.top))
+		
 
 
 
@@ -178,6 +176,17 @@ class Standard(Item):
 	def update(self):
 		Item.update(self)
 
+
+class Sword(Item):
+	def __init__(self, quantity, coords):
+		self.sound = 'clunk'
+		self.damage = 10
+		Item.__init__(self, 'sword', quantity, coords, None)
+		self.add(my.swords)
+
+
+	def update(self):
+		Item.update(self)
 
 
 class Order:

@@ -155,9 +155,15 @@ class Map:
 		"""Returns a list of buildings specified, in ascending order of distance"""
 		if len(buildingGroup.sprites()) == 0:
 			return None
+		elif len(buildingGroup.sprites()) == 1:
+			return buildingGroup.sprites()
+
 		buildings = []
 		distances = []
 		for building in buildingGroup.sprites():
+			if building.coords == None:
+				continue
+
 			distance = self.distanceTo(myCoords, building.coords)
 			for i in range(len(buildings)):
 				if distances[i] < distance:
