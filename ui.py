@@ -410,7 +410,7 @@ class BottomBar:
 	margin = 14 # at left hand side
 	cell   = 52 # width
 	def __init__(self):
-		self.bounds = pygame.Rect((0, my.WINDOWHEIGHT - BottomBar.height - GAP * 2), (BottomBar.margin + BottomBar.cell * 12, BottomBar.height))
+		self.bounds = pygame.Rect((GAP * 2, my.WINDOWHEIGHT - BottomBar.height - GAP * 4), (BottomBar.margin + BottomBar.cell * 12, BottomBar.height))
 		self.tab = 0
 		self.cellBackgrounds = []
 
@@ -583,7 +583,7 @@ class Designator:
 		self.baseSurf = pygame.image.load('assets/ui/designator/background.png')
 		self.surf = self.baseSurf.copy()
 		self.COLLAPSEDTOPLEFT = (my.WINDOWWIDTH - 10, int(my.WINDOWHEIGHT / 5))
-		self.OPENTOPLEFT      = (my.WINDOWWIDTH - self.surf.get_width(), int(my.WINDOWHEIGHT / 5))
+		self.OPENTOPLEFT      = (my.WINDOWWIDTH - self.surf.get_width() - GAP * 4, int(my.WINDOWHEIGHT / 5))
 		self.rect = self.surf.get_rect()
 		self.rect.topleft = self.OPENTOPLEFT
 		self.tabRect = pygame.Rect((self.rect.left, self.rect.top + 12), (10, 50))
@@ -695,7 +695,7 @@ class OccupationAssigner:
 					  mob.Human.soldierIdleAnim[0]]
 	MAXCOLUMNS = 3
 	def __init__(self):
-		self.leftx = my.WINDOWWIDTH - OccupationAssigner.IMGS['background'].get_width() - GAP
+		self.leftx = my.WINDOWWIDTH - OccupationAssigner.IMGS['background'].get_width() - GAP * 4
 		self.topy = int(my.WINDOWHEIGHT / 2)
 		self.rect = pygame.Rect((self.leftx, self.topy), OccupationAssigner.IMGS['background'].get_size())
 		self.genSurf()
@@ -837,7 +837,7 @@ class MissionProgressBar:
 		self.progressImg = pygame.image.load('assets/ui/missionBar/progressBar.png').convert_alpha()
 		self.bgImg = pygame.image.load('assets/ui/missionBar/barBg.png').convert_alpha() # background img
 		self.rect = pygame.Rect((0, 0), self.fgImg.get_size())
-		self.rect.midtop = (int(my.WINDOWWIDTH / 2), GAP * 3)
+		self.rect.midtop = (int(my.WINDOWWIDTH / 2), GAP * 4)
 
 		self.lastProgress = -1 # always gen surf on first update
 		self.lastTipShowTime = 0
@@ -1382,7 +1382,7 @@ class Minimap:
 	borderImg = pygame.transform.scale(rawBorderImg, (my.MAPXCELLS + int(my.MAPXCELLS / 10), my.MAPYCELLS + int(my.MAPYCELLS / 10)))
 	"""A minimap displaying the world and the camera's viewarea, at the bottom right of the screen"""
 	def __init__(self):
-		self.rect = pygame.Rect((my.WINDOWWIDTH - my.MAPXCELLS - GAP * 4, my.WINDOWHEIGHT - my.MAPYCELLS - GAP * 4), (my.MAPXCELLS, my.MAPYCELLS))
+		self.rect = pygame.Rect((my.WINDOWWIDTH - my.MAPXCELLS - GAP * 6, my.WINDOWHEIGHT - my.MAPYCELLS - GAP * 6), (my.MAPXCELLS, my.MAPYCELLS))
 		self.surf = pygame.Surface(self.rect.size)
 		self.mapSurf = pygame.Surface(self.rect.size)
 		self.mapSurf.fill(my.DARKGREEN)

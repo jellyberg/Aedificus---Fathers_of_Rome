@@ -127,4 +127,4 @@ class Handler:
 			item.Sword(1, (random.randint(int(my.MAPXCELLS / 2) - 5, int(my.MAPXCELLS / 2) + 5),
 					   random.randint(int(my.MAPYCELLS / 2) - 5, int(my.MAPYCELLS / 2) + 5)))
 
-		mission.initMissions(100) # FOR TESTING
+		mission.initMissions(0) # FOR TESTING

@@ -293,6 +293,7 @@ class Human(Mob):
 	blacksmithIdleAnim, blacksmithMoveAnim, blacksmithSwimAnim = blitClothes(idleAnimation, moveAnimation, 'blacksmith', swimmingMask)
 	smithAnim = loadAnimationFiles('assets/mobs/smith')
 	swordsmanIdleAnim, swordsmanMoveAnim, swordsmanSwimAnim = blitClothes(soldierIdleAnim, soldierMoveAnim, 'swordsman', swimmingMask)
+	swordHoldingImg = pygame.image.load('assets/items/swordHolding.png').convert_alpha()
 #   BASE CLASS
 	def __init__(self, coords, occupation=None):
 		pygame.sprite.Sprite.__init__(self)
@@ -988,13 +989,17 @@ class Human(Mob):
 	def findWeapon(self):
 		weapons = my.map.findNearestBuildings(self.coords, self.desiredWeaponGroup)
 		if not weapons: return
-		
+
 		for weapon in weapons:
 			if not weapon.beingCarried and weapon.reserved in [self, None]:
 				self.targetWeapon = weapon
 				weapon.reserved = self
 				self.destination = weapon.coords
 				break
+			if self.occupation == 'swordsman':
+				ui.StatusText('Your swordsman can\'t find a sword. Forge one in a blacksmiths.', self.coords)
+			elif self.occupation == 'archer':
+				ui.StatusText('Your archer can\'t find a bow. Craft one in a [WHERE?].', self.coords)
 
 		if self.targetWeapon and self.coords == self.targetWeapon.coords:
 			self.weapon = self.targetWeapon
@@ -1028,6 +1033,8 @@ class Human(Mob):
 
 	def updateSwordsman(self):
 		self.updateSoldier()
+		if self.weapon and self.animation in [self.idleAnim, self.moveAnim, self.swimAnim]:
+			my.surf.blit(Human.swordHoldingImg, self.rect.topleft)
 
 
 
