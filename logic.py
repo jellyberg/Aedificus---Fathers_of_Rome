@@ -15,7 +15,7 @@ def updateCheats():
 		my.HUMANMOVESPEED = 50
 
 class Handler:
-	"""Keep the main.runGame() function nice and tidy"""
+	"""Keep the libengine.run() function nice and tidy"""
 	def __init__(self):
 		my.ticks = 0
 		my.tick = []
@@ -88,7 +88,7 @@ class Handler:
 			ui.handleTooltips()
 			my.hud.updateWorldUI()
 			my.camera.update(deltaTime)
-			my.hud.updateHUD()
+			my.hud.updateHUD(deltaTime)
 
 		else:
 			if self.pauseAlpha < 150: self.pauseAlpha += 600 * deltaTime

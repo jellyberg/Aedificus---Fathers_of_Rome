@@ -84,7 +84,7 @@ FISHFREQUENCY = 60000 # lower is higher chance of fish per frame
 FISHPERFISH = 100 # fish per Fish() caught by fishermen (+/- 20)
 FISHCONSUMEDPERTICK = 0.2 # fish consumed per frame by each person eating at the fishmongers
 MAXFISHONFLOOR = 10
-STARTRESOURCES    = {'wood': 30000, 'iron': 0, 'coal': 0, 'gold': 0, 'ingot': 0, 'nail': 0, 'standard': 0}
+STARTRESOURCES    = {'wood': 300, 'iron': 0, 'coal': 0, 'gold': 0, 'ingot': 0, 'nail': 0, 'standard': 0}
 
 HUMANMAXHEALTH = 2000
 HUMANMOVESPEED = 50

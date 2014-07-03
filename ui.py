@@ -68,18 +68,20 @@ class Hud:
 		self.occupationAssigner = OccupationAssigner()
 		self.designator = Designator()
 		self.minimap = Minimap()
+		self.selectionButtons = SelectionButtons(self.minimap)
 		self.statusArea = StatusArea()
 
 		my.surf = pygame.Surface(my.map.surf.get_size())
 		self.regenSurf = False
 
 
-	def updateHUD(self):
+	def updateHUD(self, dt):
 		"""Updates elements that are blitted to screen"""
 		self.bottomBar.update()
 		self.missionBar.update()
 		self.occupationAssigner.update()
 		self.designator.update()
+		self.selectionButtons.update(dt)
 		self.minimap.update()
 		self.statusArea.update()
 		updateUItips()
@@ -510,7 +512,7 @@ class BottomBar:
 			self.SURFS[self.tab] = self.genSurf(self.imgsForGenSurf)
 
 		self.handleInput()
-		if self.clickedCell != None:
+		if self.clickedCell != None and not my.selectionBoxGroup:
 			if self.clickedCell == 0 and 'hut' in my.unlockedBuildings:
 				building.Hut()
 			elif self.clickedCell == 1 and 'shed' in my.unlockedBuildings:
@@ -902,16 +904,88 @@ class MissionProgressBar:
 class SelectionButtons:
 	"""Is visible when units are selected, shows unit count and clicking the X deselects the units"""
 	circleImg = pygame.image.load('assets/ui/selection buttons/circle.png').convert_alpha()
-	def __init__(self):
+	dismissImg = pygame.image.load('assets/ui/cross.png').convert_alpha()
+	dismissHoverImg = pygame.image.load('assets/ui/crossHover.png').convert_alpha()
+	def __init__(self, minimap):
+		self.rect = pygame.Rect((0, 0), (SelectionButtons.circleImg.get_width() * 2 + GAP * 8,
+										 SelectionButtons.circleImg.get_height() + GAP * 4))
+		self.rect.bottomright = (minimap.rect.left - GAP * 8, minimap.rect.bottom)
+		self.alpha = 0
 		self.genSurf()
+
+		self.crossWasHovered = False
+
+		self.lastNumSwordsmen, self.lastNumArchers = -1, -1
 
 
 	def genSurf(self):
-		pass
+		self.baseSurf = pygame.Surface(self.rect.size)
+		self.baseSurf.set_colorkey(my.COLOURKEY)
+		self.baseSurf.fill(my.COLOURKEY)
+		titleSurf, titleRect = genText('Selected troops', (0, 0), my.WHITE)
+		self.baseSurf.blit(titleSurf, titleRect)
+
+		self.dismissRect = SelectionButtons.dismissImg.get_rect()
+		self.dismissRect.midright = (self.rect.width - 5, self.rect.height / 2)
+		self.baseSurf.blit(SelectionButtons.dismissImg, self.dismissRect)
+
+		self.dismissRectGlobal = self.dismissRect.copy()
+		self.dismissRectGlobal.x += self.rect.x
+		self.dismissRectGlobal.y += self.rect.y
+
+		self.swordsmenRect = SelectionButtons.circleImg.get_rect()
+		self.swordsmenRect.bottomleft = (0, self.rect.height)
+		self.archersRect = self.swordsmenRect.copy()
+		self.archersRect.left = self.swordsmenRect.right + GAP
+		for circleRect in self.swordsmenRect, self.archersRect:
+			self.baseSurf.blit(SelectionButtons.circleImg, circleRect)
 
 
+	def update(self, dt):
+		self.surf = self.baseSurf.copy()
+		if my.selectedTroops:
 
+			if self.alpha < 255:
+				self.alpha += 1350 * dt
+				self.surf.set_alpha(self.alpha)
 
+			numSwordsmen, numArchers = 0, 0
+			for soldier in my.selectedTroops:
+				if soldier.occupation == 'swordsman':
+					numSwordsmen += 1
+				elif soldier.occupation == 'archer':
+					numArchers += 1
+
+			# UPDATE NUMBER SURFS
+			if numSwordsmen != self.lastNumSwordsmen:
+				self.numSwordsmenSurf, self.numSwordsmenRect = genText(str(numSwordsmen), (0, 0), my.WHITE, BIGFONT)
+				self.numSwordsmenRect.center = self.swordsmenRect.center
+			self.surf.blit(self.numSwordsmenSurf, self.numSwordsmenRect)
+			if numArchers != self.lastNumArchers:
+				self.numArchersSurf, self.numArchersRect = genText(str(numArchers), (0, 0), my.WHITE, BIGFONT)
+				self.numArchersRect.center = self.archersRect.center
+			self.surf.blit(self.numArchersSurf, self.numArchersRect)
+			self.lastNumSwordsmen, self.lastNumArchers = numSwordsmen, numArchers
+
+			# DISMISS BUTTON
+			if self.dismissRectGlobal.collidepoint(my.input.mousePos):
+				self.surf.blit(SelectionButtons.dismissHoverImg, self.dismissRect)
+				if not self.crossWasHovered:
+					sound.play('tick', 0.8, 1)
+				self.crossWasHovered = True
+
+				if my.input.mouseUnpressed == 1:
+					my.selectedTroops = pygame.sprite.Group()
+					sound.play('click', 0.8, 1)
+
+			my.screen.blit(self.surf, self.rect)
+
+		else:
+			self.crossWasHovered = False
+			if self.alpha > 0:
+				self.alpha -= 2500 * dt
+				self.surf.set_alpha(self.alpha)
+				my.screen.blit(self.surf, self.rect)
 
 
 
@@ -1163,6 +1237,7 @@ class SelectionBox(pygame.sprite.Sprite):
 			self.colour = my.DARKGREY
 		elif self.designateSoldiers:
 			self.colour = my.RED
+			my.selectedTroops = pygame.sprite.Group()
 		else:
 			self.colour = my.BLUE
 		if my.input.hoveredCell:
@@ -1222,10 +1297,14 @@ class SelectionBox(pygame.sprite.Sprite):
 		if self.designateSoldiers:
 			for human in my.allHumans:
 				if human.occupation in ['swordsman', 'archer']:
+					outOfBox = False
 					for i in range(1):
-						if self.origin[i] < human.coords[i] < self.end[i] or self.origin[i] > human.coords[i] > self.end[i]:
-							selected.add(human)
-							PulseLight((0, 0), my.ORANGE, human)
+						if not (self.origin[i] < human.coords[i] < self.end[i] or self.origin[i] > human.coords[i] > self.end[i]):
+							outOfBox = True
+					BROKEN BROKEN BROKEN
+					if not outOfBox:
+						my.selectedTroops.add(human)
+						PulseLight((0, 0), my.ORANGE, human)
 
 		alerted = False
 		if selected and not self.designateSoldiers:

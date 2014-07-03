@@ -7,6 +7,7 @@ from random import randint
 
 my.allMobs = pygame.sprite.Group()
 my.allHumans = pygame.sprite.Group()
+my.selectedTroops = pygame.sprite.Group()
 my.animals = pygame.sprite.Group()
 my.passiveAnimals = pygame.sprite.Group()
 my.hostileAnimals = pygame.sprite.Group()
