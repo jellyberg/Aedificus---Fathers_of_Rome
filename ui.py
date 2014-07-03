@@ -899,6 +899,22 @@ class MissionProgressBar:
 
 
 
+class SelectionButtons:
+	"""Is visible when units are selected, shows unit count and clicking the X deselects the units"""
+	circleImg = pygame.image.load('assets/ui/selection buttons/circle.png').convert_alpha()
+	def __init__(self):
+		self.genSurf()
+
+
+	def genSurf(self):
+		pass
+
+
+
+
+
+
+
 class UItip(pygame.sprite.Sprite):
 	"""A tooltip that appears beside a UI element when the player forgets to click on something"""
 	dismissImg = pygame.image.load('assets/ui/cross.png').convert_alpha()

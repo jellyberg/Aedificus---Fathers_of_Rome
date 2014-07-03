@@ -587,7 +587,7 @@ class Blacksmith(StorageBuilding):
 				smithAnim = False
 				for order in self.orders:
 					lastProgress = order.constructionProgress
-					order.update(self)
+					order.update(self, dt)
 					if order.constructionProgress > lastProgress:
 						smithAnim = True
 						if my.camera.isVisible(self.rect) and self.rect.collidepoint(my.input.hoveredPixel):
@@ -606,10 +606,10 @@ class Blacksmith(StorageBuilding):
 		self.add(my.blacksmiths)
 		self.onPlaceStorage()
 		orderMenuList = []
-		orderMenuList.append(item.Order('nail', {'iron': 2}, self, 200, 1))
+		orderMenuList.append(item.Order('sword', {'iron': 2, 'coal': 1}, self, 200, 1))
 		orderMenuList.append(item.Order('ingot', {'iron': 2, 'coal': 2}, self, 250, 1))
 		orderMenuList.append(item.Order('standard', {'gold': 3}, self, 300, 1))
-		self.menu = ui.BuildingMenu(self, orderMenuList, ['Nail: a common construction component',
+		self.menu = ui.BuildingMenu(self, orderMenuList, ['Sword: your swordsmen will use this in battle',
 														  'Ingot: a common construction component',
 														  'Standard: a fine looking standard bearing an eagle'])
 		self.reserved = None

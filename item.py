@@ -191,7 +191,7 @@ class Sword(Item):
 
 class Order:
 	"""Items are ordered from various buildings then produced there"""
-	cogImg = pygame.image.load('assets/ui/cog.png')
+	cogImg = pygame.image.load('assets/ui/cog.png').convert_alpha()
 	def __init__(self, itemName, prerequisites, building, constructionTicks, itemQuantity):
 		self.image = Item.IMG[itemName]
 		self.name = itemName
@@ -207,17 +207,19 @@ class Order:
 		self.inProgressImg.blit(scaledImg, scaledImgRect)
 
 
-	def update(self, building):
+	def update(self, building, dt):
 		self.building = building
 		if self.constructionProgress < 0:
 			if self.canConstruct():
 				self.constructionProgress += 1 # start construction
 				for resource in self.prerequisites.keys(): # spend resources
 					self.building.stored[resource] -= self.prerequisites[resource]
+
 		if self.constructionProgress >= 0:
-			self.constructionProgress += 1
+			self.constructionProgress += 1 * dt * 35
 			if self.constructionProgress >= self.constructionTicks: # construction complete
 				itemSpawnPos = random.choice(self.building.allCoords)
+
 				if self.name == 'wood':
 					Wood(self.itemQuantity, itemSpawnPos)
 				elif self.name == 'fish':
@@ -232,6 +234,9 @@ class Order:
 					Ingot(self.itemQuantity, itemSpawnPos)
 				elif self.name == 'standard':
 					Standard(self.itemQuantity, itemSpawnPos)
+				elif self.name == 'sword':
+					Sword(self.itemQuantity, itemSpawnPos)
+					
 				self.building.orders.remove(self)
 				self.constructionProgress = -1
 
