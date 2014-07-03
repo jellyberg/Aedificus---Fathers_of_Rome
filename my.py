@@ -18,7 +18,7 @@ def loadSettings():
 				WINDOWEDMODE = True
 
 
-DEBUGMODE = 0
+DEBUGMODE = 1
 if DEBUGMODE: WINDOWEDMODE = True
 CHEATS = {'noHunger': 0, 'fastActions': 0, 'fastMoving': 0}
 

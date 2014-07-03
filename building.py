@@ -155,8 +155,11 @@ class Building(pygame.sprite.Sprite):
 			my.surf.blit(self.buildingImage, hoveredPixels)
 			if not self.canPlace(my.input.hoveredCell):
 				my.surf.blit(self.scaledCross, hoveredPixels)
-			if my.input.mousePressed == 1 and self.canPlace(my.input.hoveredCell):
-				self.place()
+			if my.input.mouseUnpressed == 1:
+				if self.canPlace(my.input.hoveredCell):
+					self.place()
+				else:
+					sound.play('error', 0.8, 1)
 
 
 	def place(self):

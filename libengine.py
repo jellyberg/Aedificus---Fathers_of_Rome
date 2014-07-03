@@ -19,9 +19,10 @@ def run():
 	my.input = input.Input()
 	menu = MainMenu()
 	my.transition = -1 # fade between menus/game states
-	pygame.time.wait(600) # pause for effect
 	if my.gameRunning: # debug mode
 		handler = logic.Handler()
+	else:
+		pygame.time.wait(600) # pause for effect
 
 	while True: # main game loop
 	

@@ -1209,7 +1209,7 @@ class SelectionBox(pygame.sprite.Sprite):
 					for i in range(1):
 						if self.origin[i] < human.coords[i] < self.end[i] or self.origin[i] > human.coords[i] > self.end[i]:
 							selected.add(human)
-							PulseLight(human.coords, my.ORANGE)
+							PulseLight((0, 0), my.ORANGE, human)
 
 		alerted = False
 		if selected and not self.designateSoldiers:
@@ -1280,10 +1280,17 @@ class Demolisher(pygame.sprite.Sprite):
 
 class PulseLight(pygame.sprite.Sprite):
 	"""A coloured circle that appears on a coord then disappears"""
-	def __init__(self, coords, colour):
+	def __init__(self, coords, colour, follow=None):
 		pygame.sprite.Sprite.__init__(self)
 		my.pulseLights.add(self)
-		x, y = my.map.cellsToPixels(coords)
+
+		if follow:
+			self.follow = follow
+			x, y = my.map.cellsToPixels(self.follow.coords)
+		else:
+			x, y = my.map.cellsToPixels(coords)
+			self.follow = None
+
 		self.pos = (x + my.HALFCELL, y + my.HALFCELL)
 		self.colour = colour
 		self.time = 20
@@ -1293,6 +1300,9 @@ class PulseLight(pygame.sprite.Sprite):
 		if self.time < 1:
 			self.kill()
 		else:
+			if self.follow:
+				self.pos = self.follow.rect.center
+
 			pygame.draw.circle(my.surf, self.colour, self.pos, my.HALFCELL, 2)
 			self.time -=1
 

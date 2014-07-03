@@ -320,6 +320,7 @@ class Human(Mob):
 	def update(self, dt):
 		if not self.isDead:
 			self.baseUpdate(dt)
+			self.tooltip.text = self.name
 			if self.occupation not in ['swordsman', 'archer']:
 				self.updateEmotions(dt)
 
@@ -444,7 +445,7 @@ class Human(Mob):
 		if self.thoughtIsUrgent:
 			urgency = 'very '
 		else: urgency = ''
-		self.tooltip.text = self.name + ' is ' + urgency + thoughtText
+		self.tooltip.text += ' is ' + urgency + thoughtText
 
 
 	def goGetFood(self, specificSite=None):
@@ -1016,7 +1017,7 @@ class Human(Mob):
 			self.targetWeapon.reserved = None
 
 
-# SWORDSMAN
+#   SWORDSMAN
 	def initSwordsman(self):
 		"""
 		A melee soldier who attacks when enemies are in range. A swordsman needs a sword.
@@ -1035,6 +1036,8 @@ class Human(Mob):
 		self.updateSoldier()
 		if self.weapon and self.animation in [self.idleAnim, self.moveAnim, self.swimAnim]:
 			my.surf.blit(Human.swordHoldingImg, self.rect.topleft)
+		elif not self.weapon:
+			self.tooltip.text += ' can\'t find a sword!'
 
 
 
