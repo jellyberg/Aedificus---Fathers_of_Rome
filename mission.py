@@ -69,8 +69,8 @@ class BuildOrchard:
 			my.HUNGERLOSSRATE = 20
 		if my.orchardHasBeenPlaced: return 100
 
-		# orchardButtonRect = my.hud.bottomBar.globalRects[2]
-		# ui.UItip((orchardButtonRect.left - ui.GAP, orchardButtonRect.top), 'Build an orchard')
+		orchardButtonRect = my.hud.bottomBar.globalRects[2]
+		ui.UItip(orchardButtonRect.topleft, 'Build an orchard')
 
 		return 0
 

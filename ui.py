@@ -9,6 +9,7 @@ my.demolisher = pygame.sprite.GroupSingle()
 my.UItips = pygame.sprite.Group()
 my.ongoingUItipTexts = []
 my.pulseLights = pygame.sprite.Group()
+my.moveMarkers = pygame.sprite.Group()
 my.buildingMenus = pygame.sprite.Group()
 
 BASICFONT = pygame.font.Font('assets/fonts/roboto medium.ttf', 14)
@@ -97,7 +98,9 @@ class Hud:
 		"""Updates elements that are blitted to my.surf"""
 		# HIGHLIGHT
 		if my.mode != 'build' and my.input.hoveredCell:
-			if my.mode == 'look':
+			if my.selectedTroops:
+				currentHighlight = self.HIGHLIGHTS['red']
+			elif my.mode == 'look':
 				if my.input.hoveredCellType not in ['grass', 'water', 'rock']:
 					currentHighlight = self.HIGHLIGHTS['yellow']
 				else:
@@ -114,6 +117,7 @@ class Hud:
 		if my.selectionBoxGroup.sprite:
 			my.selectionBoxGroup.sprite.update()
 		my.pulseLights.update()
+		my.moveMarkers.update()
 		my.demolisher.update()
 		# BUILDING MENUS
 		for menu in my.buildingMenus.sprites():
@@ -450,7 +454,7 @@ class BottomBar:
 		for i in range(12):
 			self.localRects.append(pygame.Rect((BottomBar.margin + i * BottomBar.cell, 0), 
 								   (BottomBar.cell, BottomBar.cell)))
-			self.globalRects.append(pygame.Rect((BottomBar.margin + i * BottomBar.cell, my.WINDOWHEIGHT - BottomBar.height), 
+			self.globalRects.append(pygame.Rect((BottomBar.margin + i * BottomBar.cell, self.bounds.top), 
 									(BottomBar.cell, BottomBar.cell)))
 
 
@@ -989,6 +993,8 @@ class SelectionButtons:
 			# ISSUE MOVE COMMANDS
 			# if right click is pressed order selected troops to a square around the clicked coord
 			if my.input.mouseUnpressed == 3:
+				sound.play('click', 0.7, 1)
+				MoveMarker(my.input.hoveredCell)
 				if len(my.selectedTroops) == 1:
 					my.selectedTroops.sprites()[0].destination = my.input.hoveredCell
 				else:
@@ -1001,8 +1007,11 @@ class SelectionButtons:
 						for x in range(my.input.hoveredCell[0] - halfSquareWidth, my.input.hoveredCell[0] + halfSquareWidth):
 							for soldier in my.selectedTroops:
 								if soldier.destination == 'unspecified':
-									soldier.destination = (x, y)
-									break
+									if my.map.inBounds((x, y)):
+										soldier.destination = (x, y)
+										break
+									else:
+										soldier.destination = my.input.hoveredCell
 
 		else:
 			self.crossWasHovered = False
@@ -1432,6 +1441,28 @@ class PulseLight(pygame.sprite.Sprite):
 
 
 
+class MoveMarker(pygame.sprite.Sprite):
+	"""An animated arrow to indicate where move commands have been issued to"""
+	imgs = []
+	for i in range(1, 15):
+		imgs.append(pygame.image.load('assets/ui/commandMarker/%s.png' %(i)).convert_alpha())
+	def __init__(self, coords):
+		pygame.sprite.Sprite.__init__(self)
+		my.moveMarkers.add(self)
+		self.animNum = 0
+		self.coords = coords
+
+
+	def update(self):
+		if my.ticks % 3 == 0:
+			self.animNum += 1
+		if self.animNum >= 14:
+			self.kill()
+		else:
+			my.surf.blit(MoveMarker.imgs[self.animNum], my.map.cellsToPixels(self.coords))
+
+
+
 class StatusArea:
 	"""Handles any status messages that occur, moving them down and fading them out"""
 	def __init__(self):
@@ -1599,7 +1630,7 @@ class Minimap:
 		"""Jump the camera to the clicked location"""
 		if self.rect.collidepoint(my.input.mousePos):
 			my.screen.blit(self.hoverSurf, self.rect)
-			if my.input.mousePressed == 1:
+			if my.input.mousePressed == 1 and not len(my.buildingBeingPlaced):
 				x, y = my.input.mousePos
 				x2, y2 = self.rect.topleft
 				x -= x2
