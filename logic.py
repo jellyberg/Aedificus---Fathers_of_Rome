@@ -116,7 +116,7 @@ class Handler:
 			my.RESOURCENAMEORDER = ['wood', 'coal', 'iron', 'gold', 'ingot'] # displayed on the screen at all times
 
 		# HUMANS FOR TESTING
-		for i in range(3):
+		for i in range(30):
 			human = mob.Human((int(my.MAPXCELLS / 2), int(my.MAPYCELLS / 2)), 'swordsman')
 			human.destination = (random.randint(int(my.MAPXCELLS / 2) - 5, int(my.MAPXCELLS / 2) + 5),
 					   random.randint(int(my.MAPYCELLS / 2) - 5, int(my.MAPYCELLS / 2) + 5))

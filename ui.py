@@ -940,6 +940,12 @@ class SelectionButtons:
 		for circleRect in self.swordsmenRect, self.archersRect:
 			self.baseSurf.blit(SelectionButtons.circleImg, circleRect)
 
+		unscaledSword = pygame.image.load('assets/items/sword.png').convert_alpha()
+		scaledSword = pygame.transform.scale2x(unscaledSword)
+		swordRect = scaledSword.get_rect()
+		swordRect.center = self.swordsmenRect.center
+		self.baseSurf.blit(scaledSword, swordRect)
+
 
 	def update(self, dt):
 		self.surf = self.baseSurf.copy()
@@ -979,6 +985,24 @@ class SelectionButtons:
 					sound.play('click', 0.8, 1)
 
 			my.screen.blit(self.surf, self.rect)
+
+			# ISSUE MOVE COMMANDS
+			# if right click is pressed order selected troops to a square around the clicked coord
+			if my.input.mouseUnpressed == 3:
+				if len(my.selectedTroops) == 1:
+					my.selectedTroops.sprites()[0].destination = my.input.hoveredCell
+				else:
+					for soldier in my.selectedTroops:
+						soldier.destination = 'unspecified'
+
+					squareWidth = math.ceil(math.sqrt(len(my.selectedTroops)))
+					halfSquareWidth = int(math.ceil(squareWidth / 2))
+					for y in range(my.input.hoveredCell[1] - halfSquareWidth, my.input.hoveredCell[1] + halfSquareWidth):
+						for x in range(my.input.hoveredCell[0] - halfSquareWidth, my.input.hoveredCell[0] + halfSquareWidth):
+							for soldier in my.selectedTroops:
+								if soldier.destination == 'unspecified':
+									soldier.destination = (x, y)
+									break
 
 		else:
 			self.crossWasHovered = False
@@ -1251,6 +1275,7 @@ class SelectionBox(pygame.sprite.Sprite):
 
 	def update(self):
 		if my.input.mouseUnpressed and my.input.hoveredCell:
+			self.end = my.input.hoveredCell
 			self.finishSelection()
 		elif my.input.hoveredCell:
 			self.end = my.input.hoveredCell
@@ -1278,6 +1303,7 @@ class SelectionBox(pygame.sprite.Sprite):
 	def finishSelection(self):
 		"""Calculates the selected stuff, called when mouse is released"""
 		my.mode = 'look'
+		sound.play('tick', 0.7, 1)
 		selected = pygame.sprite.Group()
 
 		if not self.designateSoldiers:
@@ -1295,16 +1321,18 @@ class SelectionBox(pygame.sprite.Sprite):
 				selected.add((self.findTerrainType(terrainType, group)).sprites())
 
 		if self.designateSoldiers:
-			for human in my.allHumans:
-				if human.occupation in ['swordsman', 'archer']:
-					outOfBox = False
-					for i in range(1):
-						if not (self.origin[i] < human.coords[i] < self.end[i] or self.origin[i] > human.coords[i] > self.end[i]):
-							outOfBox = True
-					BROKEN BROKEN BROKEN
-					if not outOfBox:
-						my.selectedTroops.add(human)
-						PulseLight((0, 0), my.ORANGE, human)
+			ox, oy = self.origin
+			ex, ey = self.end
+			startx = min(ox, ex)
+			endx = max(ox, ex)
+			starty = min(oy, ey)
+			endy = max(oy, ey)
+			for x in range(startx, endx):
+				for y in range(starty, endy):
+					for human in my.allHumans:
+						if human.occupation in ['swordsman', 'archer'] and human.coords == (x, y):
+							my.selectedTroops.add(human)
+							PulseLight((0, 0), my.ORANGE, human)
 
 		alerted = False
 		if selected and not self.designateSoldiers:
@@ -1375,6 +1403,7 @@ class Demolisher(pygame.sprite.Sprite):
 
 class PulseLight(pygame.sprite.Sprite):
 	"""A coloured circle that appears on a coord then disappears"""
+	lifetime = 600
 	def __init__(self, coords, colour, follow=None):
 		pygame.sprite.Sprite.__init__(self)
 		my.pulseLights.add(self)
@@ -1388,18 +1417,18 @@ class PulseLight(pygame.sprite.Sprite):
 
 		self.pos = (x + my.HALFCELL, y + my.HALFCELL)
 		self.colour = colour
-		self.time = 20
+		self.startTime = time.time()
 
 
 	def update(self):
-		if self.time < 1:
+		if time.time() - self.startTime > PulseLight.lifetime and not self.follow:
 			self.kill()
 		else:
 			if self.follow:
 				self.pos = self.follow.rect.center
+				if self.follow not in my.selectedTroops: self.kill()
 
 			pygame.draw.circle(my.surf, self.colour, self.pos, my.HALFCELL, 2)
-			self.time -=1
 
 
 
