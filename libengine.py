@@ -19,7 +19,7 @@ def run():
 	my.input = input.Input()
 	menu = MainMenu()
 	my.transition = -1 # fade between menus/game states
-	if my.gameRunning: # debug mode
+	if my.gameRunning: # debug mode is enabled
 		handler = logic.Handler()
 	else:
 		pygame.time.wait(600) # pause for effect

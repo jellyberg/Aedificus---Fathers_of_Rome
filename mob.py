@@ -6,8 +6,9 @@ import my, pygame, ui, os, random, math, time, item, sound, shadow
 from random import randint
 
 my.allMobs = pygame.sprite.Group()
-my.allHumans = pygame.sprite.Group()
+my.allHumans = pygame.sprite.Group() # all player controlled humans
 my.selectedTroops = pygame.sprite.Group()
+my.allEnemies = pygame.sprite.Group()
 my.animals = pygame.sprite.Group()
 my.passiveAnimals = pygame.sprite.Group()
 my.hostileAnimals = pygame.sprite.Group()
@@ -21,6 +22,8 @@ def updateMobs(dt):
 	for corpse in my.corpses.sprites():
 		corpse.update()
 	for mob in my.animals.sprites():
+		mob.update(dt)
+	for mob in my.allEnemies.sprites():
 		mob.update(dt)
 	for mob in my.allHumans.sprites():
 		mob.update(dt)
@@ -322,7 +325,7 @@ class Human(Mob):
 		if not self.isDead:
 			self.baseUpdate(dt)
 			self.tooltip.text = self.name
-			if self.occupation not in ['swordsman', 'archer']:
+			if self.occupation not in ['swordsman', 'archer', 'enemy']:
 				self.updateEmotions(dt)
 
 			if self.occupation is None:
@@ -1039,6 +1042,29 @@ class Human(Mob):
 			my.surf.blit(Human.swordHoldingImg, self.rect.topleft)
 		elif not self.weapon:
 			self.tooltip.text += ' can\'t find a sword!'
+
+
+
+class Enemy(Human):
+	"""An enemy class somewhat similar to the Human() class, but they respond to stuff differently"""
+	idleAnimation = loadAnimationFiles('assets/mobs/enemy/idle')
+	moveAnimation = loadAnimationFiles('assets/mobs/enemy/move')
+	swimmingMask = pygame.image.load('assets/mobs/swimmingMask.png').convert_alpha()
+	swimAnim = blitClothes(idleAnimation, moveAnimation, None, swimmingMask)
+	def __init__(self, coords):
+		self.idleAnim = Enemy.idleAnimation
+		self.moveAnim = Enemy.moveAnimation
+		self.swimAnim = Enemy.swimAnim
+		self.animation = self.idleAnim
+		self.animNum = 0
+
+		Human.__init__(self, coords, 'enemy')
+		self.add(my.allEnemies)
+		self.remove(my.allHumans)
+
+
+	def update(self, dt):
+		Human.update(self, dt)
 
 
 

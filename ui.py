@@ -44,7 +44,8 @@ def handleTooltips():
 	for corpse in my.corpses:
 		corpse.handleTooltip()
 	for mob in my.allMobs:
-		mob.handleTooltip()
+		if mob not in my.allEnemies:
+			mob.handleTooltip()
 
 
 def updateUItips():
@@ -992,7 +993,7 @@ class SelectionButtons:
 
 			# ISSUE MOVE COMMANDS
 			# if right click is pressed order selected troops to a square around the clicked coord
-			if my.input.mouseUnpressed == 3:
+			if my.input.mouseUnpressed == 3 and my.input.hoveredCell is not None:
 				sound.play('click', 0.7, 1)
 				MoveMarker(my.input.hoveredCell)
 				if len(my.selectedTroops) == 1:
@@ -1374,7 +1375,8 @@ class SelectionBox(pygame.sprite.Sprite):
 							coordsInGroup = True
 					if not coordsInGroup:
 						self.selected.add(my.map.getObj((x, y), terrainType))
-						PulseLight((x, y), my.ORANGE)
+						if self.designateTrees: PulseLight((x, y), my.GREEN)
+						elif self.designateOres: PulseLight((x, y), my.LIGHTGREY)
 		return self.selected
 
 
