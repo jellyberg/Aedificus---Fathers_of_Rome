@@ -1271,7 +1271,7 @@ class SelectionBox(pygame.sprite.Sprite):
 			self.colour = my.DARKGREY
 		elif self.designateSoldiers:
 			self.colour = my.RED
-			if pygame.locals.K_RSHIFT not in my.input.pressedKeys: # if shift is pressed add to current selection
+			if pygame.locals.K_LSHIFT not in my.input.pressedKeys: # if shift is pressed add to current selection
 				my.selectedTroops = pygame.sprite.Group()         # else replace current selection
 		else:
 			self.colour = my.BLUE

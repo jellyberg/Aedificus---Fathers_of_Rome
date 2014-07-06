@@ -141,14 +141,7 @@ class Map:
 	def findNearestBuilding(self, myCoords, buildingGroup):
 		"""Returns a single value of the nearest building object"""
 		if len(buildingGroup) == 0: return None
-		lowestDistanceBuilding = None
-		lowestDistance = 1000000000 # arbritarily big number
-		for sprite in buildingGroup.sprites():
-			dist = self.distanceTo(myCoords, sprite.coords)
-			if dist < lowestDistance:
-				lowestDistance = dist
-				lowestDistanceBuilding = sprite
-		return lowestDistanceBuilding
+		return self.findNearestBuildings(myCoords, buildingGroup)[0]
 
 
 
@@ -168,25 +161,6 @@ class Map:
 				pass # building.coords = None
 
 		sortedBuildings = sorted(buildingsToSort, key=attrgetter('distanceTo'))
-
-		#buildings = []
-		#distances = []
-		#for building in buildingGroup.sprites():
-		#	if building.coords == None:
-		#		continue
-#
-		#	distance = self.distanceTo(myCoords, building.coords)
-		#	for i in range(len(buildings)):
-		#		if distances[i] < distance:
-		#			if i == len(buildings):
-		#				buildings.append(building)
-		#				distances.append(distance)
-		#		elif distances[i] >= distance:
-		#			buildings.insert(i, building)
-		#			distances.insert(i, distance)
-		#	if len(buildings) == 0:
-		#		buildings.append(building)
-		#		distances.append(distance)
 		return sortedBuildings
 
 

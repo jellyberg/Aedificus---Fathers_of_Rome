@@ -130,6 +130,7 @@ class Mob(pygame.sprite.Sprite):
 		self.startHealth = health
 		self.lastHealth = self.health
 		self.drawHealthBar = False
+		self.weapon = None
 
 		self.coords =  coords
 		self.tick = randint(1, 19)
@@ -212,6 +213,24 @@ class Mob(pygame.sprite.Sprite):
 		self.drawHealthBar -= 1
 		if self.health < 1: self.die()
 		self.lastHealth = self.health
+
+
+	def meleeAttack(self, target, damage):
+		try:
+			self.animation = self.attackAnim
+			self.animNum = 0
+		except AttributeError:
+			pass
+		try:
+			sound.play(self.attackSound)
+		except AttributeError:
+			pass
+		target.health -= damage + randint(damage - damage / my.DAMAGEMARGIN, damage + damage / my.DAMAGEMARGIN)
+		if target.health < 1:
+			if self.weapon:
+				target.causeOfDeath = 'slain by the %s of %s.' %(self.weapon.name, self.name)
+			else:
+				target.causeOfDeath = 'killed by %s.' %(self.name)
 
 
 	def die(self):
@@ -979,7 +998,7 @@ class Human(Mob):
 	def initSoldier(self):
 		"""
 		A soldier does not need to eat. A soldier without a weapon will go pick one up. A soldier with a weapon 
-		may be commanded by the player and will attack enemies.
+		may be commanded by the player and will attack nearby enemies.
 		"""
 		self.weapon = None
 		self.destination = None
@@ -994,8 +1013,6 @@ class Human(Mob):
 	def findWeapon(self):
 		weapons = my.map.findNearestBuildings(self.coords, self.desiredWeaponGroup)
 		if not weapons: return
-
-		print len(weapons)
 
 		for weapon in weapons:
 			if not weapon.beingCarried and weapon.reserved in [self, None]:

@@ -98,6 +98,8 @@ HUNGERWARNING = 1200 # when people are not eating look for food
 HUNGERURGENT = 300 # UH OH CRAZY HUNGRY NEED FOOD REAL QUICK
 STARVINGHEALTHLOSS = 200
 
+DAMAGEMARGIN = 10.0 # damage may be increased or decreased by up to this % of damage dealt
+
 BUBBLEMARGIN = 3
 HEALTHBARSHOWTIME = 200
 
