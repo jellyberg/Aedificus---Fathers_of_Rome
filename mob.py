@@ -23,9 +23,9 @@ def updateMobs(dt):
 		corpse.update()
 	for mob in my.animals.sprites():
 		mob.update(dt)
-	for mob in my.allEnemies.sprites():
-		mob.update(dt)
 	for mob in my.allHumans.sprites():
+		mob.update(dt)
+	for mob in my.allEnemies.sprites():
 		mob.update(dt)
 	for corpse in my.corpses.sprites():
 		corpse.handleTooltip()
@@ -130,7 +130,9 @@ class Mob(pygame.sprite.Sprite):
 		self.startHealth = health
 		self.lastHealth = self.health
 		self.drawHealthBar = False
+
 		self.weapon = None
+		self.lastAttackSoundTime = 1
 
 		self.coords =  coords
 		self.tick = randint(1, 19)
@@ -215,20 +217,23 @@ class Mob(pygame.sprite.Sprite):
 		self.lastHealth = self.health
 
 
-	def meleeAttack(self, target, damage):
+	def meleeAttack(self, target, damage, dt):
 		try:
 			self.animation = self.attackAnim
 			self.animNum = 0
 		except AttributeError:
 			pass
-		try:
-			sound.play(self.attackSound)
-		except AttributeError:
-			pass
-		target.health -= damage + randint(damage - damage / my.DAMAGEMARGIN, damage + damage / my.DAMAGEMARGIN)
+		target.health -= (damage + randint(damage - damage / my.DAMAGEMARGIN, damage + damage / my.DAMAGEMARGIN)) * dt
 		if target.health < 1:
 			if self.weapon:
 				target.causeOfDeath = 'slain by the %s of %s.' %(self.weapon.name, self.name)
+
+				if time.time() - self.lastAttackSoundTime > 1 and randint(0, 60)==0:
+					if self.weapon.name == 'sword':
+						sound.play('sword%s' %(randint(1, 4)))
+						print 'sound1'
+					print 'sound2'
+					self.lastAttackSoundTime = time.time()
 			else:
 				target.causeOfDeath = 'killed by %s.' %(self.name)
 
@@ -360,7 +365,7 @@ class Human(Mob):
 			if self.occupation == 'blacksmith':
 				self.updateBlacksmith()
 			if self.occupation == 'swordsman':
-				self.updateSwordsman()
+				self.updateSwordsman(dt)
 
 			if my.map.cellType(self.coords) == 'water' and self.animation == self.moveAnim:
 				self.animation = self.swimAnim
@@ -488,6 +493,14 @@ class Human(Mob):
 			self.destinationFoodSite = site
 		else:
 			ui.StatusText("Your citizens can't find anywhere to eat. Build more orchards", self.coords)
+
+
+	def findTarget(self, targetGroup, attackDistance):
+		"""Set the nearest mob in targetGroup within attackDistance to the attacker and go to their position"""
+		nearestTarget = my.map.findNearestBuilding(self.coords, targetGroup)
+		if nearestTarget and nearestTarget.distanceTo < attackDistance:
+			self.destination = nearestTarget.coords
+			self.target = nearestTarget
 
 
 #   SERF
@@ -1001,8 +1014,9 @@ class Human(Mob):
 		may be commanded by the player and will attack nearby enemies.
 		"""
 		self.weapon = None
-		self.destination = None
 		self.targetWeapon = None
+		self.destination = None
+		self.target = None
 
 
 	def updateSoldier(self):
@@ -1044,6 +1058,7 @@ class Human(Mob):
 	def initSwordsman(self):
 		"""
 		A melee soldier who attacks when enemies are in range. A swordsman needs a sword.
+		Can be selected and moved by the user (LMB to select, RMB to issue commands)
 		"""
 		self.initSoldier()
 		self.desiredWeaponGroup = my.swords
@@ -1054,13 +1069,30 @@ class Human(Mob):
 		self.animation = self.idleAnim
 		self.animNum = 0
 
+		self.goAndAttackRange = 80
+		self.dealDamageRange = 5
 
-	def updateSwordsman(self):
-		self.updateSoldier()
-		if self.weapon and self.animation in [self.idleAnim, self.moveAnim, self.swimAnim]:
-			my.surf.blit(Human.swordHoldingImg, self.rect.topleft)
-		elif not self.weapon:
-			self.tooltip.text += ' can\'t find a sword!'
+
+	def updateSwordsman(self, dt):
+		if not self.isDead:
+			self.updateSoldier()
+			if self.weapon and self.animation in [self.idleAnim, self.moveAnim, self.swimAnim]:
+				my.surf.blit(Human.swordHoldingImg, self.rect.topleft)
+			elif not self.weapon:
+				self.tooltip.text += ' can\'t find a sword!'
+
+			if self.weapon and not self.target:
+				self.findTarget(my.allEnemies, self.goAndAttackRange)
+				if self.target:
+					self.destination = self.target.coords
+			elif self.weapon and self.target:
+				if self.coords == self.target.coords or my.map.distanceTo(self.coords, self.target.coords) < self.dealDamageRange:
+					self.meleeAttack(self.target, self.weapon.damage, dt)
+
+			if self.target and self.target.isDead:
+				self.target = None
+			elif self.target and self.coords != self.target.coords:
+				self.destination = self.target.coords
 
 
 
@@ -1070,6 +1102,9 @@ class Enemy(Human):
 	moveAnimation = loadAnimationFiles('assets/mobs/enemy/move')
 	swimmingMask = pygame.image.load('assets/mobs/swimmingMask.png').convert_alpha()
 	swimAnim = blitClothes(idleAnimation, moveAnimation, None, swimmingMask)
+
+	attackDistance = 200
+	baseDamage = 5
 	def __init__(self, coords):
 		self.idleAnim = Enemy.idleAnimation
 		self.moveAnim = Enemy.moveAnimation
@@ -1080,11 +1115,40 @@ class Enemy(Human):
 		Human.__init__(self, coords, 'enemy')
 		self.add(my.allEnemies)
 		self.remove(my.allHumans)
+		self.target = None
+		self.orderDestination = None
+
+		self.damage = 100
+		self.attackRange = 5
 
 
 	def update(self, dt):
-		Human.update(self, dt)
+		if not self.isDead:
+			if not self.target and not self.orderDestination:
+				self.findTarget(my.allHumans, Enemy.attackDistance)
+				if self.target:
+					ui.StatusText('Your citizens are under attack!', self.coords)
 
+			elif self.target and self.target.isDead:
+				self.target = None
+
+			elif self.target and self.coords != self.target.coords:
+				self.destination = self.target.coords
+
+			elif self.target:
+				if self.coords == self.target.coords or my.map.distanceTo(self.coords, self.target.coords) < self.attackRange:
+					self.meleeAttack(self.target, self.damage, dt)
+
+			if self.orderDestination and self.orderDestination == self.coords:
+				self.orderDestination = None
+
+			if not self.orderDestination and not self.target:
+				if randint(0, 250) == 0:  # wander about randomly to look a little more alive
+					int1, int2 = randint(-2, 2), randint(-2, 2)
+					if my.map.inBounds((self.coords[0] + int1, self.coords[1] + int2)):
+						self.destination = (self.coords[0] + int1, self.coords[1] + int2)
+
+			Human.update(self, dt)
 
 
 

@@ -1314,7 +1314,6 @@ class SelectionBox(pygame.sprite.Sprite):
 	def finishSelection(self):
 		"""Calculates the selected stuff, called when mouse is released"""
 		my.mode = 'look'
-		sound.play('tick', 0.7, 1)
 		selected = pygame.sprite.Group()
 
 		if not self.designateSoldiers:
@@ -1344,6 +1343,8 @@ class SelectionBox(pygame.sprite.Sprite):
 						if human.occupation in ['swordsman', 'archer'] and human.coords == (x, y):
 							my.selectedTroops.add(human)
 							PulseLight((0, 0), my.ORANGE, human)
+			if my.selectedTroops:
+				sound.play('swish', 0.4, 1)
 
 		alerted = False
 		if selected and not self.designateSoldiers:
@@ -1354,6 +1355,7 @@ class SelectionBox(pygame.sprite.Sprite):
 					if not alerted: 
 						StatusText('Woah, too many %s designated! Your workers have forgotten some.' %(terrainTypes))
 						alerted = True
+			sound.play('swish', 0.4, 1)
 		my.designationMode = None
 		self.kill()
 

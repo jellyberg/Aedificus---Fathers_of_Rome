@@ -180,7 +180,7 @@ class Standard(Item):
 class Sword(Item):
 	def __init__(self, quantity, coords):
 		self.sound = 'clunk'
-		self.damage = 10
+		self.damage = 100
 		Item.__init__(self, 'sword', quantity, coords, None)
 		self.add(my.swords)
 

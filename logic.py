@@ -116,7 +116,7 @@ class Handler:
 			my.RESOURCENAMEORDER = ['wood', 'coal', 'iron', 'gold', 'ingot'] # displayed on the screen at all times
 
 		# HUMANS FOR TESTING
-		for i in range(110):
+		for i in range(5):
 			human = mob.Human((int(my.MAPXCELLS / 2), int(my.MAPYCELLS / 2)), 'swordsman')
 			human.destination = (random.randint(int(my.MAPXCELLS / 2) - 5, int(my.MAPXCELLS / 2) + 5),
 					   random.randint(int(my.MAPYCELLS / 2) - 5, int(my.MAPYCELLS / 2) + 5))
@@ -124,10 +124,8 @@ class Handler:
 		# 	mob.DeathWolf((random.randint(int(my.MAPXCELLS / 2) - 5, int(my.MAPXCELLS / 2) + 5),
 		# 						random.randint(int(my.MAPYCELLS / 2) - 5, int(my.MAPYCELLS / 2) + 5)))
 		for i in range(5):
-			enemy = mob.Enemy((int(my.MAPXCELLS / 2), int(my.MAPYCELLS / 2)))
-			enemy.destination = (random.randint(int(my.MAPXCELLS / 2) - 5, int(my.MAPXCELLS / 2) + 5),
-					   random.randint(int(my.MAPYCELLS / 2) - 5, int(my.MAPYCELLS / 2) + 5))
-		for i in range(100):
+			mob.Enemy((int(my.MAPXCELLS / 2 + 30), int(my.MAPYCELLS / 2 + 15)))
+		for i in range(5):
 			item.Sword(1, (random.randint(int(my.MAPXCELLS / 2) - 5, int(my.MAPXCELLS / 2) + 5),
 					   random.randint(int(my.MAPYCELLS / 2) - 5, int(my.MAPYCELLS / 2) + 5)))
 
