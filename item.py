@@ -89,7 +89,7 @@ class Item(pygame.sprite.Sprite):
 						self.bobDir = 'up'
 				if not self.beingCarried and self.rect.colliderect(my.camera.viewArea):
 					my.surf.blit(self.image, self.rect)
-				if self.reserved and self.reserved.destination != self.coords:
+				if self.reserved and self.coords not in [self.reserved.coords, self.reserved.destination]:
 					self.reserved = None
 				
 				#if self.reserved:

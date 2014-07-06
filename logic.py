@@ -23,6 +23,7 @@ class Handler:
 			my.tick.append(False)
 
 		my.paused = False
+		self.pauseAlpha = 0
 		my.statusMessage = 'None'
 
 		self.newGame()
@@ -42,7 +43,6 @@ class Handler:
 		my.input.get()
 		updateCheats()
 
-		pauseText = ''
 		if pygame.locals.K_SPACE in my.input.unpressedKeys:
 			my.paused = not my.paused
 			self.screenCache = my.screen.copy()
@@ -116,7 +116,7 @@ class Handler:
 			my.RESOURCENAMEORDER = ['wood', 'coal', 'iron', 'gold', 'ingot'] # displayed on the screen at all times
 
 		# HUMANS FOR TESTING
-		for i in range(5):
+		for i in range(110):
 			human = mob.Human((int(my.MAPXCELLS / 2), int(my.MAPYCELLS / 2)), 'swordsman')
 			human.destination = (random.randint(int(my.MAPXCELLS / 2) - 5, int(my.MAPXCELLS / 2) + 5),
 					   random.randint(int(my.MAPYCELLS / 2) - 5, int(my.MAPYCELLS / 2) + 5))
@@ -127,7 +127,7 @@ class Handler:
 			enemy = mob.Enemy((int(my.MAPXCELLS / 2), int(my.MAPYCELLS / 2)))
 			enemy.destination = (random.randint(int(my.MAPXCELLS / 2) - 5, int(my.MAPXCELLS / 2) + 5),
 					   random.randint(int(my.MAPYCELLS / 2) - 5, int(my.MAPYCELLS / 2) + 5))
-		for i in range(5):
+		for i in range(100):
 			item.Sword(1, (random.randint(int(my.MAPXCELLS / 2) - 5, int(my.MAPXCELLS / 2) + 5),
 					   random.randint(int(my.MAPYCELLS / 2) - 5, int(my.MAPYCELLS / 2) + 5)))
 

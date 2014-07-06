@@ -5,6 +5,7 @@
 import my, pygame, random, math, item
 from pygame.locals import *
 from random import randint
+from operator import attrgetter
 
 my.allTrees = pygame.sprite.Group()
 my.allOres = pygame.sprite.Group()
@@ -158,25 +159,35 @@ class Map:
 		elif len(buildingGroup.sprites()) == 1:
 			return buildingGroup.sprites()
 
-		buildings = []
-		distances = []
+		buildingsToSort = []
 		for building in buildingGroup.sprites():
-			if building.coords == None:
-				continue
+			try:
+				building.distanceTo = self.distanceTo(myCoords, building.coords)
+				buildingsToSort.append(building)
+			except TypeError:
+				pass # building.coords = None
 
-			distance = self.distanceTo(myCoords, building.coords)
-			for i in range(len(buildings)):
-				if distances[i] < distance:
-					if i == len(buildings):
-						buildings.append(building)
-						distances.append(distance)
-				elif distances[i] >= distance:
-					buildings.insert(i, building)
-					distances.insert(i, distance)
-			if len(buildings) == 0:
-				buildings.append(building)
-				distances.append(distance)
-		return buildings
+		sortedBuildings = sorted(buildingsToSort, key=attrgetter('distanceTo'))
+
+		#buildings = []
+		#distances = []
+		#for building in buildingGroup.sprites():
+		#	if building.coords == None:
+		#		continue
+#
+		#	distance = self.distanceTo(myCoords, building.coords)
+		#	for i in range(len(buildings)):
+		#		if distances[i] < distance:
+		#			if i == len(buildings):
+		#				buildings.append(building)
+		#				distances.append(distance)
+		#		elif distances[i] >= distance:
+		#			buildings.insert(i, building)
+		#			distances.insert(i, distance)
+		#	if len(buildings) == 0:
+		#		buildings.append(building)
+		#		distances.append(distance)
+		return sortedBuildings
 
 
 

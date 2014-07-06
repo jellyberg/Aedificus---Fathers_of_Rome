@@ -29,8 +29,8 @@ class Flood:
 	Will be caused by Neptune's wrath when gods are implemented
 	"""
 	lifespan = 500 # higher is greater chance of lasting a long time
-	frequency = 5000
-	minInterval = 60
+	frequency = 10000 # jigher is lower frequency
+	minInterval = 60 # seconds
 	def __init__(self):
 		my.currentEvents.append(self)
 

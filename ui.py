@@ -1008,8 +1008,8 @@ class SelectionButtons:
 						for x in range(my.input.hoveredCell[0] - halfSquareWidth, my.input.hoveredCell[0] + halfSquareWidth):
 							for soldier in my.selectedTroops:
 								if soldier.destination == 'unspecified':
-									if my.map.inBounds((x, y)):
-										soldier.destination = (x, y)
+									if my.map.inBounds((x, y + 1)):
+										soldier.destination = (x, y + 1)
 										break
 									else:
 										soldier.destination = my.input.hoveredCell
@@ -1271,7 +1271,8 @@ class SelectionBox(pygame.sprite.Sprite):
 			self.colour = my.DARKGREY
 		elif self.designateSoldiers:
 			self.colour = my.RED
-			my.selectedTroops = pygame.sprite.Group()
+			if pygame.locals.K_RSHIFT not in my.input.pressedKeys: # if shift is pressed add to current selection
+				my.selectedTroops = pygame.sprite.Group()         # else replace current selection
 		else:
 			self.colour = my.BLUE
 		if my.input.hoveredCell:

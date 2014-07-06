@@ -995,6 +995,8 @@ class Human(Mob):
 		weapons = my.map.findNearestBuildings(self.coords, self.desiredWeaponGroup)
 		if not weapons: return
 
+		print len(weapons)
+
 		for weapon in weapons:
 			if not weapon.beingCarried and weapon.reserved in [self, None]:
 				self.targetWeapon = weapon
