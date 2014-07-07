@@ -129,6 +129,16 @@ class Map:
 			return True
 		return False
 
+
+	def isAdjacentTo(self, coords1, coords2):
+		"""Check if two coords are bordering each other (not including diagonal adjacency)"""
+		if coords1 == coords2: return False
+		for diff in [(-1, 0), (0, 1), (1, 0), (0, 1)]:
+			changex, changey = diff
+			if (coords1[0] + changex, coords1[1] + changey) == coords2:
+				return coords1
+		return False
+
 #   PATHFINDING
 	def distanceTo(self, start, end):
 		"""Distance from cell A to cell B. Look at me, using PYTHAGORUS like a real man."""

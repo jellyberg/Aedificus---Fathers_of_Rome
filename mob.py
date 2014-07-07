@@ -1070,7 +1070,6 @@ class Human(Mob):
 		self.animNum = 0
 
 		self.goAndAttackRange = 80
-		self.dealDamageRange = 5
 
 
 	def updateSwordsman(self, dt):
@@ -1085,13 +1084,17 @@ class Human(Mob):
 				self.findTarget(my.allEnemies, self.goAndAttackRange)
 				if self.target:
 					self.destination = self.target.coords
-			elif self.weapon and self.target:
-				if self.coords == self.target.coords or my.map.distanceTo(self.coords, self.target.coords) < self.dealDamageRange:
+			if self.weapon and self.target:
+				adjacent = my.map.isAdjacentTo(self.coords, self.target.coords)
+				if adjacent:
+					self.destination = adjacent
 					self.meleeAttack(self.target, self.weapon.damage, dt)
+				elif self.coords == self.target.coords:
+					self.destination = None
 
-			if self.target and self.target.isDead:
+			if self.target and (self.target.isDead or not self.weapon):
 				self.target = None
-			elif self.target and self.coords != self.target.coords:
+			elif self.target and self.weapon and self.coords != self.target.coords and not adjacent:
 				self.destination = self.target.coords
 
 
@@ -1120,6 +1123,7 @@ class Enemy(Human):
 
 		self.damage = 100
 		self.attackRange = 5
+		self.attackFromLeftOrRight = random.choice((-1, 1))
 
 
 	def update(self, dt):
@@ -1132,12 +1136,15 @@ class Enemy(Human):
 			elif self.target and self.target.isDead:
 				self.target = None
 
-			elif self.target and self.coords != self.target.coords:
-				self.destination = self.target.coords
-
 			elif self.target:
-				if self.coords == self.target.coords or my.map.distanceTo(self.coords, self.target.coords) < self.attackRange:
+				adjacent = my.map.isAdjacentTo(self.coords, self.target.coords)
+				if adjacent:
+					self.destination = adjacent
 					self.meleeAttack(self.target, self.damage, dt)
+				elif self.coords == self.target.coords: # if standing on top of target move beside them
+					self.destination = (self.coords[0] + self.attackFromLeftOrRight, self.coords[1])
+				else:
+					self.destination = self.target.coords
 
 			if self.orderDestination and self.orderDestination == self.coords:
 				self.orderDestination = None
