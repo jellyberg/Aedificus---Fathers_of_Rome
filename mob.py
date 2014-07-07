@@ -50,7 +50,7 @@ def updateMobs(dt):
 				  'Designate some ore for your miners')
 
 
-def loadAnimationFiles(directory):
+def loadAnimationFiles(directory, reverse=False, flip=False):
 	"""Load images from directory into a list of surfaces"""
 	animation = []
 	for frame in os.listdir(directory):
@@ -59,6 +59,15 @@ def loadAnimationFiles(directory):
 			path = os.path.join(directory, frame)
 			img = pygame.image.load(path).convert_alpha()
 			animation.append(img)
+	if reverse:
+		oldAnim = animation[:]
+		for i in range(1, int(math.ceil(len(animation) / 2))):
+			animation.append(oldAnim[-i])
+	if flip:
+		flippedAnim = []
+		for i in range(len(animation)):
+			flippedAnim.append(pygame.transform.flip(animation[i], 1, 0))
+		return (animation, flippedAnim)
 	return animation
 
 
@@ -220,17 +229,25 @@ class Mob(pygame.sprite.Sprite):
 
 
 	def meleeAttack(self, target, damage, dt):
-		try:
-			self.animation = self.attackAnim
-			self.animNum = 0
-		except AttributeError:
-			pass
 		target.health -= (damage + randint(damage - damage / my.DAMAGEMARGIN, damage + damage / my.DAMAGEMARGIN)) * dt
 		if target.health < 1:
 			if self.weapon:
 				target.causeOfDeath = 'slain by the %s of %s.' %(self.weapon.name, self.name)
 			else:
 				target.causeOfDeath = 'killed by %s.' %(self.name)
+			self.animation = self.idleAnim
+		else:
+			try:
+				if self.attackAnim.type == 'dict':
+					if target.rect.x > self.rect.x: facing = 'right'
+					else: facing = 'left'
+					self.animation = self.attackAnim[facing]
+					print facing
+
+				else:
+					self.animation = self.attackAnim
+			except AttributeError:
+				pass
 
 		if time.time() - self.lastAttackSoundTime > 1 and randint(0, 60)==0: # attack sounds
 			if self.weapon and self.weapon.name == 'sword':
@@ -326,6 +343,7 @@ class Human(Mob):
 	smithAnim = loadAnimationFiles('assets/mobs/smith')
 	swordsmanIdleAnim, swordsmanMoveAnim, swordsmanSwimAnim = blitClothes(soldierIdleAnim, soldierMoveAnim, 'swordsman', swimmingMask)
 	swordHoldingImg = pygame.image.load('assets/items/swordHolding.png').convert_alpha()
+	swordsmanAttackAnimR, swordsmanAttackAnimL = loadAnimationFiles('assets/mobs/swordsmanAttack', 1, 1)
 #   BASE CLASS
 	def __init__(self, coords, occupation=None):
 		pygame.sprite.Sprite.__init__(self)
@@ -1075,6 +1093,7 @@ class Human(Mob):
 		self.idleAnim = Human.swordsmanIdleAnim
 		self.moveAnim = Human.swordsmanMoveAnim
 		self.swimAnim = Human.swordsmanSwimAnim
+		self.attackAnim = {'right': Human.swordsmanAttackAnimR, 'left': Human.swordsmanAttackAnimL}
 		self.animation = self.idleAnim
 		self.animNum = 0
 
