@@ -160,6 +160,7 @@ class Map:
 		if len(buildingGroup.sprites()) == 0:
 			return None
 		elif len(buildingGroup.sprites()) == 1:
+			buildingGroup.sprites()[0].distanceTo = self.distanceTo(myCoords, buildingGroup.sprites()[0].coords)
 			return buildingGroup.sprites()
 
 		buildingsToSort = []

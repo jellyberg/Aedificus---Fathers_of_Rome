@@ -227,15 +227,15 @@ class Mob(pygame.sprite.Sprite):
 		if target.health < 1:
 			if self.weapon:
 				target.causeOfDeath = 'slain by the %s of %s.' %(self.weapon.name, self.name)
-
-				if time.time() - self.lastAttackSoundTime > 1 and randint(0, 60)==0:
-					if self.weapon.name == 'sword':
-						sound.play('sword%s' %(randint(1, 4)))
-						print 'sound1'
-					print 'sound2'
-					self.lastAttackSoundTime = time.time()
 			else:
 				target.causeOfDeath = 'killed by %s.' %(self.name)
+
+		if time.time() - self.lastAttackSoundTime > 1 and randint(0, 60)==0: # attack sounds
+			if self.weapon and self.weapon.name == 'sword':
+				sound.play('sword%s' %(randint(1, 4)))
+			if not self.weapon:
+				sound.play('punch%s' %(randint(1, 2)))
+			self.lastAttackSoundTime = time.time()
 
 
 	def die(self):
@@ -254,8 +254,8 @@ class Mob(pygame.sprite.Sprite):
 			elif self.occupation == 'woodcutter': self.stopWoodcutterJob()
 		self.kill()
 		self.isDead = True
-		Corpse((self.rect.centerx, self.rect.bottom + 5), pygame.image.load('assets/mobs/dude.png'),
-				 self.name, self.causeOfDeath)
+		Corpse((self.rect.centerx, self.rect.bottom + 5), self.image,
+				 self.name, self.causeOfDeath, self.occupation)
 
 
 	def blit(self):
@@ -1218,21 +1218,26 @@ class ThoughtBubble:
 
 class Corpse(pygame.sprite.Sprite):
 	"""Eyecandy spawned when a human dies"""
-	image = pygame.image.load('assets/mobs/corpse.png').convert_alpha()
-	def __init__(self, pos, livingImage, name, causeOfDeath=None):
+	citizenImage = pygame.image.load('assets/mobs/corpse.png').convert_alpha()
+	enemyImage = pygame.image.load('assets/mobs/enemy/corpse.png').convert_alpha()
+	def __init__(self, pos, livingImage, name, causeOfDeath=None, occupation=None):
 		pygame.sprite.Sprite.__init__(self)
 		self.add(my.corpses)
 		self.pos, self.name, self.causeOfDeath = pos, name, causeOfDeath
 		self.animCount = 0 # count down to -90 to animate falling over
 		self.livingImage = livingImage
 		self.initTooltip()
+		if occupation == 'enemy':
+			self.corpseImg = Corpse.enemyImage
+		else:
+			self.corpseImg = Corpse.citizenImage
 
 	def update(self):
 		if self.animCount > -90: # fall over
 			self.img = pygame.transform.rotate(self.livingImage, self.animCount)
 			self.animCount -= 5
 		else:
-			self.img = Corpse.image
+			self.img = self.corpseImg
 		my.surf.blit(self.img, self.pos)
 		self.handleTooltip()
 
