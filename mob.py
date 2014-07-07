@@ -123,6 +123,7 @@ class Mob(pygame.sprite.Sprite):
 		self.truePos = (self.rect.topleft)
 
 		self.destination = None
+		self.orderDestination = None
 		self.baseMoveSpeed = baseMoveSpeed
 		self.moveSpeed = self.baseMoveSpeed
 
@@ -133,6 +134,7 @@ class Mob(pygame.sprite.Sprite):
 
 		self.weapon = None
 		self.lastAttackSoundTime = 1
+		self.reserved = None
 
 		self.coords =  coords
 		self.tick = randint(1, 19)
@@ -252,6 +254,8 @@ class Mob(pygame.sprite.Sprite):
 			if self.occupation == None: self.stopCarryingJob()
 			elif self.occupation == 'builder': self.removeSiteReservation()
 			elif self.occupation == 'woodcutter': self.stopWoodcutterJob()
+		if self.target:
+			self.target.reserved = None
 		self.kill()
 		self.isDead = True
 		Corpse((self.rect.centerx, self.rect.bottom + 5), self.image,
@@ -495,12 +499,15 @@ class Human(Mob):
 			ui.StatusText("Your citizens can't find anywhere to eat. Build more orchards", self.coords)
 
 
-	def findTarget(self, targetGroup, attackDistance):
-		"""Set the nearest mob in targetGroup within attackDistance to the attacker and go to their position"""
-		nearestTarget = my.map.findNearestBuilding(self.coords, targetGroup)
-		if nearestTarget and nearestTarget.distanceTo < attackDistance:
-			self.destination = nearestTarget.coords
-			self.target = nearestTarget
+	def findTarget(self, targetGroup, maxDistance):
+		"""Set one of the nearest mobs in targetGroup within maxDistance to self.target and go to their position"""
+		nearestTargets = my.map.findNearestBuildings(self.coords, targetGroup)
+		if not nearestTargets: return
+		for target in nearestTargets:
+			if target.distanceTo < maxDistance and target.reserved in [self, None]:
+				self.target = target
+				self.target.reserved = self
+				return
 
 
 #   SERF
@@ -1020,13 +1027,16 @@ class Human(Mob):
 
 
 	def updateSoldier(self):
+		if self.coords == self.orderDestination:
+			self.orderDestination = None
+		self.destination = self.orderDestination
 		if not self.weapon:
 			self.findWeapon()
 
 
 	def findWeapon(self):
 		weapons = my.map.findNearestBuildings(self.coords, self.desiredWeaponGroup)
-		if not weapons: return
+		if not weapons or self.orderDestination: return
 
 		for weapon in weapons:
 			if not weapon.beingCarried and weapon.reserved in [self, None]:
@@ -1042,7 +1052,6 @@ class Human(Mob):
 		if self.targetWeapon and self.coords == self.targetWeapon.coords:
 			self.weapon = self.targetWeapon
 			self.weapon.beingCarried = True
-
 
 
 	def becomeCivilian(self):
@@ -1080,17 +1089,18 @@ class Human(Mob):
 			elif not self.weapon:
 				self.tooltip.text += ' can\'t find a sword!'
 
-			if self.weapon and not self.target:
-				self.findTarget(my.allEnemies, self.goAndAttackRange)
-				if self.target:
-					self.destination = self.target.coords
-			if self.weapon and self.target:
-				adjacent = my.map.isAdjacentTo(self.coords, self.target.coords)
-				if adjacent:
-					self.destination = adjacent
-					self.meleeAttack(self.target, self.weapon.damage, dt)
-				elif self.coords == self.target.coords:
-					self.destination = None
+			if not self.orderDestination:
+				if self.weapon and not self.target:
+					self.findTarget(my.allEnemies, self.goAndAttackRange)
+					if self.target:
+						self.destination = self.target.coords
+				if self.weapon and self.target:
+					adjacent = my.map.isAdjacentTo(self.coords, self.target.coords)
+					if adjacent:
+						self.destination = adjacent
+						self.meleeAttack(self.target, self.weapon.damage, dt)
+					elif self.coords == self.target.coords:
+						self.destination = None
 
 			if self.target and (self.target.isDead or not self.weapon):
 				self.target = None
@@ -1119,7 +1129,6 @@ class Enemy(Human):
 		self.add(my.allEnemies)
 		self.remove(my.allHumans)
 		self.target = None
-		self.orderDestination = None
 
 		self.damage = 100
 		self.attackRange = 5
