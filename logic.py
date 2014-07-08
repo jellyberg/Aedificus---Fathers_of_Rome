@@ -124,7 +124,7 @@ class Handler:
 		# 	mob.DeathWolf((random.randint(int(my.MAPXCELLS / 2) - 5, int(my.MAPXCELLS / 2) + 5),
 		# 						random.randint(int(my.MAPYCELLS / 2) - 5, int(my.MAPYCELLS / 2) + 5)))
 		for i in range(3):
-			mob.Enemy((int(my.MAPXCELLS / 2 + 30), int(my.MAPYCELLS / 2 + 15)))
+			mob.Enemy((int(my.MAPXCELLS / 2 - 20), int(my.MAPYCELLS / 2 + 0)))
 		for i in range(5):
 			item.Sword(1, (random.randint(int(my.MAPXCELLS / 2) - 5, int(my.MAPXCELLS / 2) + 5),
 					   random.randint(int(my.MAPYCELLS / 2) - 5, int(my.MAPYCELLS / 2) + 5)))

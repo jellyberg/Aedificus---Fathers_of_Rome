@@ -236,18 +236,18 @@ class Mob(pygame.sprite.Sprite):
 			else:
 				target.causeOfDeath = 'killed by %s.' %(self.name)
 			self.animation = self.idleAnim
+			self.animNum = 0
 		else:
 			try:
-				if self.attackAnim.type == 'dict':
+				if str(type(self.attackAnim)) == "<type 'dict'>":
 					if target.rect.x > self.rect.x: facing = 'right'
 					else: facing = 'left'
 					self.animation = self.attackAnim[facing]
-					print facing
 
 				else:
 					self.animation = self.attackAnim
 			except AttributeError:
-				pass
+				pass # has no attack animation
 
 		if time.time() - self.lastAttackSoundTime > 1 and randint(0, 60)==0: # attack sounds
 			if self.weapon and self.weapon.name == 'sword':
@@ -282,7 +282,14 @@ class Mob(pygame.sprite.Sprite):
 	def blit(self):
 		"""Blit to surf, which is overlayed onto my.map.map"""
 		if my.camera.isVisible(self.rect):
-			my.surf.blit(self.image, self.rect)
+			blitPos = self.rect.copy()
+			if self in my.allHumans and self.occupation == 'swordsman':
+				if self.animation == Human.swordsmanAttackAnimR:
+					blitPos.move_ip(7, 0) # line up the sword so he is stabbing the enemy properly
+				elif self.animation == Human.swordsmanAttackAnimL:
+					blitPos.move_ip(-16, 0)
+
+			my.surf.blit(self.image, blitPos)
 
 
 	def handleImage(self):
@@ -1045,8 +1052,13 @@ class Human(Mob):
 
 
 	def updateSoldier(self):
-		if self.coords == self.orderDestination:
-			self.orderDestination = None
+		if self.orderDestination:
+			x, y = my.map.cellsToPixels(self.orderDestination)
+			x = int(x + my.CELLSIZE / 4)
+			if self.rect.topleft == (x, y):
+				self.orderDestination = None
+		elif self.coords == self.orderDestination:
+			print 'hmmm'
 		self.destination = self.orderDestination
 		if not self.weapon:
 			self.findWeapon()
@@ -1123,7 +1135,7 @@ class Human(Mob):
 
 			if self.target and (self.target.isDead or not self.weapon):
 				self.target = None
-			elif self.target and self.weapon and self.coords != self.target.coords and not adjacent:
+			elif not self.orderDestination and self.target and self.weapon and self.coords != self.target.coords and not adjacent:
 				self.destination = self.target.coords
 
 
@@ -1142,12 +1154,17 @@ class Enemy(Human):
 		self.moveAnim = Enemy.moveAnimation
 		self.swimAnim = Enemy.swimAnim
 		self.animation = self.idleAnim
-		self.animNum = 0
 
 		Human.__init__(self, coords, 'enemy')
 		self.add(my.allEnemies)
 		self.remove(my.allHumans)
 		self.target = None
+
+		self.idleAnim = Enemy.idleAnimation
+		self.moveAnim = Enemy.moveAnimation
+		self.swimAnim = Enemy.swimAnim
+		self.animation = self.idleAnim
+		self.animNum = 0
 
 		self.damage = 100
 		self.attackRange = 5
