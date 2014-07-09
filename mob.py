@@ -143,7 +143,7 @@ class Mob(pygame.sprite.Sprite):
 
 		self.weapon = None
 		self.lastAttackSoundTime = 1
-		self.reserved = None
+		self.reserved = []
 
 		self.coords =  coords
 		self.tick = randint(1, 19)
@@ -272,7 +272,7 @@ class Mob(pygame.sprite.Sprite):
 			elif self.occupation == 'builder': self.removeSiteReservation()
 			elif self.occupation == 'woodcutter': self.stopWoodcutterJob()
 		if self.target:
-			self.target.reserved = None
+			self.target.reserved.remove(self)
 		self.kill()
 		self.isDead = True
 		Corpse((self.rect.centerx, self.rect.bottom + 5), self.image,
@@ -360,6 +360,8 @@ class Human(Mob):
 		self.size = (10, 20)
 		self.baseMoveSpeed = my.HUMANMOVESPEED
 		self.moveSpeed = my.HUMANMOVESPEED
+		self.maxAttackers = 2
+
 		self.changeOccupation(occupation)
 		Mob.__init__(self, self.baseMoveSpeed, self.animation, coords, self.size, my.HUMANMAXHEALTH)
 		self.add(my.allHumans)
@@ -529,9 +531,10 @@ class Human(Mob):
 		nearestTargets = my.map.findNearestBuildings(self.coords, targetGroup)
 		if not nearestTargets: return
 		for target in nearestTargets:
-			if target.distanceTo < maxDistance and target.reserved in [self, None]:
+			if target.distanceTo < maxDistance and (self in target.reserved or len(target.reserved) < target.maxAttackers):
 				self.target = target
-				self.target.reserved = self
+				if self not in target.reserved:
+					self.target.reserved.append(self)
 				return
 
 
@@ -1123,20 +1126,20 @@ class Human(Mob):
 			if not self.orderDestination:
 				if self.weapon and not self.target:
 					self.findTarget(my.allEnemies, self.goAndAttackRange)
-					if self.target:
-						self.destination = self.target.coords
+
+				# make sure one swordsman stands on each side of the target (if there are two swordsman attacking the target)
+				if self.target:
+					if self.target.reserved.index(self) == 0:
+						self.destination = (self.target.coords[0] + 1, self.target.coords[1])
+					else:
+						self.destination = (self.target.coords[0] - 1, self.target.coords[1])
+
 				if self.weapon and self.target:
-					adjacent = my.map.isAdjacentTo(self.coords, self.target.coords)
-					if adjacent:
-						self.destination = adjacent
+					if my.map.isAdjacentTo(self.coords, self.target.coords):
 						self.meleeAttack(self.target, self.weapon.damage, dt)
-					elif self.coords == self.target.coords:
-						self.destination = None
 
 			if self.target and (self.target.isDead or not self.weapon):
 				self.target = None
-			elif not self.orderDestination and self.target and self.weapon and self.coords != self.target.coords and not adjacent:
-				self.destination = self.target.coords
 
 
 
@@ -1144,6 +1147,7 @@ class Enemy(Human):
 	"""An enemy class somewhat similar to the Human() class, but they respond to stuff differently"""
 	idleAnimation = loadAnimationFiles('assets/mobs/enemy/idle')
 	moveAnimation = loadAnimationFiles('assets/mobs/enemy/move')
+	attackAnimation = loadAnimationFiles('assets/mobs/enemy/attack')
 	swimmingMask = pygame.image.load('assets/mobs/swimmingMask.png').convert_alpha()
 	swimAnim = blitClothes(idleAnimation, moveAnimation, None, swimmingMask)
 
@@ -1152,13 +1156,16 @@ class Enemy(Human):
 	def __init__(self, coords):
 		self.idleAnim = Enemy.idleAnimation
 		self.moveAnim = Enemy.moveAnimation
+		self.attackAnim = Enemy.attackAnimation
 		self.swimAnim = Enemy.swimAnim
 		self.animation = self.idleAnim
 
 		Human.__init__(self, coords, 'enemy')
 		self.add(my.allEnemies)
 		self.remove(my.allHumans)
+
 		self.target = None
+		self.maxAttackers = 2
 
 		self.idleAnim = Enemy.idleAnimation
 		self.moveAnim = Enemy.moveAnimation
@@ -1176,23 +1183,31 @@ class Enemy(Human):
 			if not self.target and not self.orderDestination:
 				self.findTarget(my.allHumans, Enemy.attackDistance)
 				if self.target:
-					ui.StatusText('Your citizens are under attack!', self.coords)
+					if self.target.occupation in ['swordsman', 'archer']: targetType = 'soldiers'
+					else: targetType = 'citizens'
+					ui.StatusText('Your %s are under attack!' %(targetType), self.coords)
 
 			elif self.target and self.target.isDead:
 				self.target = None
 
-			elif self.target:
-				adjacent = my.map.isAdjacentTo(self.coords, self.target.coords)
-				if adjacent:
-					self.destination = adjacent
+			if self.target:
+				# make sure one enemy stands on each side of the target (if there are two enemies attacking the target)
+				if self.target and not self.reserved: # if you have two attackers wait for them to come for you
+					if self.target.reserved.index(self) == 0:
+						self.destination = (self.target.coords[0] + 1, self.target.coords[1])
+					else:
+						self.destination = (self.target.coords[0] - 1, self.target.coords[1])
+				elif self.reserved:
+					self.destination = None
+
+				if my.map.isAdjacentTo(self.coords, self.target.coords):
 					self.meleeAttack(self.target, self.damage, dt)
-				elif self.coords == self.target.coords: # if standing on top of target move beside them
-					self.destination = (self.coords[0] + self.attackFromLeftOrRight, self.coords[1])
-				else:
-					self.destination = self.target.coords
 
 			if self.orderDestination and self.orderDestination == self.coords:
 				self.orderDestination = None
+
+			if self.orderDestination:
+				self.destination = self.orderDestination # override everything else (eg attacking nearby citizens)
 
 			if not self.orderDestination and not self.target:
 				if randint(0, 250) == 0:  # wander about randomly to look a little more alive
