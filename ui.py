@@ -31,7 +31,7 @@ def resourceText(text, topLeftPos):
 	x, y = topLeftPos
 	textSurf, textRect = genText(text.capitalize(), (GAP, GAP), my.WHITE, BASICFONT)
 	bgRect = pygame.Rect((x, y), (textRect.width + GAP * 2, textRect.height + GAP * 2))
-	bgSurf = pygame.Surface((bgRect.width, bgRect.height))
+	bgSurf = pygame.Surface((bgRect.width, bgRect.height)).convert()
 	bgSurf.fill(my.BROWN)
 	bgSurf.blit(textSurf, textRect)
 	my.screen.blit(bgSurf, bgRect)
@@ -73,7 +73,7 @@ class Hud:
 		self.selectionButtons = SelectionButtons(self.minimap)
 		self.statusArea = StatusArea()
 
-		my.surf = pygame.Surface(my.map.surf.get_size())
+		my.surf = pygame.Surface(my.map.surf.get_size()).convert()
 		self.regenSurf = False
 
 
@@ -133,7 +133,7 @@ class Hud:
 
 	def genBlankSurf(self):
 		"""Regenerates my.surf"""
-		my.surf = pygame.Surface(my.map.surf.get_size())
+		my.surf = pygame.Surface(my.map.surf.get_size()).convert()
 		my.hud.updateWorldUI()
 
 
@@ -153,7 +153,7 @@ class Button:
 		# CREATE BASIC SURF
 		self.padding = 10 # might be controlled by 'style' eventually
 		self.buttonSurf = pygame.Surface((self.textSurf.get_width() + self.padding,
-										  self.textSurf.get_height() + self.padding))
+										  self.textSurf.get_height() + self.padding)).convert()
 		self.buttonSurf.fill(my.BROWN)
 		self.buttonSurf.blit(self.textSurf, (int(self.padding /2), int(self.padding /2)))
 		self.currentSurf = self.buttonSurf
@@ -165,11 +165,11 @@ class Button:
 		# CREATE ADDITIONAL SURFS
 		if isClickable:
 			# MOUSE HOVER
-			self.hoverSurf = pygame.Surface(self.buttonSurf.get_size())
+			self.hoverSurf = pygame.Surface(self.buttonSurf.get_size()).convert()
 			self.hoverSurf.fill(my.DARKBROWN)
 			self.hoverSurf.blit(self.textSurf, (int(self.padding /2), int(self.padding /2)))
 			# MOUSE CLICK
-			self.clickSurf = pygame.Surface(self.buttonSurf.get_size())
+			self.clickSurf = pygame.Surface(self.buttonSurf.get_size()).convert()
 			self.clickSurf.fill(my.BROWNBLACK)
 			self.clickSurf.blit(self.textSurf, (int(self.padding /2), int(self.padding /2)))
 			self.isClicked = False
@@ -220,7 +220,7 @@ class Tooltip:
 		self.textObjs, self.textHeight = self.genTextObjs(self.text)
 		self.textWidth = self.getLongestTextLine(self.textObjs)
 		# CREATE SURF
-		self.surf = pygame.Surface((self.textWidth + GAP * 3, self.textHeight + GAP * 2))
+		self.surf = pygame.Surface((self.textWidth + GAP * 3, self.textHeight + GAP * 2)).convert()
 
 		width, height = self.surf.get_width(), self.surf.get_height()
 		if self.arrowSide == 'left':
@@ -253,9 +253,9 @@ class Tooltip:
 			self.newTooltip()
 
 		if isHovered and self.text != 'BLANK TOOLTIP':
-			if self.alpha < 200: self.alpha += 20
+			if self.alpha < 200: self.alpha += 25 * my.dt * 40
 		elif self.alpha > 0 and not self.lockAlpha:
-			self.alpha -= self.fadeRate
+			self.alpha -= self.fadeRate * my.dt * 40
 
 		if self.alpha > 0:
 			self.surf.set_alpha(self.alpha)
@@ -368,8 +368,8 @@ class Slider:
 
 	def genSurf(self):
 		"""Generate a new slider baseSurf and rects, with labels"""
-		self.baseSurf = pygame.Surface(Slider.size)
-		self.surf = pygame.Surface(self.baseSurf.get_size())
+		self.baseSurf = pygame.Surface(Slider.size).convert()
+		self.surf = pygame.Surface(self.baseSurf.get_size()).convert()
 		if self.bgColour:
 			self.baseSurf.fill(self.bgColour)
 		else:
@@ -461,7 +461,7 @@ class BottomBar:
 
 	def genBackgroundImg(self):
 		"""Generates a background image for the bottom bar"""
-		self.backgroundImg = pygame.Surface(self.bounds.size)
+		self.backgroundImg = pygame.Surface(self.bounds.size).convert()
 		self.backgroundImg.set_colorkey(my.BLACK)
 		for rect in self.localRects:
 			self.backgroundImg.blit(random.choice(self.cellBackgrounds), rect)
@@ -924,7 +924,7 @@ class SelectionButtons:
 
 
 	def genSurf(self):
-		self.baseSurf = pygame.Surface(self.rect.size)
+		self.baseSurf = pygame.Surface(self.rect.size).convert()
 		self.baseSurf.set_colorkey(my.COLOURKEY)
 		self.baseSurf.fill(my.COLOURKEY)
 		titleSurf, titleRect = genText('Selected troops', (0, 0), my.WHITE)
@@ -1115,7 +1115,7 @@ class BuildingMenu(pygame.sprite.Sprite):
 			self.imgList.append(img)
 
 		# INIT SURF
-		tempSurf = pygame.Surface((iconSize + plusMinusSize * 2 + GAP * 4, 1000))
+		tempSurf = pygame.Surface((iconSize + plusMinusSize * 2 + GAP * 4, 1000)).convert()
 		tempSurf.fill(my.GREYBROWN)
 
 		# GEN RECTS AND SURF
@@ -1158,7 +1158,7 @@ class BuildingMenu(pygame.sprite.Sprite):
 
 			if i == len(self.imgList) - 1: # bottom item
 				surfHeight = iconRect.bottom + GAP
-				self.baseSurf = pygame.Surface((tempSurf.get_width(), surfHeight))
+				self.baseSurf = pygame.Surface((tempSurf.get_width(), surfHeight)).convert()
 				self.baseSurf.blit(tempSurf, (0,0))
 
 		self.rect = self.baseSurf.get_rect()
@@ -1167,7 +1167,7 @@ class BuildingMenu(pygame.sprite.Sprite):
 		self.displayRect.inflate(10, 0)
 
 		# TRIANGLE SURF
-		self.triangleSurf = pygame.Surface((10, 10))
+		self.triangleSurf = pygame.Surface((10, 10)).convert()
 		pygame.draw.polygon(self.triangleSurf, my.GREYBROWN, [(0, 0), (GAP, 5), (0, 10)])
 		self.triangleSurf.set_colorkey(my.BLACK)
 
@@ -1503,7 +1503,7 @@ class StatusArea:
 				status.update(GAP * 10 + currentHeight)
 				currentHeight += status.tooltip.rect.height + GAP
 		for recentStatus in my.recentStatuses.sprites():
-			if my.ticks - recentStatus.startTicks > StatusText.recentStatusLifetime:
+			if time.time() - recentStatus.createTime > StatusText.recentStatusLifetime:
 				recentStatus.kill()
 
 
@@ -1513,8 +1513,8 @@ class StatusText(pygame.sprite.Sprite):
 	Displays important info to the player.
 	Is moved down when another message comes in, is faded out after a period of time
 	"""
-	statusLifetime = 200
-	recentStatusLifetime = 1000  # how long before a status pops up again when called repeatedly
+	statusLifetime = 7
+	recentStatusLifetime = 27  # how long before a status pops up again when called repeatedly
 	eyeImg = pygame.image.load('assets/ui/eye.png').convert_alpha()
 	def __init__(self, text, zoomTo=None, allowRepeats=False):
 		if not allowRepeats:
@@ -1523,25 +1523,25 @@ class StatusText(pygame.sprite.Sprite):
 		pygame.sprite.Sprite.__init__(self)
 		self.add(my.statuses)
 		self.add(my.recentStatuses)
-		self.startTicks = my.ticks
 		self.text, self.zoomTo = text, zoomTo
+		self.createTime = time.time()
 		self.lifetime = StatusText.statusLifetime
 
 		self.tooltip = Tooltip(text, (10, 40), BIGFONT)
-		self.tooltip.fadeRate = 1
+		self.tooltip.fadeRate = 5
 		self.tooltip.rect.topleft = (GAP, 0)
 		self.tooltip.alpha = 100
 		if self.zoomTo:
 			w, h = StatusText.eyeImg.get_size()
 			self.tooltip.surf.blit(StatusText.eyeImg, (self.tooltip.rect.right - w - GAP, self.tooltip.rect.bottom - h - GAP))
-			self.lifetime += 50
+			self.lifetime += 5
 		self.fadeOut = False
 		self.destination = (GAP, GAP)
 		sound.play('pop', 0.8, False)
 
 
 	def update(self, destinationY): # destinationY may be the StatusText's current y value
-		if my.ticks - self.startTicks > self.lifetime:
+		if time.time() - self.createTime > self.lifetime:
 			self.fadeOut = True
 		self.destination = (GAP, destinationY)
 		destx, desty = self.destination
@@ -1568,17 +1568,17 @@ class Minimap:
 	"""A minimap displaying the world and the camera's viewarea, at the bottom right of the screen"""
 	def __init__(self):
 		self.rect = pygame.Rect((my.WINDOWWIDTH - my.MAPXCELLS - GAP * 6, my.WINDOWHEIGHT - my.MAPYCELLS - GAP * 6), (my.MAPXCELLS, my.MAPYCELLS))
-		self.surf = pygame.Surface(self.rect.size)
-		self.mapSurf = pygame.Surface(self.rect.size)
+		self.surf = pygame.Surface(self.rect.size).convert()
+		self.mapSurf = pygame.Surface(self.rect.size).convert()
 		self.mapSurf.fill(my.DARKGREEN)
-		self.blipSurf = pygame.Surface(self.rect.size)
+		self.blipSurf = pygame.Surface(self.rect.size).convert()
 		self.blipSurf.set_colorkey(my.COLOURKEY)
-		self.newSurf = pygame.Surface(self.rect.size)
+		self.newSurf = pygame.Surface(self.rect.size).convert()
 		self.newSurf.fill(my.DARKGREEN)
 		self.row = 0
 		self.updateMapsurf()
 		self.updateMobBlips()
-		self.hoverSurf = pygame.Surface(self.rect.size)
+		self.hoverSurf = pygame.Surface(self.rect.size).convert()
 		self.hoverSurf.fill(my.WHITE)
 		self.hoverSurf.set_alpha(30)
 

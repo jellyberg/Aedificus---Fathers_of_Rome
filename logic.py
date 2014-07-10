@@ -59,7 +59,8 @@ class Handler:
 
 		if not my.paused:
 			self.pauseAlpha = 0
-			my.surf.blit(my.map.surf, (0, 0))
+			my.surf.blit(my.map.surf, my.camera.viewArea, my.camera.viewArea)
+			my.camera.update(deltaTime)
 
 			my.ticks += 1
 			for i in range(1, 20):
@@ -86,8 +87,9 @@ class Handler:
 			item.update()
 			mob.updateMobs(deltaTime)
 			ui.handleTooltips()
+
 			my.hud.updateWorldUI()
-			my.camera.update(deltaTime)
+			my.screen.blit(my.surf, (0,0), my.camera.viewArea)
 			my.hud.updateHUD(deltaTime)
 
 		else:

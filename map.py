@@ -67,7 +67,7 @@ class Map:
 
 
 	def genSurf(self):
-		self.surf = pygame.Surface((my.MAPWIDTH, my.MAPHEIGHT))
+		self.surf = pygame.Surface((my.MAPWIDTH, my.MAPHEIGHT)).convert()
 		for x in range(my.MAPXCELLS):
 			for y in range(my.MAPYCELLS):
 				if self.map[x][y] in ['rock', 'water']:
@@ -274,7 +274,6 @@ class Camera:
 			self.viewArea.right = my.surf.get_width()
 			self.xVel = -my.MAPEDGEBOUNCE
 
-		my.screen.blit(my.surf, (0,0), self.viewArea)
 		self.lastFocus = self.focus
 
 

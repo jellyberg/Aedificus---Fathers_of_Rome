@@ -27,7 +27,7 @@ pygame.init()
 
 loadSettings()
 
-FPS = 60
+FPS = 200
 FPSCLOCK = pygame.time.Clock()
 muted = False
 
