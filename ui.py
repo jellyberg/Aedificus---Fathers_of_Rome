@@ -996,11 +996,19 @@ class SelectionButtons:
 			if my.input.mouseUnpressed == 3 and my.input.hoveredCell is not None:
 				sound.play('click', 0.7, 1)
 				MoveMarker(my.input.hoveredCell)
+
 				if len(my.selectedTroops) == 1:
-					my.selectedTroops.sprites()[0].orderDestination = my.input.hoveredCell
+					if my.selectedTroops.sprites()[0].target:
+						my.selectedTroops.sprites()[0].orderDestination = my.input.hoveredCell
+					else:
+						my.selectedTroops.sprites()[0].destination = my.input.hoveredCell
+
 				else:
 					for soldier in my.selectedTroops:
-						soldier.orderDestination = 'unspecified'
+						if soldier.target:
+							soldier.orderDestination = 'unspecified'
+						else:
+							soldier.destination = 'unspecified'
 
 					squareWidth = math.ceil(math.sqrt(len(my.selectedTroops)))
 					halfSquareWidth = int(math.ceil(squareWidth / 2))
@@ -1008,11 +1016,18 @@ class SelectionButtons:
 						for x in range(my.input.hoveredCell[0] - halfSquareWidth, my.input.hoveredCell[0] + halfSquareWidth):
 							for soldier in my.selectedTroops:
 								if soldier.orderDestination == 'unspecified':
+									soldier.target = None
 									if my.map.inBounds((x, y + 1)):
 										soldier.orderDestination = (x, y + 1)
 										break
 									else:
 										soldier.orderDestination = my.input.hoveredCell
+								elif soldier.destination == 'unspecified':
+									if my.map.inBounds((x, y + 1)):
+										soldier.destination = (x, y + 1)
+										break
+									else:
+										soldier.destination = my.input.hoveredCell
 
 		else:
 			self.crossWasHovered = False

@@ -49,6 +49,9 @@ def updateMobs(dt):
 		ui.UItip((my.hud.designator.rect.left, my.hud.designator.rect.top + 65), 
 				  'Designate some ore for your miners')
 
+	if len(my.allHumans) == 0:
+		ui.StatusText('All of your citizens are dead! You have failed!')
+
 
 def loadAnimationFiles(directory, reverse=False, flip=False):
 	"""Load images from directory into a list of surfaces"""
@@ -119,6 +122,7 @@ class Mob(pygame.sprite.Sprite):
 		self.animFrame = 0
 		self.timeLastFrameChange = 0
 		self.animFrameDuration = 0.15
+		self.justAttacked = False
 		if type(img) == list:
 			self.animation = img
 			self.lastAnimation = self.animation
@@ -158,6 +162,7 @@ class Mob(pygame.sprite.Sprite):
 			self.handleImage()
 			self.blit()
 			if self.health is not None: self.handleHealth()
+			self.justAttacked = False
 
 
 	def updateMove(self, dt):
@@ -229,6 +234,7 @@ class Mob(pygame.sprite.Sprite):
 
 
 	def meleeAttack(self, target, damage, dt):
+		self.justAttacked = True
 		target.health -= (damage + randint(damage - damage / my.DAMAGEMARGIN, damage + damage / my.DAMAGEMARGIN)) * dt
 		if target.health < 1:
 			if self.weapon:
@@ -294,6 +300,13 @@ class Mob(pygame.sprite.Sprite):
 
 	def handleImage(self):
 		"""If has animation, update self.image"""
+		try:
+			if not self.justAttacked and self.animation not in [self.moveAnim, self.attackAnim]:
+				self.animation = self.moveAnim
+				self.animNum = 0
+		except AttributeError:
+			pass
+
 		if self.animation:
 			if self.animation != self.lastAnimation:
 				if self.animFrame > len(self.animation) - 1:
@@ -1060,9 +1073,8 @@ class Human(Mob):
 			x = int(x + my.CELLSIZE / 4)
 			if self.rect.topleft == (x, y):
 				self.orderDestination = None
-		elif self.coords == self.orderDestination:
-			print 'hmmm'
-		self.destination = self.orderDestination
+		if self.orderDestination:
+			self.destination = self.orderDestination
 		if not self.weapon:
 			self.findWeapon()
 
@@ -1144,9 +1156,9 @@ class Human(Mob):
 
 
 class Enemy(Human):
-	"""An enemy class somewhat similar to the Human() class, but they respond to stuff differently"""
-	idleAnimation = loadAnimationFiles('assets/mobs/enemy/idle')
-	moveAnimation = loadAnimationFiles('assets/mobs/enemy/move')
+	"""An enemy class somewhat similar to the Human() class, but they respond to stuff very differently"""
+	idleAnimation = loadAnimationFiles('assets/mobs/enemy/idle', 1)
+	moveAnimation = loadAnimationFiles('assets/mobs/enemy/move', 1)
 	attackAnimation = loadAnimationFiles('assets/mobs/enemy/attack')
 	swimmingMask = pygame.image.load('assets/mobs/swimmingMask.png').convert_alpha()
 	swimAnim = blitClothes(idleAnimation, moveAnimation, None, swimmingMask)
@@ -1192,12 +1204,12 @@ class Enemy(Human):
 
 			if self.target:
 				# make sure one enemy stands on each side of the target (if there are two enemies attacking the target)
-				if self.target and not self.reserved: # if you have two attackers wait for them to come for you
+				if self.target and not self.reserved:
 					if self.target.reserved.index(self) == 0:
 						self.destination = (self.target.coords[0] + 1, self.target.coords[1])
 					else:
 						self.destination = (self.target.coords[0] - 1, self.target.coords[1])
-				elif self.reserved:
+				elif self.reserved and self.target in self.reserved:# if you are attacking your attacker wait for them to come for you
 					self.destination = None
 
 				if my.map.isAdjacentTo(self.coords, self.target.coords):
@@ -1209,11 +1221,13 @@ class Enemy(Human):
 			if self.orderDestination:
 				self.destination = self.orderDestination # override everything else (eg attacking nearby citizens)
 
-			if not self.orderDestination and not self.target:
-				if randint(0, 250) == 0:  # wander about randomly to look a little more alive
-					int1, int2 = randint(-2, 2), randint(-2, 2)
+			if not self.orderDestination and not self.target and not self.destination:
+				self.remove(my.allEnemies)
+				if randint(0, 250) == 0 or (my.ticks % 5==0 and pygame.sprite.spritecollideany(self, my.allEnemies)):
+					int1, int2 = randint(-2, 2), randint(-2, 2) # wander about randomly to look a little more alive
 					if my.map.inBounds((self.coords[0] + int1, self.coords[1] + int2)):
 						self.destination = (self.coords[0] + int1, self.coords[1] + int2)
+				self.add(my.allEnemies)
 
 			Human.update(self, dt)
 
