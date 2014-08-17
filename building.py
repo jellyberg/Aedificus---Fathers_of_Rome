@@ -71,7 +71,9 @@ def updateBuildings(dt):
 	for building in my.builtBuildings.sprites():
 		building.handleShadow()
 	my.allBuildings.update(dt)
-	my.buildingBeingPlaced.update(dt)
+	if my.buildingBeingPlaced:
+		my.buildingBeingPlaced.update(dt)
+		ui.UItip((my.hud.minimap.rect.left - 100, my.hud.minimap.rect.bottom - 35), 'Left click to place, right click to cancel')
 
 	# if there are no builders and an unconstructed building, alert the player via a UItip
 	if my.buildingsUnderConstruction:

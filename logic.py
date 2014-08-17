@@ -57,6 +57,10 @@ class Handler:
 			if not my.muted:
 				ui.StatusText('All earmeltingly beautiful sounds activated', None, True)
 
+		# if pygame.locals.K_p in my.input.unpressedKeys:
+		# 	my.FPS = random.choice([60, 500])
+		# 	ui.StatusText('FPS: %s' %(my.FPS))
+
 		if not my.paused:
 			self.pauseAlpha = 0
 			my.surf.blit(my.map.surf, my.camera.viewArea, my.camera.viewArea)
@@ -118,16 +122,16 @@ class Handler:
 			my.RESOURCENAMEORDER = ['wood', 'coal', 'iron', 'gold', 'ingot'] # displayed on the screen at all times
 
 		# HUMANS FOR TESTING
-		for i in range(10):
+		for i in range(6):
 			human = mob.Human((int(my.MAPXCELLS / 2), int(my.MAPYCELLS / 2)), 'swordsman')
 			human.destination = (random.randint(int(my.MAPXCELLS / 2) - 5, int(my.MAPXCELLS / 2) + 5),
 					   random.randint(int(my.MAPYCELLS / 2) - 5, int(my.MAPYCELLS / 2) + 5))
 		# for i in range(1):
 		# 	mob.DeathWolf((random.randint(int(my.MAPXCELLS / 2) - 5, int(my.MAPXCELLS / 2) + 5),
 		# 						random.randint(int(my.MAPYCELLS / 2) - 5, int(my.MAPYCELLS / 2) + 5)))
-		for i in range(10):
+		for i in range(2):
 			mob.Enemy((int(my.MAPXCELLS / 2 - 20), int(my.MAPYCELLS / 2 + 0)))
-		for i in range(10):
+		for i in range(6):
 			item.Sword(1, (random.randint(int(my.MAPXCELLS / 2) - 5, int(my.MAPXCELLS / 2) + 5),
 					   random.randint(int(my.MAPYCELLS / 2) - 5, int(my.MAPYCELLS / 2) + 5)))
 

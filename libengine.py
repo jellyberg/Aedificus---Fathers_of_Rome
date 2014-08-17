@@ -5,7 +5,7 @@
 import pygame, my, logic, input, ui, os, math, webbrowser
 
 os.environ['SDL_VIDEO_CENTERED'] = '1'
-pygame.mixer.pre_init(44100,-16,2, 1024)
+pygame.mixer.pre_init(44100, -16, 2, 1024)
 pygame.display.set_icon(pygame.image.load('assets/ui/icon.png'))
 pygame.init()
 pygame.display.set_caption('Aedificus: Fathers of Rome')

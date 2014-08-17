@@ -255,7 +255,7 @@ class Mob(pygame.sprite.Sprite):
 			except AttributeError:
 				pass # has no attack animation
 
-		if time.time() - self.lastAttackSoundTime > 1 and randint(0, 60)==0: # attack sounds
+		if time.time() - self.lastAttackSoundTime > 1 and randint(0, 60)==0 and my.camera.isVisible(self.rect): # attack sounds
 			if self.weapon and self.weapon.name == 'sword':
 				sound.play('sword%s' %(randint(1, 4)))
 			if not self.weapon:
