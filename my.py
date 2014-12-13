@@ -18,7 +18,7 @@ def loadSettings():
 				WINDOWEDMODE = True
 
 
-DEBUGMODE = 1
+DEBUGMODE = 0
 if DEBUGMODE: WINDOWEDMODE = True
 CHEATS = {'noHunger': 0, 'fastActions': 0, 'fastMoving': 0}
 
@@ -31,15 +31,15 @@ FPS = 60
 FPSCLOCK = pygame.time.Clock()
 muted = False
 
-screenfo = pygame.display.Info()
+screenInfo = pygame.display.Info()
 if WINDOWEDMODE:
-	WINDOWWIDTH = screenfo.current_w  - 300#- 200
-	WINDOWHEIGHT = screenfo.current_h - 300# - 200
+	WINDOWWIDTH = screenInfo.current_w  - 300#- 200
+	WINDOWHEIGHT = screenInfo.current_h - 300# - 200
 	screen = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
 	loadingScreen = pygame.transform.scale(pygame.image.load('assets/ui/loadingScreen.png'), (WINDOWWIDTH, WINDOWHEIGHT))
 if not WINDOWEDMODE:
-	WINDOWWIDTH = screenfo.current_w
-	WINDOWHEIGHT = screenfo.current_h
+	WINDOWWIDTH = screenInfo.current_w
+	WINDOWHEIGHT = screenInfo.current_h
 	screen = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT), FULLSCREEN)
 	loadingScreen = pygame.transform.scale(pygame.image.load('assets/ui/fullscreenLoadingScreen.png'), (WINDOWWIDTH, WINDOWHEIGHT))
 HALFWINDOWWIDTH = int(WINDOWWIDTH / 2)

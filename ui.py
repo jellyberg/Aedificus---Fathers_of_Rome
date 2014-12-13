@@ -1562,6 +1562,39 @@ class StatusText(pygame.sprite.Sprite):
 
 
 
+class ExitAlert:
+	"""A popup asking if the user is sure they want to exit. Pauses the game while active. Returns False to close."""
+	def __init__(self):
+		self.rect = pygame.Rect((0, 0), (700, 250))
+		self.rect.center = (my.HALFWINDOWWIDTH, my.HALFWINDOWHEIGHT)
+
+		self.surf = pygame.Surface(self.rect.size)
+		self.surf.fill(my.BROWN)
+
+		self.textSurf, self.textRect = genText('Are you sure you want to quit?', (0, 0), my.LIGHTGREY, MEGAFONT)
+		self.textRect.midbottom = self.rect.center
+
+		self.cancelButton = Button('Cancel', 0, (self.rect.centerx - GAP, self.rect.centery + 20), 1, 1, 1)
+		self.quitButton = Button('Quit', 0, (self.rect.centerx + GAP, self.rect.centery + 20), 1, 1, 0)
+
+		print('init')
+
+
+	def update(self):
+		print('update')
+		my.screen.blit(self.surf, self.rect)
+		my.screen.blit(self.textSurf, self.textRect)
+		for button in [self.cancelButton, self.quitButton]:
+			button.simulate(my.input)
+
+		if self.cancelButton.isClicked:
+			return False
+		if self.quitButton.isClicked:
+			my.input.terminate()
+
+		return True
+
+
 class Minimap:
 	rawBorderImg = pygame.image.load('assets/ui/minimapBorder.png').convert_alpha()
 	borderImg = pygame.transform.scale(rawBorderImg, (my.MAPXCELLS + int(my.MAPXCELLS / 10), my.MAPYCELLS + int(my.MAPYCELLS / 10)))

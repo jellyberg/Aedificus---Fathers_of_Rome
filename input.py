@@ -2,7 +2,7 @@
 # by Adam Binks   www.github.com/jellyberg/Aedificus---Fathers_of_Rome
 # Read the devblog on Tumblr: bit.ly/Aedificus
 
-import pygame, sys, my
+import pygame, sys, my, ui
 from pygame.locals import *
 
 class Input:
@@ -17,13 +17,13 @@ class Input:
 
     def get(self):
         """Update variables - mouse position, occupied cell and click state, and pressed keys"""
-        self.checkForQuit()
         self.mouseUnpressed = False
         self.unpressedKeys = []
         self.lastCell = self.hoveredCell
+
         for event in pygame.event.get():
-            if event.type == QUIT or (event.type == KEYUP and event.key == K_ESCAPE):
-                pygame.event.post(event)
+            if event.type == QUIT:
+                self.terminate()
             elif event.type == KEYDOWN:
                 self.pressedKeys.append(event.key)
             elif event.type == KEYUP:
@@ -39,26 +39,36 @@ class Input:
             elif event.type == MOUSEBUTTONUP:
                 self.mousePressed = False
                 self.mouseUnpressed = event.button
-        
+
+        self.checkForQuit()
+        #if pygame.locals.K_ESCAPE in self.unpressedKeys:
+            #self.showConfirmExitAlert()
+
         if my.gameRunning:
             self.hoveredPixel = my.map.screenToGamePix(self.mousePos)
             hoveredCoords = my.map.screenToCellCoords(self.mousePos)
             if not my.UIhover and my.map.inBounds(hoveredCoords):
                 self.hoveredCell = my.map.screenToCellCoords(self.mousePos)
                 self.hoveredCellType = my.map.cellType(self.hoveredCell)
-            else:  
+            else:
                 self.hoveredCell = None
                 self.hoveredCellType = None
 
 
     def checkForQuit(self):
-        """Terminate if QUIT events or K_ESCAPE"""
-        for event in pygame.event.get(QUIT): # get all the QUIT events
+        """Terminate if QUIT events"""
+        if pygame.locals.K_ESCAPE in self.unpressedKeys:
             self.terminate() # terminate if any QUIT events are present
-        for event in pygame.event.get(KEYUP): # get all the KEYUP events
-            if event.key == K_ESCAPE:
-                self.terminate() # terminate if the KEYUP event was for the Esc key
-            pygame.event.post(event) # put the other KEYUP event objects back
+
+
+    def showConfirmExitAlert(self):
+        """Shows a pop up alert asking the user if they want to quit, and pauses the program while doing so"""
+        alertIsOpen = True
+        alert = ui.ExitAlert()
+        while alertIsOpen:
+            alertIsOpen = alert.update()
+            self.get() # get input
+            pygame.display.update()
 
 
     def terminate(self):

@@ -85,6 +85,10 @@ class Handler:
 					ui.StatusText('Congratulations, you completed all missions!')
 				my.mission = None
 
+			for key in my.resources.keys():
+				if my.resources[key] < 0:
+					my.resources[key] = 0
+
 			my.map.update()
 			my.eventHandler.update(deltaTime)
 			building.updateBuildings(deltaTime)
@@ -96,17 +100,13 @@ class Handler:
 			my.screen.blit(my.surf, (0,0), my.camera.viewArea)
 			my.hud.updateHUD(deltaTime)
 
-		else:
+		if my.paused:
 			if self.pauseAlpha < 150: self.pauseAlpha += 600 * deltaTime
 			self.pauseSurf.fill(my.DARKGREY)
 			self.pauseSurf.set_alpha(self.pauseAlpha)
 			self.pauseSurf.blit(self.pauseTextSurf, self.pauseTextRect)
 			my.screen.blit(self.screenCache, (0, 0))
 			my.screen.blit(self.pauseSurf, (0, 0))
-
-		for key in my.resources.keys(): # DON'T FIX THE BUGS, HIDE 'EM!
-			if my.resources[key] < 0:
-				my.resources[key] = 0
 
 
 	def newGame(self):
@@ -123,16 +123,20 @@ class Handler:
 
 		# HUMANS FOR TESTING
 		for i in range(6):
-			human = mob.Human((int(my.MAPXCELLS / 2), int(my.MAPYCELLS / 2)), 'swordsman')
+			human = mob.Human((int(my.MAPXCELLS / 2), int(my.MAPYCELLS / 2)))
 			human.destination = (random.randint(int(my.MAPXCELLS / 2) - 5, int(my.MAPXCELLS / 2) + 5),
 					   random.randint(int(my.MAPYCELLS / 2) - 5, int(my.MAPYCELLS / 2) + 5))
+
+		# UNCOMMENT LINES BELOW TO ADD SOME MORE ENTITIES
+		# WARNING: MOST OF THESE FEATURES ARE INCOMPLETE OR BUGGY
+
 		# for i in range(1):
 		# 	mob.DeathWolf((random.randint(int(my.MAPXCELLS / 2) - 5, int(my.MAPXCELLS / 2) + 5),
 		# 						random.randint(int(my.MAPYCELLS / 2) - 5, int(my.MAPYCELLS / 2) + 5)))
-		for i in range(2):
-			mob.Enemy((int(my.MAPXCELLS / 2 - 20), int(my.MAPYCELLS / 2 + 0)))
-		for i in range(6):
-			item.Sword(1, (random.randint(int(my.MAPXCELLS / 2) - 5, int(my.MAPXCELLS / 2) + 5),
-					   random.randint(int(my.MAPYCELLS / 2) - 5, int(my.MAPYCELLS / 2) + 5)))
+		#for i in range(2):
+		#	mob.Enemy((int(my.MAPXCELLS / 2 - 20), int(my.MAPYCELLS / 2 + 0)))
+		#for i in range(6):
+		#	item.Sword(1, (random.randint(int(my.MAPXCELLS / 2) - 5, int(my.MAPXCELLS / 2) + 5),
+		#			   random.randint(int(my.MAPYCELLS / 2) - 5, int(my.MAPYCELLS / 2) + 5)))
 
-		mission.initMissions(100) # FOR TESTING
+		mission.initMissions(0)
